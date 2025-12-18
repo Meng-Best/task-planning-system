@@ -1,0 +1,85 @@
+// Prisma Schema 配置文件 - SQLite 版本
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 任务表 - 用于测试和业务开发
+model Task {
+  id          Int       @id @default(autoincrement())
+  name        String
+  title       String?
+  description String?
+  status      String    @default("pending")
+  priority    Int       @default(0)
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("tasks")
+}
+
+// 项目表 - 后续业务开发使用
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("projects")
+}
+
+// 工作日历表 - 存储节假日、调休等例外情况（支持全局和产线专用日历）
+model CalendarEvent {
+  id               Int              @id @default(autoincrement())
+  date             DateTime         // 日期（只存日期部分，时间为 00:00:00）
+  type             String           // 类型: 'WORK'(调休上班) / 'HOLIDAY'(法定节假日) / 'REST'(其他休息)
+  note             String?          // 备注说明（如：国庆节、春节调休等）
+  productionLineId Int?             // 关联的产线ID（NULL表示全局配置）
+  productionLine   ProductionLine?  @relation(fields: [productionLineId], references: [id], onDelete: Cascade)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @default(now()) @updatedAt
+
+  @@unique([date, productionLineId]) // 复合唯一索引：同一天+同一产线只能有一条记录
+  @@map("calendar_events")
+}
+
+// 工厂表 - 生产资源管理
+model Factory {
+  id              Int              @id @default(autoincrement())
+  code            String?          @unique // 工厂代码（如：HJGS-01）
+  name            String           // 工厂名称
+  location        String?          // 位置/地址
+  description     String?          // 描述
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  productionLines ProductionLine[] // 关联的生产线
+
+  @@map("factories")
+}
+
+// 生产线表 - 工厂下的生产线资源
+model ProductionLine {
+  id             Int             @id @default(autoincrement())
+  code           String?         @unique // 产线代码（如：A-CX-01）
+  name           String          // 产线名称
+  type           String?         // 产线类型（如：组装线、包装线、测试线等）
+  capacity       Int             @default(100) // 标准日产能，用于排程计算
+  status         String          @default("ACTIVE") // 状态: 'ACTIVE'(运行中) / 'MAINTENANCE'(维护中) / 'CLOSED'(已停用)
+  factoryId      Int             // 所属工厂ID
+  factory        Factory         @relation(fields: [factoryId], references: [id], onDelete: Cascade)
+  calendarEvents CalendarEvent[] // 该产线的专用日历事件
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@map("production_lines")
+}
+

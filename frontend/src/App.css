@@ -1,0 +1,340 @@
+/* Ant Design Tabs 自定义样式 - 现代风格 */
+.tab-bar-custom .ant-tabs-nav {
+  margin-bottom: 0 !important;
+  padding: 8px 12px 0 12px !important;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.tab-bar-custom .ant-tabs-nav::before {
+  border-bottom: none !important;
+}
+
+.tab-bar-custom .ant-tabs-tab {
+  padding: 10px 16px !important;
+  margin: 0 4px 0 0 !important;
+  border-radius: 10px 10px 0 0 !important;
+  background: transparent !important;
+  border: none !important;
+  color: #64748b !important;
+  font-weight: 500;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.tab-bar-custom .ant-tabs-tab::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 3px 3px 0 0;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-bar-custom .ant-tabs-tab:hover {
+  background: rgba(102, 126, 234, 0.08) !important;
+  color: #667eea !important;
+}
+
+.tab-bar-custom .ant-tabs-tab-active {
+  background: #fff !important;
+  color: #1e293b !important;
+  box-shadow: 0 -2px 8px rgba(102, 126, 234, 0.15), 
+              0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.tab-bar-custom .ant-tabs-tab-active::before {
+  transform: translateX(-50%) scaleX(1);
+}
+
+.tab-bar-custom .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #667eea !important;
+  font-weight: 600;
+}
+
+/* 标签关闭按钮 */
+.tab-bar-custom .ant-tabs-tab-remove {
+  margin-left: 6px !important;
+  padding: 2px !important;
+  border-radius: 4px;
+  color: #94a3b8 !important;
+  transition: all 0.2s ease;
+}
+
+.tab-bar-custom .ant-tabs-tab-remove:hover {
+  background: linear-gradient(135deg, #ff6b6b20, #ee535520) !important;
+  color: #ef4444 !important;
+  transform: scale(1.1);
+}
+
+/* 隐藏默认的 ink bar */
+.tab-bar-custom .ant-tabs-ink-bar {
+  display: none !important;
+}
+
+/* 菜单样式优化 */
+.ant-menu-inline .ant-menu-item,
+.ant-menu-inline .ant-menu-submenu-title {
+  border-radius: 6px;
+  margin: 4px 8px !important;
+  width: calc(100% - 16px) !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  font-size: 15px !important;
+}
+
+.ant-menu-inline .ant-menu-item .anticon,
+.ant-menu-inline .ant-menu-submenu-title .anticon {
+  font-size: 17px !important;
+}
+
+.ant-menu-inline .ant-menu-item-selected {
+  background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%) !important;
+}
+
+/* 卡片悬浮效果 */
+.ant-card.ant-card-hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ========== Logo 动画样式 ========== */
+
+/* Logo 容器 - 发光脉冲效果 */
+.logo-container {
+  background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%);
+  backdrop-filter: blur(8px);
+  position: relative;
+  animation: logo-pulse 3s ease-in-out infinite;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 0 20px rgba(255, 255, 255, 0.2),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+/* 外发光环 */
+.logo-container::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff, transparent, #fff);
+  opacity: 0.3;
+  animation: logo-ring-rotate 4s linear infinite;
+  z-index: -1;
+}
+
+/* 悬停效果 */
+.logo-container:hover {
+  transform: scale(1.1);
+  box-shadow: 
+    0 0 30px rgba(255, 255, 255, 0.4),
+    0 0 60px rgba(102, 126, 234, 0.3),
+    inset 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.logo-container:hover .rocket-wrapper {
+  animation: rocket-launch 0.6s ease-in-out;
+}
+
+/* 火箭包装器 - 用于尾焰效果 */
+.rocket-wrapper {
+  position: relative;
+  display: inline-flex;
+  animation: rocket-float 2.5s ease-in-out infinite;
+}
+
+/* 火箭尾焰效果 - 外层火焰 */
+.rocket-wrapper::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 14px;
+  background: linear-gradient(to bottom, #ff6b35 0%, #f7931e 40%, #ffcd02 100%);
+  border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
+  opacity: 0.9;
+  animation: flame-flicker 0.15s ease-in-out infinite alternate;
+  filter: blur(1px);
+  z-index: -1;
+}
+
+/* 内层火焰 - 更亮的核心 */
+.rocket-wrapper::before {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 10px;
+  background: linear-gradient(to bottom, #fff 0%, #ffeb3b 50%, #ff9800 100%);
+  border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
+  opacity: 0.95;
+  animation: flame-flicker 0.1s ease-in-out infinite alternate;
+  z-index: -1;
+}
+
+/* 火箭图标样式 */
+.logo-rocket {
+  color: #fff;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))
+          drop-shadow(0 0 8px rgba(255, 107, 53, 0.4));
+}
+
+/* 悬停时火焰增强 */
+.logo-container:hover .rocket-wrapper::after {
+  width: 12px;
+  height: 20px;
+  bottom: -12px;
+  opacity: 1;
+  filter: blur(2px);
+}
+
+.logo-container:hover .rocket-wrapper::before {
+  width: 8px;
+  height: 14px;
+  bottom: -8px;
+}
+
+/* 火焰闪烁动画 */
+@keyframes flame-flicker {
+  0% {
+    transform: translateX(-50%) scaleY(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(-50%) scaleY(1.15);
+    opacity: 1;
+  }
+}
+
+/* 动画关键帧 */
+@keyframes logo-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(255, 255, 255, 0.2),
+      inset 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(255, 255, 255, 0.35),
+      0 0 50px rgba(118, 75, 162, 0.2),
+      inset 0 0 25px rgba(255, 255, 255, 0.15);
+  }
+}
+
+@keyframes rocket-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes rocket-launch {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translate(4px, -4px) scale(1.15);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes logo-ring-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========== 侧边栏折叠样式 ========== */
+
+.sidebar-wrapper {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+}
+
+.sidebar-wrapper.ant-layout-sider-collapsed {
+  box-shadow: none;
+}
+
+/* 侧边栏容器 */
+.sidebar-area {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+}
+
+/* 折叠按钮 */
+.sidebar-toggle {
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  width: 12px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  cursor: pointer;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 2px 0 6px rgba(102, 126, 234, 0.2);
+  transition: all 0.25s ease;
+  font-size: 10px;
+  opacity: 0.08;
+}
+
+/* 鼠标悬停在侧边栏区域时显示按钮 */
+.sidebar-area:hover .sidebar-toggle {
+  opacity: 0.6;
+  width: 16px;
+}
+
+/* 鼠标直接悬停在按钮上时完全显示 */
+.sidebar-toggle:hover {
+  opacity: 1 !important;
+  width: 20px !important;
+  box-shadow: 2px 0 10px rgba(102, 126, 234, 0.4);
+}
+
+/* ========== 底部公司标识渐变边框 ========== */
+
+.company-brand-box {
+  position: relative;
+  padding: 1px;
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.3) 0%,
+    rgba(118, 75, 162, 0.2) 50%,
+    rgba(255, 107, 53, 0.25) 100%
+  );
+  transition: all 0.3s ease;
+}
+
+.company-brand-box:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.5) 0%,
+    rgba(118, 75, 162, 0.4) 50%,
+    rgba(255, 107, 53, 0.4) 100%
+  );
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.15);
+}
+
+
