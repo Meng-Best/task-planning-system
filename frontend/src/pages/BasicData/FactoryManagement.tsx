@@ -6,7 +6,7 @@ import {
   List,
   Button,
   Table,
-  Badge,
+  Tag,
   Modal,
   Form,
   Input,
@@ -29,7 +29,16 @@ import {
 } from '@ant-design/icons'
 import axios from 'axios'
 import WorkCalendar from './WorkCalendar'
-import { FACTORY_CODE_PREFIX, LINE_CODE_INFIX, CODE_CONFIG } from '../../config/appConfig'
+import { 
+  FACTORY_CODE_PREFIX, 
+  LINE_CODE_INFIX, 
+  CODE_CONFIG
+} from '../../config/appConfig'
+import { 
+  BASIC_DATA_STATUS,
+  getStatusConfig,
+  STATUS_VALUE
+} from '../../config/dictionaries'
 
 // 类型定义
 interface ProductionLine {
@@ -38,7 +47,7 @@ interface ProductionLine {
   name: string
   type?: string
   capacity: number
-  status: 'ACTIVE' | 'MAINTENANCE' | 'CLOSED'
+  status: number  // 改为整数类型: 0=可用, 1=不可用, 2=已占用
   factoryId: number
   createdAt: string
   updatedAt: string
@@ -50,19 +59,13 @@ interface Factory {
   name: string
   location?: string
   description?: string
+  status: number  // 全局三态标准: 0=可占用, 1=不可用, 2=已占用
   productionLines: ProductionLine[]
   createdAt: string
   updatedAt: string
 }
 
 const API_BASE_URL = 'http://localhost:3001'
-
-// 状态配置
-const STATUS_CONFIG = {
-  ACTIVE: { text: '正常运行', color: 'success' as const },
-  MAINTENANCE: { text: '检修中', color: 'warning' as const },
-  CLOSED: { text: '已关闭', color: 'error' as const }
-}
 
 const FactoryManagement: React.FC = () => {
   const [factories, setFactories] = useState<Factory[]>([])
@@ -79,7 +82,7 @@ const FactoryManagement: React.FC = () => {
   
   // 筛选器状态
   const [filterType, setFilterType] = useState<string | undefined>(undefined)
-  const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined)
+  const [filterStatus, setFilterStatus] = useState<number | undefined>(undefined)
 
   // 加载工厂数据
   const fetchFactories = async () => {
@@ -114,10 +117,15 @@ const FactoryManagement: React.FC = () => {
         code: parseFactoryCode(factory.code), // 解析代码，只显示后缀
         name: factory.name,
         location: factory.location,
-        description: factory.description
+        description: factory.description,
+        status: factory.status !== undefined ? factory.status : STATUS_VALUE.AVAILABLE
       })
     } else {
       factoryForm.resetFields()
+      // 新建工厂时设置默认状态为可占用
+      factoryForm.setFieldsValue({
+        status: STATUS_VALUE.AVAILABLE
+      })
     }
     setFactoryModalOpen(true)
   }
@@ -345,7 +353,7 @@ const FactoryManagement: React.FC = () => {
         lineForm.setFieldsValue({
           code: autoCode,
           capacity: 100,
-          status: 'ACTIVE'
+          status: STATUS_VALUE.AVAILABLE  // 默认为可占用(0)
         })
       }
     }
@@ -642,12 +650,7 @@ const FactoryManagement: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       width: 120,
-      render: (status: keyof typeof STATUS_CONFIG) => (
-        <Badge
-          status={STATUS_CONFIG[status]?.color}
-          text={STATUS_CONFIG[status]?.text}
-        />
-      )
+      render: (status: number) => renderStatusTag(status)
     },
     {
       title: '操作',
@@ -702,12 +705,12 @@ const FactoryManagement: React.FC = () => {
     let filtered = selectedFactory.productionLines
     
     // 按类型筛选
-    if (filterType) {
+    if (filterType !== undefined) {
       filtered = filtered.filter(line => line.type === filterType)
     }
     
     // 按状态筛选
-    if (filterStatus) {
+    if (filterStatus !== undefined) {
       filtered = filtered.filter(line => line.status === filterStatus)
     }
     
@@ -719,9 +722,9 @@ const FactoryManagement: React.FC = () => {
     const filteredLines = getFilteredLines()
     return {
       total: filteredLines.length,
-      active: filteredLines.filter(l => l.status === 'ACTIVE').length,
-      maintenance: filteredLines.filter(l => l.status === 'MAINTENANCE').length,
-      closed: filteredLines.filter(l => l.status === 'CLOSED').length
+      available: filteredLines.filter(l => l.status === STATUS_VALUE.AVAILABLE).length,
+      unavailable: filteredLines.filter(l => l.status === STATUS_VALUE.UNAVAILABLE).length,
+      occupied: filteredLines.filter(l => l.status === STATUS_VALUE.OCCUPIED).length
     }
   }
 
@@ -740,6 +743,32 @@ const FactoryManagement: React.FC = () => {
     setSelectedFactory(factory)
     // 切换工厂时重置筛选器
     handleResetFilters()
+  }
+
+  /**
+   * 统一渲染状态标签
+   */
+  const renderStatusTag = (status: number) => {
+    const config = getStatusConfig(status)
+    return (
+      <Tag 
+        bordered={false}
+        style={{ 
+          backgroundColor: config.bgColor, 
+          color: config.textColor,
+          fontWeight: 600,
+          borderRadius: '4px',
+          padding: '0 10px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '24px',
+          margin: 0
+        }}
+      >
+        {config.label}
+      </Tag>
+    )
   }
 
   return (
@@ -834,10 +863,13 @@ const FactoryManagement: React.FC = () => {
                   <Card.Meta
                     title={
                       <div className="flex flex-col">
-                        <Space>
-                          <BankOutlined />
-                          <span>{factory.name}</span>
-                        </Space>
+                        <div className="flex items-center justify-between">
+                          <Space>
+                            <BankOutlined />
+                            <span>{factory.name}</span>
+                          </Space>
+                          {renderStatusTag(factory.status)}
+                        </div>
                         {factory.code ? (
                           <span className="text-xs font-mono font-normal text-black-600 mt-1">
                             {factory.code}
@@ -914,34 +946,38 @@ const FactoryManagement: React.FC = () => {
                 {/* 统计数据 */}
                 <Row gutter={16} style={{ marginBottom: 24 }}>
                   <Col span={6}>
-                    <Card>
-                      <Statistic title="总产线数" value={stats.total} />
-                    </Card>
-                  </Col>
-                  <Col span={6}>
-                    <Card>
-                      <Statistic
-                        title="运行中"
-                        value={stats.active}
-                        valueStyle={{ color: '#3f8600' }}
+                    <Card size="small" bodyStyle={{ padding: '12px' }}>
+                      <Statistic 
+                        title={<span style={{ fontWeight: 500, color: '#666' }}>总产线数</span>} 
+                        value={stats.total} 
+                        valueStyle={{ fontWeight: 'bold' }}
                       />
                     </Card>
                   </Col>
                   <Col span={6}>
-                    <Card>
+                    <Card size="small" bodyStyle={{ padding: '12px' }}>
                       <Statistic
-                        title="检修中"
-                        value={stats.maintenance}
-                        valueStyle={{ color: '#cf1322' }}
+                        title={renderStatusTag(STATUS_VALUE.AVAILABLE)}
+                        value={stats.available}
+                        valueStyle={{ color: getStatusConfig(STATUS_VALUE.AVAILABLE).textColor, fontWeight: 'bold' }}
                       />
                     </Card>
                   </Col>
                   <Col span={6}>
-                    <Card>
+                    <Card size="small" bodyStyle={{ padding: '12px' }}>
                       <Statistic
-                        title="已关闭"
-                        value={stats.closed}
-                        valueStyle={{ color: '#999' }}
+                        title={renderStatusTag(STATUS_VALUE.UNAVAILABLE)}
+                        value={stats.unavailable}
+                        valueStyle={{ color: getStatusConfig(STATUS_VALUE.UNAVAILABLE).textColor, fontWeight: 'bold' }}
+                      />
+                    </Card>
+                  </Col>
+                  <Col span={6}>
+                    <Card size="small" bodyStyle={{ padding: '12px' }}>
+                      <Statistic
+                        title={renderStatusTag(STATUS_VALUE.OCCUPIED)}
+                        value={stats.occupied}
+                        valueStyle={{ color: getStatusConfig(STATUS_VALUE.OCCUPIED).textColor, fontWeight: 'bold' }}
                       />
                     </Card>
                   </Col>
@@ -977,19 +1013,26 @@ const FactoryManagement: React.FC = () => {
                         value={filterStatus}
                         onChange={setFilterStatus}
                       >
-                        <Select.Option value="ACTIVE">
-                          <Badge status="success" text="正常运行" />
-                        </Select.Option>
-                        <Select.Option value="MAINTENANCE">
-                          <Badge status="warning" text="检修中" />
-                        </Select.Option>
-                        <Select.Option value="CLOSED">
-                          <Badge status="error" text="已关闭" />
-                        </Select.Option>
+                        {BASIC_DATA_STATUS.map(option => (
+                          <Select.Option key={option.value} value={option.value}>
+                            <Space size={8}>
+                              <span 
+                                style={{ 
+                                  display: 'inline-block', 
+                                  width: 8, 
+                                  height: 8, 
+                                  borderRadius: '50%', 
+                                  backgroundColor: option.themeColor 
+                                }} 
+                              />
+                              {option.label}
+                            </Space>
+                          </Select.Option>
+                        ))}
                       </Select>
                     </Space>
 
-                    {(filterType || filterStatus) && (
+                    {(filterType !== undefined || filterStatus !== undefined) && (
                       <Button 
                         size="small" 
                         onClick={handleResetFilters}
@@ -1094,6 +1137,30 @@ const FactoryManagement: React.FC = () => {
               showCount
             />
           </Form.Item>
+          <Form.Item
+            name="status"
+            label="工厂状态"
+            rules={[{ required: true, message: '请选择状态' }]}
+          >
+            <Select placeholder="请选择工厂状态">
+              {BASIC_DATA_STATUS.map(option => (
+                <Select.Option key={option.value} value={option.value}>
+                  <Space size={8}>
+                    <span 
+                      style={{ 
+                        display: 'inline-block', 
+                        width: 8, 
+                        height: 8, 
+                        borderRadius: '50%', 
+                        backgroundColor: option.themeColor 
+                      }} 
+                    />
+                    {option.label}
+                  </Space>
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
         </Form>
       </Modal>
 
@@ -1149,19 +1216,26 @@ const FactoryManagement: React.FC = () => {
           </Form.Item>
           <Form.Item
             name="status"
-            label="状态"
+            label="产线状态"
             rules={[{ required: true, message: '请选择状态' }]}
           >
-            <Select>
-              <Select.Option value="ACTIVE">
-                <Badge status="success" text="正常运行" />
-              </Select.Option>
-              <Select.Option value="MAINTENANCE">
-                <Badge status="warning" text="检修中" />
-              </Select.Option>
-              <Select.Option value="CLOSED">
-                <Badge status="error" text="已关闭" />
-              </Select.Option>
+            <Select placeholder="请选择产线状态">
+              {BASIC_DATA_STATUS.map(option => (
+                <Select.Option key={option.value} value={option.value}>
+                  <Space size={8}>
+                    <span 
+                      style={{ 
+                        display: 'inline-block', 
+                        width: 8, 
+                        height: 8, 
+                        borderRadius: '50%', 
+                        backgroundColor: option.themeColor 
+                      }} 
+                    />
+                    {option.label}
+                  </Space>
+                </Select.Option>
+              ))}
             </Select>
           </Form.Item>
         </Form>

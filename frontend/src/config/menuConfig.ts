@@ -9,7 +9,8 @@ import {
   TeamOutlined,
   BarChartOutlined,
   DatabaseOutlined,
-  BankOutlined
+  BankOutlined,
+  ToolOutlined
 } from '@ant-design/icons'
 import React from 'react'
 
@@ -94,6 +95,11 @@ export const menuItems: MenuItem[] = [
         key: 'factory-mgmt',
         label: '工厂管理',
         icon: React.createElement(BankOutlined)
+      },
+      {
+        key: 'device-mgmt',
+        label: '设备管理',
+        icon: React.createElement(ToolOutlined)
       }
     ]
   },

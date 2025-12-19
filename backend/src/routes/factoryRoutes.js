@@ -20,6 +20,10 @@ const factoryController = require('../controllers/factoryController');
  *           type: integer
  *           description: 工厂ID
  *           example: 1
+ *         code:
+ *           type: string
+ *           description: 工厂代码
+ *           example: "HJGS-01"
  *         name:
  *           type: string
  *           description: 工厂名称
@@ -32,6 +36,11 @@ const factoryController = require('../controllers/factoryController');
  *           type: string
  *           description: 工厂描述
  *           example: "主要生产组装业务"
+ *         status:
+ *           type: integer
+ *           enum: [0, 1, 2]
+ *           description: 工厂状态 (0=可占用, 1=不可用, 2=已占用)
+ *           example: 0
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -50,6 +59,10 @@ const factoryController = require('../controllers/factoryController');
  *           type: integer
  *           description: 产线ID
  *           example: 1
+ *         code:
+ *           type: string
+ *           description: 产线代码
+ *           example: "A-CX-01"
  *         name:
  *           type: string
  *           description: 产线名称
@@ -63,10 +76,10 @@ const factoryController = require('../controllers/factoryController');
  *           description: 标准日产能
  *           example: 100
  *         status:
- *           type: string
- *           enum: [ACTIVE, MAINTENANCE, CLOSED]
- *           description: 产线状态
- *           example: "ACTIVE"
+ *           type: integer
+ *           enum: [0, 1, 2]
+ *           description: 产线状态 (0=可占用, 1=不可用, 2=已占用)
+ *           example: 0
  *         factoryId:
  *           type: integer
  *           description: 所属工厂ID
@@ -81,8 +94,13 @@ const factoryController = require('../controllers/factoryController');
  *     FactoryInput:
  *       type: object
  *       required:
+ *         - code
  *         - name
  *       properties:
+ *         code:
+ *           type: string
+ *           description: 工厂代码
+ *           example: "HJGS-01"
  *         name:
  *           type: string
  *           description: 工厂名称
@@ -95,17 +113,27 @@ const factoryController = require('../controllers/factoryController');
  *           type: string
  *           description: 工厂描述
  *           example: "新建工厂，主要生产包装业务"
+ *         status:
+ *           type: integer
+ *           enum: [0, 1, 2]
+ *           description: 工厂状态 (0=可占用, 1=不可用, 2=已占用)
+ *           example: 0
  *     
  *     ProductionLineInput:
  *       type: object
  *       required:
  *         - factoryId
  *         - name
+ *         - code
  *       properties:
  *         factoryId:
  *           type: integer
  *           description: 所属工厂ID
  *           example: 1
+ *         code:
+ *           type: string
+ *           description: 产线代码
+ *           example: "A-CX-01"
  *         name:
  *           type: string
  *           description: 产线名称
@@ -119,10 +147,10 @@ const factoryController = require('../controllers/factoryController');
  *           description: 标准日产能
  *           example: 150
  *         status:
- *           type: string
- *           enum: [ACTIVE, MAINTENANCE, CLOSED]
- *           description: 产线状态
- *           example: "ACTIVE"
+ *           type: integer
+ *           enum: [0, 1, 2]
+ *           description: 产线状态 (0=可占用, 1=不可用, 2=已占用)
+ *           example: 0
  */
 
 /**

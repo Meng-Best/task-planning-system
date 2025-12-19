@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { 
   Card, 
   Calendar, 
@@ -122,15 +122,15 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
   const isProductionLineCalendar = productionLineId !== undefined
 
   // 获取日历事件数据
-  const fetchCalendarEvents = async (month: Dayjs) => {
+  const fetchCalendarEvents = useCallback(async (month: Dayjs) => {
     setLoading(true)
     try {
       // 获取当前月的第一天和最后一天，并扩展前后几天以覆盖日历显示范围
       const startDate = month.startOf('month').subtract(7, 'day').format('YYYY-MM-DD')
       const endDate = month.endOf('month').add(7, 'day').format('YYYY-MM-DD')
       
-      const params: any = { startDate, endDate }
-      if (isProductionLineCalendar) {
+      const params: Record<string, string | number> = { startDate, endDate }
+      if (isProductionLineCalendar && productionLineId !== undefined) {
         params.productionLineId = productionLineId
       }
       
@@ -173,12 +173,12 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
     } finally {
       setLoading(false)
     }
-  }
+  }, [isProductionLineCalendar, productionLineId])
 
   // 初始加载和月份变化时获取数据
   useEffect(() => {
     fetchCalendarEvents(currentMonth)
-  }, [currentMonth])
+  }, [currentMonth, fetchCalendarEvents])
 
   // 面板切换（月份/年份变化）
   const handlePanelChange = (value: Dayjs) => {
@@ -212,7 +212,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
       const startDate = dateRange[0].format('YYYY-MM-DD')
       const endDate = dateRange[1].format('YYYY-MM-DD')
 
-      const requestBody: any = {
+      const requestBody: Record<string, string | number | undefined> = {
         startDate,
         endDate,
         type,
@@ -252,11 +252,11 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
       } else {
         message.error('保存失败：' + response.data.message)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save calendar event:', error)
-      if (error.response) {
-        message.error('保存失败：' + (error.response.data?.message || error.message))
-      } else if (error.errorFields) {
+      if (axios.isAxiosError(error)) {
+        message.error('保存失败：' + (error.response?.data?.message || error.message))
+      } else if (error && typeof error === 'object' && 'errorFields' in error) {
         // 表单验证错误，不显示错误消息
         return
       } else {

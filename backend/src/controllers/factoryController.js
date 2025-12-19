@@ -82,7 +82,7 @@ exports.getFactoryById = async (req, res) => {
  */
 exports.createFactory = async (req, res) => {
   try {
-    const { code, name, location, description } = req.body;
+    const { code, name, location, description, status } = req.body;
 
     // 参数验证
     if (!name) {
@@ -93,12 +93,25 @@ exports.createFactory = async (req, res) => {
       });
     }
 
+    // 验证状态值（0: 可占用, 1: 不可用, 2: 已占用）
+    if (status !== undefined) {
+      const statusInt = parseInt(status);
+      if (![0, 1, 2].includes(statusInt)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid status. Must be one of: 0 (可占用), 1 (不可用), 2 (已占用)',
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
     const factory = await prisma.factory.create({
       data: {
         code,
         name,
         location,
-        description
+        description,
+        status: status !== undefined ? parseInt(status) : 0 // 默认为0(可占用)
       },
       include: {
         productionLines: true
@@ -127,13 +140,26 @@ exports.createFactory = async (req, res) => {
 exports.updateFactory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { code, name, location, description } = req.body;
+    const { code, name, location, description, status } = req.body;
+
+    // 验证状态值（0: 可占用, 1: 不可用, 2: 已占用）
+    if (status !== undefined) {
+      const statusInt = parseInt(status);
+      if (![0, 1, 2].includes(statusInt)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid status. Must be one of: 0 (可占用), 1 (不可用), 2 (已占用)',
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
 
     const updateData = {};
     if (code !== undefined) updateData.code = code;
     if (name !== undefined) updateData.name = name;
     if (location !== undefined) updateData.location = location;
     if (description !== undefined) updateData.description = description;
+    if (status !== undefined) updateData.status = parseInt(status);
 
     const factory = await prisma.factory.update({
       where: { id: parseInt(id) },
@@ -241,7 +267,7 @@ exports.createProductionLine = async (req, res) => {
         name,
         type,
         capacity: capacity ? parseInt(capacity) : 100,
-        status: status || 'ACTIVE',
+        status: status !== undefined ? parseInt(status) : 0, // 默认为0(可用)
         factoryId: parseInt(factoryId)
       },
       include: {
@@ -273,13 +299,16 @@ exports.updateProductionLine = async (req, res) => {
     const { id } = req.params;
     const { code, name, type, capacity, status } = req.body;
 
-    // 验证状态值
-    if (status && !['ACTIVE', 'MAINTENANCE', 'CLOSED'].includes(status)) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Invalid status. Must be one of: ACTIVE, MAINTENANCE, CLOSED',
-        timestamp: new Date().toISOString()
-      });
+    // 验证状态值（全局三态标准：0=可占用, 1=不可用, 2=已占用）
+    if (status !== undefined) {
+      const statusInt = parseInt(status);
+      if (![0, 1, 2].includes(statusInt)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid status. Must be one of: 0 (可占用), 1 (不可用), 2 (已占用)',
+          timestamp: new Date().toISOString()
+        });
+      }
     }
 
     const updateData = {};
@@ -287,7 +316,7 @@ exports.updateProductionLine = async (req, res) => {
     if (name !== undefined) updateData.name = name;
     if (type !== undefined) updateData.type = type;
     if (capacity !== undefined) updateData.capacity = parseInt(capacity);
-    if (status !== undefined) updateData.status = status;
+    if (status !== undefined) updateData.status = parseInt(status);
 
     const productionLine = await prisma.productionLine.update({
       where: { id: parseInt(id) },

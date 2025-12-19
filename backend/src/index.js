@@ -28,11 +28,13 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOption
 const taskRoutes = require('./routes/taskRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const factoryRoutes = require('./routes/factoryRoutes');
+const deviceRoutes = require('./routes/deviceRoutes');
 
 // 挂载路由
 app.use('/api/tasks', taskRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/factories', factoryRoutes);
+app.use('/api/devices', deviceRoutes);
 
 /**
  * @swagger
@@ -105,6 +107,7 @@ app.get('/', (req, res) => {
       tasks: '/api/tasks',
       calendar: '/api/calendar',
       factories: '/api/factories',
+      devices: '/api/devices',
       docs: '/api-docs'
     }
   });
@@ -118,6 +121,7 @@ app.listen(PORT, () => {
   console.log(`📝 Tasks API: http://localhost:${PORT}/api/tasks`);
   console.log(`📅 Calendar API: http://localhost:${PORT}/api/calendar`);
   console.log(`🏭 Factories API: http://localhost:${PORT}/api/factories`);
+  console.log(`🔧 Devices API: http://localhost:${PORT}/api/devices`);
 });
 
 // 优雅关闭

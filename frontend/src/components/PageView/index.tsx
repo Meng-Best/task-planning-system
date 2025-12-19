@@ -8,6 +8,7 @@ import {
 import { findMenuItemByKey } from '../../config/menuConfig'
 import WorkCalendar from '../../pages/BasicData/WorkCalendar'
 import FactoryManagement from '../../pages/BasicData/FactoryManagement'
+import DeviceManagement from '../../pages/BasicData/DeviceManagement'
 
 const { Title, Paragraph } = Typography
 
@@ -106,6 +107,8 @@ const PageView: React.FC<PageViewProps> = ({ tabKey }) => {
       return <WorkCalendar />
     case 'factory-mgmt':
       return <FactoryManagement />
+    case 'device-mgmt':
+      return <DeviceManagement />
     default:
       return <GenericPageView tabKey={tabKey} />
   }
