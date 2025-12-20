@@ -1,10 +1,15 @@
 import { Tabs, Dropdown } from 'antd'
 import type { MenuProps } from 'antd'
-import { CloseOutlined, MoreOutlined } from '@ant-design/icons'
+import { CloseOutlined, MoreOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
 import { useTabStore } from '../../store/useTabStore'
 import PageView from '../PageView'
 
-const MainContent: React.FC = () => {
+interface MainContentProps {
+  collapsed: boolean
+  onToggle: () => void
+}
+
+const MainContent: React.FC<MainContentProps> = ({ collapsed, onToggle }) => {
   const { 
     activeTab, 
     openedTabs, 
@@ -78,7 +83,15 @@ const MainContent: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-slate-100">
       {/* 标签栏 */}
-      <div className="flex items-center shadow-sm">
+      <div className="flex items-center shadow-sm bg-slate-50 border-b border-gray-200">
+        {/* 固定在顶部的折叠按钮 */}
+        <div 
+          className="px-4 h-[40px] flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors border-r border-gray-200 text-slate-500"
+          onClick={onToggle}
+          title={collapsed ? "展开侧边栏" : "收起侧边栏"}
+        >
+          {collapsed ? <MenuUnfoldOutlined className="text-lg" /> : <MenuFoldOutlined className="text-lg" />}
+        </div>
         <Tabs
           type="editable-card"
           hideAdd

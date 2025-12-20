@@ -270,48 +270,6 @@
   box-shadow: none;
 }
 
-/* 侧边栏容器 */
-.sidebar-area {
-  position: relative;
-  display: flex;
-  flex-shrink: 0;
-}
-
-/* 折叠按钮 */
-.sidebar-toggle {
-  position: absolute;
-  right: -12px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 100;
-  width: 12px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  cursor: pointer;
-  border-radius: 0 4px 4px 0;
-  box-shadow: 2px 0 6px rgba(102, 126, 234, 0.2);
-  transition: all 0.25s ease;
-  font-size: 10px;
-  opacity: 0.08;
-}
-
-/* 鼠标悬停在侧边栏区域时显示按钮 */
-.sidebar-area:hover .sidebar-toggle {
-  opacity: 0.6;
-  width: 16px;
-}
-
-/* 鼠标直接悬停在按钮上时完全显示 */
-.sidebar-toggle:hover {
-  opacity: 1 !important;
-  width: 20px !important;
-  box-shadow: 2px 0 10px rgba(102, 126, 234, 0.4);
-}
-
 /* ========== 底部公司标识渐变边框 ========== */
 
 .company-brand-box {

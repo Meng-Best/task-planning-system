@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../prismaClient');
 
 /**
  * 解析日期字符串为 Date 对象（只保留日期部分，时间设为 00:00:00）
@@ -397,6 +396,10 @@ exports.checkWorkDay = async (req, res) => {
       reason = isWorkDay ? 'Default weekday' : 'Default weekend';
     }
 
+    // 根据用户要求，增加状态码 0 或 1 的输出
+    // 0: 可排期（上班），1: 不可排期（休息）
+    const scheduleStatus = isWorkDay ? 0 : 1;
+
     res.json({
       status: 'ok',
       message: 'Work day status checked',
@@ -404,6 +407,7 @@ exports.checkWorkDay = async (req, res) => {
         date: targetDate.toISOString(),
         dayOfWeek,
         isWorkDay,
+        scheduleStatus, // 新增：0=可排期, 1=不可排期
         eventType: event?.type || 'DEFAULT',
         reason,
         configSource,

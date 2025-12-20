@@ -773,7 +773,7 @@ const FactoryManagement: React.FC = () => {
 
   return (
     <div className="factory-management">
-      <Row gutter={16} style={{ height: 'calc(100vh - 180px)' }}>
+      <Row gutter={16}>
         {/* 左侧：工厂列表 */}
         <Col span={8}>
           <Card

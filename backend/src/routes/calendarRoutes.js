@@ -303,6 +303,7 @@ router.post('/', calendarController.setCalendarEvents);
  *       500:
  *         description: 服务器错误
  */
+router.get('/check', calendarController.checkWorkDay);
 router.delete('/:date', calendarController.deleteCalendarEvent);
 
 /**

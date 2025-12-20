@@ -1,15 +1,16 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../prismaClient');
 
 /**
  * 获取设备列表（支持分页、类型和状态筛选）
  */
 exports.getDevices = async (req, res) => {
   try {
-    const { type, status, current = 1, pageSize = 10 } = req.query;
+    const { code, name, type, status, current = 1, pageSize = 10 } = req.query;
 
     // 构建筛选条件
     const whereClause = {};
+    if (code) whereClause.code = { contains: code };
+    if (name) whereClause.name = { contains: name };
     if (type !== undefined) whereClause.type = parseInt(type);
     if (status !== undefined) whereClause.status = parseInt(status);
 
@@ -18,18 +19,36 @@ exports.getDevices = async (req, res) => {
     const size = parseInt(pageSize);
     const skip = (currentPage - 1) * size;
 
-    // 并行查询数据和总数
-    const [devices, total] = await Promise.all([
+    // 并行查询数据、总数以及各个状态的数量
+    const [devices, total, availableCount, unavailableCount, occupiedCount] = await Promise.all([
       prisma.device.findMany({
         where: whereClause,
         skip: skip,
         take: size,
+        include: {
+          productionLine: {
+            select: {
+              id: true,
+              name: true,
+              code: true
+            }
+          }
+        },
         orderBy: {
           id: 'asc'
         }
       }),
       prisma.device.count({
         where: whereClause
+      }),
+      prisma.device.count({
+        where: { ...whereClause, status: 0 } // 可占用
+      }),
+      prisma.device.count({
+        where: { ...whereClause, status: 1 } // 不可用
+      }),
+      prisma.device.count({
+        where: { ...whereClause, status: 2 } // 已占用
       })
     ]);
 
@@ -39,6 +58,9 @@ exports.getDevices = async (req, res) => {
       data: {
         list: devices,
         total: total,
+        availableCount,
+        unavailableCount,
+        occupiedCount,
         current: currentPage,
         pageSize: size
       },
@@ -62,7 +84,16 @@ exports.getDeviceById = async (req, res) => {
     const { id } = req.params;
 
     const device = await prisma.device.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: parseInt(id) },
+      include: {
+        productionLine: {
+          select: {
+            id: true,
+            name: true,
+            code: true
+          }
+        }
+      }
     });
 
     if (!device) {

@@ -1,12 +1,11 @@
 const express = require('express');
 const cors = require('cors');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('./prismaClient');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 require('dotenv').config();
 
 const app = express();
-const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
 
 // 中间件
@@ -29,12 +28,22 @@ const taskRoutes = require('./routes/taskRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const factoryRoutes = require('./routes/factoryRoutes');
 const deviceRoutes = require('./routes/deviceRoutes');
+const staffRoutes = require('./routes/staffRoutes');
+const teamRoutes = require('./routes/teamRoutes');
+const productionLineRoutes = require('./routes/productionLineRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 // 挂载路由
 app.use('/api/tasks', taskRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/factories', factoryRoutes);
 app.use('/api/devices', deviceRoutes);
+app.use('/api/staffs', staffRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/production-lines', productionLineRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 /**
  * @swagger

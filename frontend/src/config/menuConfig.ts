@@ -7,10 +7,12 @@ import {
   FolderOutlined,
   FileTextOutlined,
   TeamOutlined,
+  UserOutlined,
   BarChartOutlined,
   DatabaseOutlined,
   BankOutlined,
-  ToolOutlined
+  ToolOutlined,
+  ApartmentOutlined
 } from '@ant-design/icons'
 import React from 'react'
 
@@ -28,6 +30,43 @@ export const menuItems: MenuItem[] = [
     key: 'dashboard',
     label: '工作台',
     icon: React.createElement(DashboardOutlined)
+  },
+  {
+    key: 'basic-data',
+    label: '基础数据',
+    icon: React.createElement(DatabaseOutlined),
+    children: [
+      {
+        key: 'work-calendar',
+        label: '工作日历',
+        icon: React.createElement(CalendarOutlined)
+      },
+      {
+        key: 'factory-mgmt',
+        label: '工厂管理',
+        icon: React.createElement(BankOutlined)
+      },
+      {
+        key: 'line-mgmt',
+        label: '产线管理',
+        icon: React.createElement(ApartmentOutlined)
+      },
+      {
+        key: 'device-mgmt',
+        label: '设备管理',
+        icon: React.createElement(ToolOutlined)
+      },
+      {
+        key: 'staff-mgmt',
+        label: '人员管理',
+        icon: React.createElement(UserOutlined)
+      },
+      {
+        key: 'team-mgmt',
+        label: '班组管理',
+        icon: React.createElement(TeamOutlined)
+      }
+    ]
   },
   {
     key: 'projects',
@@ -80,28 +119,6 @@ export const menuItems: MenuItem[] = [
     key: 'statistics',
     label: '数据统计',
     icon: React.createElement(BarChartOutlined)
-  },
-  {
-    key: 'basic-data',
-    label: '基础数据',
-    icon: React.createElement(DatabaseOutlined),
-    children: [
-      {
-        key: 'work-calendar',
-        label: '工作日历',
-        icon: React.createElement(CalendarOutlined)
-      },
-      {
-        key: 'factory-mgmt',
-        label: '工厂管理',
-        icon: React.createElement(BankOutlined)
-      },
-      {
-        key: 'device-mgmt',
-        label: '设备管理',
-        icon: React.createElement(ToolOutlined)
-      }
-    ]
   },
   {
     key: 'settings',

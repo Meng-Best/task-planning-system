@@ -18,7 +18,8 @@ import {
   Empty,
   Timeline,
   Tag,
-  Typography
+  Typography,
+  Statistic
 } from 'antd'
 
 const { Text } = Typography;
@@ -30,7 +31,10 @@ import {
   ReloadOutlined,
   WarningOutlined,
   InfoCircleOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  CheckOutlined,
+  ToolOutlined,
+  ApartmentOutlined
 } from '@ant-design/icons'
 import axios from 'axios'
 import dayjs from 'dayjs'
@@ -52,6 +56,12 @@ interface Device {
   serialNumber?: string
   purchaseDate?: string
   status: number
+  productionLineId?: number | null
+  productionLine?: {
+    id: number
+    name: string
+    code: string
+  }
   createdAt: string
   updatedAt: string
 }
@@ -79,6 +89,8 @@ const DeviceManagement: React.FC = () => {
   const [form] = Form.useForm()
   
   // 筛选状态
+  const [filterCode, setFilterCode] = useState<string>('')
+  const [filterName, setFilterName] = useState<string>('')
   const [filterType, setFilterType] = useState<number | undefined>(undefined)
   const [filterStatus, setFilterStatus] = useState<number | undefined>(undefined)
   
@@ -89,10 +101,18 @@ const DeviceManagement: React.FC = () => {
     total: 0
   })
 
+  // 统计状态
+  const [stats, setStats] = useState({
+    total: 0,
+    available: 0,
+    unavailable: 0,
+    occupied: 0
+  })
+
   const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([])
   const [loadingMaintenance, setLoadingMaintenance] = useState(false)
 
-  // 统一渲染状态标签（复用工厂管理的逻辑，但为了组件独立性在此重写或可后续提取为公共组件）
+  // 统一渲染状态标签
   const renderStatusTag = (status: number) => {
     const config = getStatusConfig(status)
     return (
@@ -113,24 +133,39 @@ const DeviceManagement: React.FC = () => {
   }
 
   // 加载数据
-  const fetchDevices = async (page?: number, size?: number) => {
+  const fetchDevices = async (page?: number, size?: number, overrides?: any) => {
     setLoading(true)
     try {
       const params: any = {
         current: page || pagination.current,
         pageSize: size || pagination.pageSize
       }
-      if (filterType !== undefined) params.type = filterType
-      if (filterStatus !== undefined) params.status = filterStatus
+      
+      // 优先使用覆盖参数，否则使用当前 state
+      const code = overrides?.code !== undefined ? overrides.code : filterCode
+      const name = overrides?.name !== undefined ? overrides.name : filterName
+      const type = overrides?.type !== undefined ? overrides.type : filterType
+      const status = overrides?.status !== undefined ? overrides.status : filterStatus
+
+      if (code) params.code = code
+      if (name) params.name = name
+      if (type !== undefined) params.type = type
+      if (status !== undefined) params.status = status
 
       const response = await axios.get(`${API_BASE_URL}/api/devices`, { params })
       if (response.data.status === 'ok') {
-        const { list, total, current, pageSize } = response.data.data
+        const { list, total, availableCount, unavailableCount, occupiedCount, current, pageSize } = response.data.data
         setDevices(list)
         setPagination({
           current,
           pageSize,
           total
+        })
+        setStats({
+          total,
+          available: availableCount || 0,
+          unavailable: unavailableCount || 0,
+          occupied: occupiedCount || 0
         })
         // 如果当前选中的设备在列表中，更新它
         if (selectedDevice) {
@@ -330,23 +365,81 @@ const DeviceManagement: React.FC = () => {
     }
   ]
 
-  // 获取所有设备类型用于筛选
-  const uniqueTypes = Array.from(new Set(devices.map(d => d.type)))
-
   return (
-    <div className="device-management flex flex-col gap-4 h-full p-2">
-      {/* 上部：表格区域 */}
-      <Card 
-        title={
-          <div className="flex items-center justify-between">
+    <div className="device-management flex flex-col gap-4 p-2">
+      {/* 顶部：统计卡片 */}
+      <Row gutter={16}>
+        <Col span={6}>
+          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+            <Statistic
+              title={<span className="text-gray-500 font-medium">设备总数</span>}
+              value={stats.total}
+              valueStyle={{ fontWeight: 700 }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+            <Statistic
+              title={<span className="text-gray-500 font-medium">可占用</span>}
+              value={stats.available}
+              valueStyle={{ color: '#52c41a', fontWeight: 700 }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+            <Statistic
+              title={<span className="text-gray-500 font-medium">已占用</span>}
+              value={stats.occupied}
+              valueStyle={{ color: '#faad14', fontWeight: 700 }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+            <Statistic
+              title={<span className="text-gray-500 font-medium">不可用</span>}
+              value={stats.unavailable}
+              valueStyle={{ color: '#ff4d4f', fontWeight: 700 }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* 筛选区域 */}
+      <Card className="shadow-sm" bodyStyle={{ padding: '16px' }}>
+        <Row gutter={[16, 16]} align="middle">
+          <Col>
             <Space>
-              <SearchOutlined />
-              <span>设备列表</span>
+              <span className="text-gray-500">设备编号:</span>
+              <Input 
+                placeholder="请输入编号" 
+                style={{ width: 140 }} 
+                value={filterCode}
+                onChange={e => setFilterCode(e.target.value)}
+                onPressEnter={() => fetchDevices(1)}
+              />
             </Space>
+          </Col>
+          <Col>
             <Space>
+              <span className="text-gray-500">设备名称:</span>
+              <Input 
+                placeholder="请输入名称" 
+                style={{ width: 140 }} 
+                value={filterName}
+                onChange={e => setFilterName(e.target.value)}
+                onPressEnter={() => fetchDevices(1)}
+              />
+            </Space>
+          </Col>
+          <Col>
+            <Space>
+              <span className="text-gray-500">类型:</span>
               <Select
                 placeholder="全部类型"
-                style={{ width: 150 }}
+                style={{ width: 130 }}
                 allowClear
                 onChange={setFilterType}
                 value={filterType}
@@ -355,16 +448,21 @@ const DeviceManagement: React.FC = () => {
                   <Select.Option key={opt.value} value={opt.value}>{opt.label}</Select.Option>
                 ))}
               </Select>
+            </Space>
+          </Col>
+          <Col>
+            <Space>
+              <span className="text-gray-500">状态:</span>
               <Select
                 placeholder="全部状态"
-                style={{ width: 150 }}
+                style={{ width: 130 }}
                 allowClear
                 onChange={setFilterStatus}
                 value={filterStatus}
               >
                 {BASIC_DATA_STATUS.map(s => (
                   <Select.Option key={s.value} value={s.value}>
-                    <Space>
+                    <Space size={4}>
                       <span 
                         style={{ 
                           display: 'inline-block', 
@@ -379,26 +477,53 @@ const DeviceManagement: React.FC = () => {
                   </Select.Option>
                 ))}
               </Select>
+            </Space>
+          </Col>
+          <Col flex="auto" className="flex justify-end">
+            <Space>
+              <Button 
+                type="primary"
+                icon={<SearchOutlined />} 
+                onClick={() => fetchDevices(1)}
+              >
+                查询
+              </Button>
               <Button 
                 icon={<ReloadOutlined />} 
                 onClick={() => {
+                  setFilterCode('')
+                  setFilterName('')
                   setFilterType(undefined)
                   setFilterStatus(undefined)
-                  fetchDevices(1, pagination.pageSize)
+                  fetchDevices(1, pagination.pageSize, { code: '', name: '', type: undefined, status: undefined })
                 }}
-              />
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
-                onClick={() => handleOpenModal()}
               >
-                新建设备
+                重置
               </Button>
             </Space>
+          </Col>
+        </Row>
+      </Card>
+
+      {/* 列表区域 */}
+      <Card 
+        title={
+          <div className="flex items-center justify-between">
+            <Space size={8}>
+              <ToolOutlined className="text-blue-500" />
+              <span className="font-bold">设备列表</span>
+            </Space>
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />}
+              onClick={() => handleOpenModal()}
+            >
+              新建设备
+            </Button>
           </div>
         }
         className="flex-none shadow-sm"
-        bodyStyle={{ padding: '16px' }} // 统一内边距，解决边框重叠
+        bodyStyle={{ padding: '16px' }}
       >
         <Table
           dataSource={devices}
@@ -420,10 +545,16 @@ const DeviceManagement: React.FC = () => {
             onChange: handleTableChange,
             onShowSizeChange: handleTableChange
           }}
-          onRow={(record) => ({
-            onClick: () => setSelectedDevice(record),
-            className: `cursor-pointer transition-colors ${selectedDevice?.id === record.id ? 'bg-blue-50' : ''}`
-          })}
+          onRow={(record) => {
+            const statusConfig = getStatusConfig(record.status);
+            return {
+              onClick: () => setSelectedDevice(record),
+              className: `cursor-pointer transition-all duration-200 device-row-status-${record.status} ${selectedDevice?.id === record.id ? 'selected-row' : ''}`,
+              style: {
+                borderLeft: `4px solid ${statusConfig.themeColor}`
+              }
+            };
+          }}
         />
       </Card>
 
@@ -432,31 +563,109 @@ const DeviceManagement: React.FC = () => {
         {selectedDevice ? (
           <Tabs defaultActiveKey="info" className="h-full">
             <Tabs.TabPane tab="基本信息" key="info">
-              <div className="py-4">
-                <Descriptions bordered column={2}>
-                  <Descriptions.Item label="设备编号">{selectedDevice.code}</Descriptions.Item>
-                  <Descriptions.Item label="设备名称">{selectedDevice.name}</Descriptions.Item>
-                  <Descriptions.Item label="设备类型">{getDeviceTypeLabel(selectedDevice.type)}</Descriptions.Item>
-                  <Descriptions.Item label="状态">{renderStatusTag(selectedDevice.status)}</Descriptions.Item>
-                  <Descriptions.Item label="规格型号">{selectedDevice.model || '-'}</Descriptions.Item>
-                  <Descriptions.Item label="出厂序列号">{selectedDevice.serialNumber || '-'}</Descriptions.Item>
-                  <Descriptions.Item label="采购日期">
-                    {selectedDevice.purchaseDate ? dayjs(selectedDevice.purchaseDate).format('YYYY-MM-DD') : '-'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="最后更新">{dayjs(selectedDevice.updatedAt).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>
-                </Descriptions>
+              <div className="overflow-y-auto overflow-x-hidden py-8 px-4" style={{ maxHeight: 'calc(100vh - 500px)' }}>
+                <Row gutter={48}>
+                  {/* 左侧：图标与核心标识 */}
+                  <Col span={6}>
+                    <div className="flex flex-col items-center justify-center p-8 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 m-10">
+                      {/* <Avatar 
+                        size={120} 
+                        icon={<ToolOutlined />} 
+                        style={{ 
+                          backgroundColor: getStatusConfig(selectedDevice.status).themeColor,
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                          marginBottom: '20px'
+                        }} 
+                      /> */}
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-gray-800 mb-1">{selectedDevice.name}</div>
+                        <Tag color="blue" className="font-mono px-5 py-1 rounded-full m-4">
+                          {selectedDevice.code}
+                        </Tag>
+                      </div>
+                    </div>
+                  </Col>
+
+                  {/* 右侧：详细参数 */}
+                  <Col span={18}>
+                    <div className="bg-white rounded-xl">
+                      <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
+                        <InfoCircleOutlined className="text-blue-500 text-lg" />
+                        <span className="text-lg font-bold text-gray-700">技术规格与资产状态</span>
+                      </div>
+                      <Descriptions 
+                        column={2} 
+                        labelStyle={{ color: '#8c8c8c', width: '120px', fontWeight: 500 }}
+                        contentStyle={{ color: '#262626', fontWeight: 500 }}
+                      >
+                        <Descriptions.Item label="设备类型">
+                          <Tag color="cyan" className="m-0">{getDeviceTypeLabel(selectedDevice.type)}</Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="当前状态">
+                          {renderStatusTag(selectedDevice.status)}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="规格型号">
+                          <Text strong>{selectedDevice.model || '-'}</Text>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="所属产线">
+                          {selectedDevice.productionLine ? (
+                            <Tag color="blue" icon={<ApartmentOutlined />}>
+                              {selectedDevice.productionLine.name} ({selectedDevice.productionLine.code})
+                            </Tag>
+                          ) : (
+                            <span className="text-gray-400">未绑定产线</span>
+                          )}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="出厂序列号">
+                          <Text copyable={!!selectedDevice.serialNumber} className="font-mono">
+                            {selectedDevice.serialNumber || '-'}
+                          </Text>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="采购日期">
+                          <span className="text-gray-600">
+                            {selectedDevice.purchaseDate ? dayjs(selectedDevice.purchaseDate).format('YYYY-MM-DD') : '-'}
+                          </span>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="最后更新">
+                          <span className="text-gray-500 italic">
+                            {dayjs(selectedDevice.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
+                          </span>
+                        </Descriptions.Item>
+                      </Descriptions>
+
+                      {/* 底部补充信息 */}
+                      <div className="mt-8 p-4 bg-blue-50/30 rounded-lg border border-blue-100/50 flex items-start gap-3">
+                        <div className="bg-blue-500 rounded-full p-1 mt-0.5">
+                          <CheckOutlined className="text-white text-[10px]" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-blue-800 mb-0.5">资产合规性确认</div>
+                          <div className="text-xs text-blue-600/80">该设备已录入系统，所有维护记录将自动关联至此唯一编号。</div>
+                        </div>
+                      </div>
+                    </div>
+                  </Col>
+                </Row>
               </div>
             </Tabs.TabPane>
             <Tabs.TabPane tab="维护记录" key="maintenance">
               <div 
                 className="py-6 px-4" 
                 style={{ 
-                  maxHeight: 'calc(100vh - 450px)', // 使用最大高度，内容少时不占位
+                  maxHeight: 'calc(100vh - 500px)', 
                   overflowY: 'auto', 
-                  paddingBottom: '24px' // 底部留白，防止被裁剪
+                  overflowX: 'hidden',
+                  paddingBottom: '24px' 
                 }}
               >
-                {maintenanceRecords.length > 0 ? (
+                {loadingMaintenance ? (
+                  <div className="py-12 flex justify-center">
+                    <Space direction="vertical" align="center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                      <Text type="secondary">正在加载维护历史...</Text>
+                    </Space>
+                  </div>
+                ) : maintenanceRecords.length > 0 ? (
                   <Timeline
                     className="custom-maintenance-timeline"
                     items={maintenanceRecords.map((record, index) => {
@@ -501,7 +710,41 @@ const DeviceManagement: React.FC = () => {
               </div>
             </Tabs.TabPane>
             <Tabs.TabPane tab="关联产线" key="lines">
-              <Empty description="暂无关联产线" className="py-12" />
+              <div className="py-8 px-4">
+                {selectedDevice.productionLine ? (
+                  <Card 
+                    className="max-w-2xl shadow-sm border-gray-100"
+                    title={
+                      <Space>
+                        <ApartmentOutlined className="text-blue-500" />
+                        <span className="font-bold">当前绑定产线</span>
+                      </Space>
+                    }
+                  >
+                    <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: '120px' }}>
+                      <Descriptions.Item label="产线名称">
+                        <Text strong style={{ fontSize: '16px' }}>{selectedDevice.productionLine.name}</Text>
+                      </Descriptions.Item>
+                      <Descriptions.Item label="产线代码">
+                        <Tag className="font-mono">{selectedDevice.productionLine.code}</Tag>
+                      </Descriptions.Item>
+                      <Descriptions.Item label="关联状态">
+                        <Tag color="success">已绑定</Tag>
+                      </Descriptions.Item>
+                    </Descriptions>
+                    <div className="mt-6 pt-4 border-t border-gray-50 text-gray-400 text-xs flex items-center gap-2">
+                      <InfoCircleOutlined />
+                      <span>如需更改绑定关系，请前往“产线管理”模块进行操作。</span>
+                    </div>
+                  </Card>
+                ) : (
+                  <Empty 
+                    description="该设备目前处于闲置状态，未绑定任何产线" 
+                    className="py-12" 
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  />
+                )}
+              </div>
             </Tabs.TabPane>
           </Tabs>
         ) : (
@@ -602,6 +845,20 @@ const DeviceManagement: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+      <style>{`
+        .selected-row {
+          background-color: #e6f7ff !important;
+          box-shadow: inset 0 0 10px rgba(24, 144, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
+          z-index: 1;
+          position: relative;
+        }
+        .ant-table-row:hover {
+          filter: brightness(0.98);
+        }
+        .custom-maintenance-timeline .ant-timeline-item-last > .ant-timeline-item-content {
+          min-height: auto;
+        }
+      `}</style>
     </div>
   )
 }

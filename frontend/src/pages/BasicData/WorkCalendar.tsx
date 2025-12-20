@@ -11,14 +11,17 @@ import {
   Tag,
   Typography,
   ConfigProvider,
-  Tooltip
+  Tooltip,
+  Row,
+  Col
 } from 'antd'
-import { StarOutlined, CalendarOutlined } from '@ant-design/icons'
+import { StarOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import zhCN from 'antd/locale/zh_CN'
 import axios from 'axios'
+import { FACTORY_WORK_HOURS } from '../../config/dictionaries'
 
 // 设置 dayjs 为中文
 dayjs.locale('zh-cn')
@@ -66,7 +69,7 @@ const GLOBAL_DATE_TYPE_OPTIONS = [
   { 
     value: 'WORK', 
     label: '🟢 调休上班',
-    description: '周末或假期需要上班'
+    description: `工作日规则：${FACTORY_WORK_HOURS.totalLabel}`
   },
   { 
     value: 'HOLIDAY', 
@@ -90,7 +93,7 @@ const LINE_DATE_TYPE_OPTIONS = [
   { 
     value: 'WORK', 
     label: '🟢 产线加班',
-    description: '此产线在该日期需要加班生产'
+    description: `加班排班：${FACTORY_WORK_HOURS.totalLabel}`
   },
   { 
     value: 'REST', 
@@ -289,7 +292,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
           cellClassName += ' holiday-cell'
           break
         case 'WORK':
-          cellClassName += ' work-cell'
+          cellClassName += ' production-day-cell'
           break
         case 'REST':
           cellClassName += ' rest-cell'
@@ -298,6 +301,9 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
     } else if (dayOfWeek === 0 || dayOfWeek === 6) {
       // 默认周末样式
       cellClassName += ' weekend-cell'
+    } else {
+      // 默认工作日（周一至周五，且无特殊事件）
+      cellClassName += ' production-day-cell'
     }
 
     // 点击单元格时打开设置窗口
@@ -320,17 +326,28 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
       }
     }
 
+    // 判断是否为工作日（默认工作日或调休上班）
+    const isWorkDay = event ? event.type === 'WORK' : (dayOfWeek !== 0 && dayOfWeek !== 6)
+
     return (
       <div className={cellClassName} onClick={handleCellClick}>
         <div className="ant-picker-calendar-date-value">
           {value.date()}
         </div>
         <div className="ant-picker-calendar-date-content">
+          {/* 工作时间提示 */}
+          {/* {isWorkDay ? (
+            <div className="text-[10px] text-gray-400 flex items-center gap-0.5 mb-1" style={{ transform: 'scale(0.9)', transformOrigin: 'left' }}>
+              <ClockCircleOutlined className="text-[9px]" />
+              <span>16小时</span>
+            </div>
+          ) : null} */}
+          
           {event && (
             <div className="calendar-cell-content">
               <div className="flex items-center gap-1">
                 <Tag 
-                  color={event.type === 'HOLIDAY' ? 'red' : event.type === 'WORK' ? 'blue' : 'default'} 
+                  color={event.type === 'HOLIDAY' ? 'red' : event.type === 'WORK' ? 'success' : 'default'} 
                   className={`text-xs font-bold px-2 ${isLineSpecific ? 'line-specific-tag' : ''}`}
                 >
                   {getTagText(event.type, isProductionLineCalendar, isLineSpecific)}
@@ -378,23 +395,35 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
           {isProductionLineCalendar ? (
             <>
               <div className="flex items-center gap-2">
-                <Tag color="blue">产线加班</Tag>
+                <Tag color="success">产线加班</Tag>
                 <Tag color="default">产线停工</Tag>
                 <Tag color="red">产线例外休息</Tag>
                 <span className="text-xs text-gray-400">默认周末</span>
               </div>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <StarOutlined className="text-orange-500" />
-                <span>带星标表示产线专用配置（覆盖全局设置）</span>
+              <div className="flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-1">
+                  <StarOutlined className="text-orange-500" />
+                  <span>带星标表示产线专用配置（覆盖全局设置）</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <ClockCircleOutlined />
+                  <span>工作日排班：{FACTORY_WORK_HOURS.totalLabel}</span>
+                </div>
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-2">
-              <Tag color="red">法定节假日</Tag>
-              <Tag color="blue">调休上班</Tag>
-              <Tag color="default">公司福利假</Tag>
-              <span className="text-xs text-gray-400">默认周末</span>
-            </div>
+            <>
+              <div className="flex items-center gap-2">
+                <Tag color="red">法定节假日</Tag>
+                <Tag color="success">工作日（包含调休上班）</Tag>
+                <Tag color="default">公司福利假</Tag>
+                <span className="text-xs text-gray-400">默认周末</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-gray-500 ml-auto">
+                <ClockCircleOutlined />
+                <span>工作日：{FACTORY_WORK_HOURS.totalLabel}，下午4时换班，最多16小时产能</span>
+              </div>
+            </>
           )}
         </div>
 
@@ -402,6 +431,68 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
           key={`calendar-${currentMonth.format('YYYY-MM')}-${events.size}`}
           value={currentMonth}
           onPanelChange={handlePanelChange}
+          headerRender={({ value, onChange }) => {
+            const start = 0;
+            const end = 12;
+            const monthOptions = [];
+
+            const months = [];
+            for (let i = 0; i < 12; i++) {
+              months.push(`${i + 1}月`);
+            }
+
+            for (let i = start; i < end; i++) {
+              monthOptions.push(
+                <Select.Option key={i} value={i} className="month-item">
+                  {months[i]}
+                </Select.Option>,
+              );
+            }
+
+            const year = value.year();
+            const month = value.month();
+            const options = [];
+            for (let i = year - 10; i < year + 10; i += 1) {
+              options.push(
+                <Select.Option key={i} value={i} className="year-item">
+                  {i}
+                </Select.Option>,
+              );
+            }
+            return (
+              <div style={{ padding: 8 }}>
+                <Row gutter={8} justify="end">
+                  <Col>
+                    <Select
+                      size="small"
+                      dropdownMatchSelectWidth={false}
+                      className="my-year-select"
+                      value={year}
+                      onChange={(newYear) => {
+                        const now = value.clone().year(newYear);
+                        onChange(now);
+                      }}
+                    >
+                      {options}
+                    </Select>
+                  </Col>
+                  <Col>
+                    <Select
+                      size="small"
+                      dropdownMatchSelectWidth={false}
+                      value={month}
+                      onChange={(newMonth) => {
+                        const now = value.clone().month(newMonth);
+                        onChange(now);
+                      }}
+                    >
+                      {monthOptions}
+                    </Select>
+                  </Col>
+                </Row>
+              </div>
+            );
+          }}
           fullCellRender={fullCellRender}
           className="work-calendar"
         />
@@ -559,8 +650,8 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
           background-color: rgba(255, 77, 79, 0.1) !important;
         }
 
-        .work-calendar .work-cell {
-          background-color: rgba(24, 144, 255, 0.1) !important;
+        .work-calendar .production-day-cell {
+          background-color: rgba(82, 196, 26, 0.08) !important;
         }
 
         .work-calendar .rest-cell {
@@ -577,9 +668,9 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
           background-color: rgba(255, 77, 79, 0.1) !important;
         }
 
-        .work-calendar .ant-picker-cell-selected .work-cell,
-        .work-calendar .ant-picker-cell-today .work-cell {
-          background-color: rgba(24, 144, 255, 0.1) !important;
+        .work-calendar .ant-picker-cell-selected .production-day-cell,
+        .work-calendar .ant-picker-cell-today .production-day-cell {
+          background-color: rgba(82, 196, 26, 0.08) !important;
         }
 
         .work-calendar .ant-picker-cell-selected .rest-cell,

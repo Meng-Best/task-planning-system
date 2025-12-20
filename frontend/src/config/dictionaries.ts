@@ -126,6 +126,67 @@ export const DEVICE_TYPE_OPTIONS = [
 ];
 
 /**
+ * 人员专业字典
+ */
+export const MAJOR_OPTIONS = [
+  { value: 0, label: '总体' },
+  { value: 1, label: '动力' },
+  { value: 2, label: '结构' },
+  { value: 3, label: '电气' },
+  { value: 4, label: '质量' },
+  { value: 5, label: '总装' },
+  { value: 6, label: '工艺' },
+];
+
+/**
+ * 工厂统一排班定义
+ * 全厂统一：所有工作日均为两班倒（08:00 - 24:00）
+ */
+export const FACTORY_WORK_HOURS = {
+  shift1: '08:00 - 16:00',
+  shift2: '16:00 - 24:00',
+  totalLabel: '两班倒 (08:00 - 24:00)',
+  capacityPerDay: 16 // 每日16小时产能
+};
+
+/**
+ * 班次定义
+ */
+export const SHIFT_TYPES = [
+  { value: 0, label: '一班 (08:00 - 16:00)', color: 'blue' },
+  { value: 1, label: '二班 (16:00 - 24:00)', color: 'purple' }
+];
+
+/**
+ * 职级显示逻辑映射
+ */
+const STAFF_LEVEL_MAP: Record<string, string[]> = {
+  default: ['设计师', '主管设计师', '高管设计师', '副主任设计师', '主任设计师'],
+  craft: ['初级工艺师', '中级工艺师', '高级工艺师', '工艺副主任', '工艺主任师'],
+};
+
+/**
+ * 获取职级显示标签
+ * @param major 专业 ID
+ * @param level 职级 ID
+ * @returns 职级名称
+ */
+export const getStaffLevelLabel = (major: number, level: number): string => {
+  const levels = major === 6 ? STAFF_LEVEL_MAP.craft : STAFF_LEVEL_MAP.default;
+  return levels[level] || '未知职级';
+};
+
+/**
+ * 获取职级选项列表（用于 Select）
+ * @param major 专业 ID
+ * @returns 职级选项数组
+ */
+export const getStaffLevelOptions = (major: number) => {
+  const levels = major === 6 ? STAFF_LEVEL_MAP.craft : STAFF_LEVEL_MAP.default;
+  return levels.map((label, index) => ({ value: index, label }));
+};
+
+/**
  * 获取设备类型标签
  * @param value 类型 ID
  * @returns 类型名称
