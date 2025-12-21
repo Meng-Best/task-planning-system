@@ -243,29 +243,45 @@ const DeviceManagement: React.FC = () => {
   }
 
   // 保存数据
-  const handleSave = async () => {
+  const handleSave = async (forceUnbind = false) => {
     try {
       const values = await form.validateFields()
       const data = {
         ...values,
-        purchaseDate: values.purchaseDate ? values.purchaseDate.format('YYYY-MM-DD') : null
+        purchaseDate: values.purchaseDate ? values.purchaseDate.format('YYYY-MM-DD') : null,
+        forceUnbind
       }
 
       if (editingDevice) {
-        await axios.put(`${API_BASE_URL}/api/devices/${editingDevice.id}`, data)
-        message.success('设备信息已更新')
-        // 编辑后刷新当前页
-        fetchDevices()
+        const response = await axios.put(`${API_BASE_URL}/api/devices/${editingDevice.id}`, data)
+        if (response.data.status === 'ok') {
+          message.success('设备信息已更新')
+          fetchDevices()
+          setModalOpen(false)
+          form.resetFields()
+        }
       } else {
-        await axios.post(`${API_BASE_URL}/api/devices`, data)
-        message.success('设备创建成功')
-        // 新建后跳转到第一页以查看新设备
-        fetchDevices(1)
+        const response = await axios.post(`${API_BASE_URL}/api/devices`, data)
+        if (response.data.status === 'ok') {
+          message.success('设备创建成功')
+          fetchDevices(1)
+          setModalOpen(false)
+          form.resetFields()
+        }
+      }
+    } catch (error: any) {
+      // 处理解绑确认逻辑
+      if (error.response?.data?.status === 'confirm_required') {
+        Modal.confirm({
+          title: '解除绑定确认',
+          content: error.response.data.message,
+          okText: '确认移除并修改',
+          cancelText: '取消',
+          onOk: () => handleSave(true) // 递归调用，带上强制解绑标志
+        })
+        return
       }
 
-      setModalOpen(false)
-      form.resetFields()
-    } catch (error: any) {
       // Ant Design Form 验证错误
       if (error.errorFields) {
         return // 表单验证失败，不显示错误提示
@@ -370,7 +386,7 @@ const DeviceManagement: React.FC = () => {
       {/* 顶部：统计卡片 */}
       <Row gutter={16}>
         <Col span={6}>
-          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+          <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">设备总数</span>}
               value={stats.total}
@@ -379,7 +395,7 @@ const DeviceManagement: React.FC = () => {
           </Card>
         </Col>
         <Col span={6}>
-          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+          <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">可占用</span>}
               value={stats.available}
@@ -388,7 +404,7 @@ const DeviceManagement: React.FC = () => {
           </Card>
         </Col>
         <Col span={6}>
-          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+          <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">已占用</span>}
               value={stats.occupied}
@@ -397,7 +413,7 @@ const DeviceManagement: React.FC = () => {
           </Card>
         </Col>
         <Col span={6}>
-          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+          <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">不可用</span>}
               value={stats.unavailable}
@@ -408,7 +424,7 @@ const DeviceManagement: React.FC = () => {
       </Row>
 
       {/* 筛选区域 */}
-      <Card className="shadow-sm" bodyStyle={{ padding: '16px' }}>
+      <Card className="shadow-sm" styles={{ body: { padding: '16px' } }}>
         <Row gutter={[16, 16]} align="middle">
           <Col>
             <Space>
@@ -523,7 +539,7 @@ const DeviceManagement: React.FC = () => {
           </div>
         }
         className="flex-none shadow-sm"
-        bodyStyle={{ padding: '16px' }}
+        styles={{ body: { padding: '16px' } }}
       >
         <Table
           dataSource={devices}
@@ -559,7 +575,7 @@ const DeviceManagement: React.FC = () => {
       </Card>
 
       {/* 下部：详情区域 (Tabs) */}
-      <Card className="flex-1 shadow-sm overflow-hidden" bodyStyle={{ height: '100%', padding: '0 24px' }}>
+      <Card className="flex-1 shadow-sm overflow-hidden" styles={{ body: { height: '100%', padding: '0 24px' } }}>
         {selectedDevice ? (
           <Tabs defaultActiveKey="info" className="h-full">
             <Tabs.TabPane tab="基本信息" key="info">
@@ -758,10 +774,10 @@ const DeviceManagement: React.FC = () => {
       <Modal
         title={editingDevice ? '编辑设备' : '新建设备'}
         open={modalOpen}
-        onOk={handleSave}
+        onOk={() => handleSave()}
         onCancel={() => setModalOpen(false)}
         width={600}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical" className="mt-4">
           <Row gutter={16}>

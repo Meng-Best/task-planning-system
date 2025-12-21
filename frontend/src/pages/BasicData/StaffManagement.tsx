@@ -265,7 +265,7 @@ const StaffManagement: React.FC = () => {
       {/* 顶部：统计卡片 */}
       <Row gutter={16}>
         <Col span={6}>
-          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+          <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">人员总数</span>}
               value={stats.total}
@@ -274,7 +274,7 @@ const StaffManagement: React.FC = () => {
           </Card>
         </Col>
         <Col span={6}>
-          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+          <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">可上岗</span>}
               value={stats.available}
@@ -283,7 +283,7 @@ const StaffManagement: React.FC = () => {
           </Card>
         </Col>
         <Col span={6}>
-          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+          <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">已上岗</span>}
               value={stats.occupied}
@@ -292,7 +292,7 @@ const StaffManagement: React.FC = () => {
           </Card>
         </Col>
         <Col span={6}>
-          <Card className="shadow-sm border-0" bodyStyle={{ padding: '20px' }}>
+          <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">休息中</span>}
               value={stats.unavailable}
@@ -303,7 +303,7 @@ const StaffManagement: React.FC = () => {
       </Row>
 
       {/* 筛选区域 */}
-      <Card className="shadow-sm" bodyStyle={{ padding: '16px' }}>
+      <Card className="shadow-sm" styles={{ body: { padding: '16px' } }}>
         <Row gutter={[16, 16]} align="middle">
           <Col>
             <Space>
@@ -411,7 +411,7 @@ const StaffManagement: React.FC = () => {
           </div>
         }
         className="shadow-sm"
-        bodyStyle={{ padding: '16px' }}
+        styles={{ body: { padding: '16px' } }}
       >
         <Table
           dataSource={staffs}
@@ -445,7 +445,7 @@ const StaffManagement: React.FC = () => {
       </Card>
 
       {/* 详情区域 */}
-      <Card className="flex-1 shadow-sm overflow-hidden" bodyStyle={{ height: '100%', padding: '0 24px' }}>
+      <Card className="flex-1 shadow-sm overflow-hidden" styles={{ body: { height: '100%', padding: '0 24px' } }}>
         {selectedStaff ? (
           <Tabs defaultActiveKey="info" className="h-full">
             <Tabs.TabPane tab="基本信息" key="info">
@@ -507,7 +507,7 @@ const StaffManagement: React.FC = () => {
         onOk={handleSave}
         onCancel={() => setModalOpen(false)}
         width={500}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical" className="mt-4">
           <Row gutter={16}>

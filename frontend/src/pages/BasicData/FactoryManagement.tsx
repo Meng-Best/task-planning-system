@@ -793,7 +793,7 @@ const FactoryManagement: React.FC = () => {
               </Button>
             }
             style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-            bodyStyle={{ flex: 1, overflow: 'auto', padding: '12px' }}
+            styles={{ body: { flex: 1, overflow: 'auto', padding: '12px' } }}
           >
             <List
               loading={loading}
@@ -939,14 +939,14 @@ const FactoryManagement: React.FC = () => {
               )
             }
             style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-            bodyStyle={{ flex: 1, overflow: 'auto' }}
+            styles={{ body: { flex: 1, overflow: 'auto' } }}
           >
             {selectedFactory ? (
               <>
                 {/* 统计数据 */}
                 <Row gutter={16} style={{ marginBottom: 24 }}>
                   <Col span={6}>
-                    <Card size="small" bodyStyle={{ padding: '12px' }}>
+                    <Card size="small" styles={{ body: { padding: '12px' } }}>
                       <Statistic 
                         title={<span style={{ fontWeight: 500, color: '#666' }}>总产线数</span>} 
                         value={stats.total} 
@@ -955,7 +955,7 @@ const FactoryManagement: React.FC = () => {
                     </Card>
                   </Col>
                   <Col span={6}>
-                    <Card size="small" bodyStyle={{ padding: '12px' }}>
+                    <Card size="small" styles={{ body: { padding: '12px' } }}>
                       <Statistic
                         title={renderStatusTag(STATUS_VALUE.AVAILABLE)}
                         value={stats.available}
@@ -964,7 +964,7 @@ const FactoryManagement: React.FC = () => {
                     </Card>
                   </Col>
                   <Col span={6}>
-                    <Card size="small" bodyStyle={{ padding: '12px' }}>
+                    <Card size="small" styles={{ body: { padding: '12px' } }}>
                       <Statistic
                         title={renderStatusTag(STATUS_VALUE.UNAVAILABLE)}
                         value={stats.unavailable}
@@ -973,7 +973,7 @@ const FactoryManagement: React.FC = () => {
                     </Card>
                   </Col>
                   <Col span={6}>
-                    <Card size="small" bodyStyle={{ padding: '12px' }}>
+                    <Card size="small" styles={{ body: { padding: '12px' } }}>
                       <Statistic
                         title={renderStatusTag(STATUS_VALUE.OCCUPIED)}
                         value={stats.occupied}
@@ -987,7 +987,7 @@ const FactoryManagement: React.FC = () => {
                 <Card 
                   size="small" 
                   style={{ marginBottom: 16 }}
-                  bodyStyle={{ padding: '12px 16px' }}
+                  styles={{ body: { padding: '12px 16px' } }}
                 >
                   <Space size="middle" style={{ width: '100%' }} wrap>
                     <Space size="small">
@@ -1255,7 +1255,7 @@ const FactoryManagement: React.FC = () => {
           setCalendarDrawerOpen(false)
           setSelectedLine(null)
         }}
-        destroyOnClose
+        destroyOnHidden
       >
         {selectedLine && (
           <WorkCalendar 

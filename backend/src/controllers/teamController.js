@@ -119,6 +119,12 @@ exports.createTeam = async (req, res) => {
     }
 
     const team = await prisma.$transaction(async (tx) => {
+      // 核心业务逻辑：只要选择了产线，状态强制设为“已占用 (2)”
+      let finalStatus = status !== undefined ? parseInt(status) : 0;
+      if (productionLineId) {
+        finalStatus = 2; // 已占用
+      }
+
       // 1. 创建班组
       const newTeam = await tx.team.create({
         data: {
@@ -126,7 +132,7 @@ exports.createTeam = async (req, res) => {
           name,
           leaderId: leaderId ? parseInt(leaderId) : null,
           productionLineId: productionLineId ? parseInt(productionLineId) : null,
-          status: status !== undefined ? parseInt(status) : 0,
+          status: finalStatus,
           shiftType: shiftType !== undefined ? parseInt(shiftType) : 0
         }
       });
@@ -165,10 +171,48 @@ exports.createTeam = async (req, res) => {
 exports.updateTeam = async (req, res) => {
   try {
     const { id } = req.params;
-    const { code, name, leaderId, productionLineId, status, shiftType, memberIds = [] } = req.body;
+    const { code, name, leaderId, productionLineId, status, shiftType, memberIds = [], forceUnbind } = req.body;
     const teamId = parseInt(id);
 
     const team = await prisma.$transaction(async (tx) => {
+      // 查询更新前的班组状态
+      const oldTeam = await tx.team.findUnique({
+        where: { id: teamId },
+        include: { productionLine: true }
+      });
+
+      if (!oldTeam) {
+        throw new Error('NOT_FOUND');
+      }
+
+      let targetStatus = status !== undefined ? parseInt(status) : oldTeam.status;
+      let targetLineId = productionLineId !== undefined ? (productionLineId ? parseInt(productionLineId) : null) : oldTeam.productionLineId;
+
+      // 核心业务逻辑：
+      // A. 只要最终有产线绑定，状态就强制设为“已占用 (2)”
+      if (targetLineId) {
+        targetStatus = 2;
+      }
+
+      // B. 如果最终没有产线绑定，且原本有绑定，状态自动恢复为“可占用 (0)”
+      if (!targetLineId && oldTeam.productionLineId) {
+        targetStatus = 0;
+      }
+
+      // C. 手动保护：如果班组“手动修改状态为 0”但“产线未移除”，则需要询问
+      // (由于上面的逻辑 A 已经把有产线的情况强制设为 2 了，这里的逻辑主要针对
+      // 用户尝试在有产线的情况下手动保存状态为 0 的意图)
+      if (status !== undefined && parseInt(status) === 0 && targetLineId) {
+        if (!forceUnbind) {
+          const error = new Error('UNBIND_CONFIRM_REQUIRED');
+          error.lineName = oldTeam.productionLine?.name || '当前产线';
+          throw error;
+        }
+        // 如果确认强制解绑
+        targetLineId = null;
+        targetStatus = 0;
+      }
+
       // 1. 更新班组基本信息
       const updatedTeam = await tx.team.update({
         where: { id: teamId },
@@ -176,8 +220,8 @@ exports.updateTeam = async (req, res) => {
           code,
           name,
           leaderId: leaderId ? parseInt(leaderId) : null,
-          productionLineId: productionLineId ? parseInt(productionLineId) : null,
-          status: status !== undefined ? parseInt(status) : 0,
+          productionLineId: targetLineId,
+          status: targetStatus,
           shiftType: shiftType !== undefined ? parseInt(shiftType) : 0
         }
       });
@@ -211,6 +255,15 @@ exports.updateTeam = async (req, res) => {
       data: team
     });
   } catch (error) {
+    if (error.message === 'NOT_FOUND') {
+      return res.status(404).json({ status: 'error', message: '班组不存在' });
+    }
+    if (error.message === 'UNBIND_CONFIRM_REQUIRED') {
+      return res.status(400).json({
+        status: 'confirm_required',
+        message: `该班组当前正绑定在产组 [${error.lineName}] 上。若要将其状态改为“可占用”，必须先从产线移除。是否确认移除并修改状态？`,
+      });
+    }
     console.error('SERVER ERROR [updateTeam]:', error);
     if (error.code === 'P2002') {
       return res.status(409).json({ status: 'error', message: '更新冲突：编号重复或班组长已被分配' });

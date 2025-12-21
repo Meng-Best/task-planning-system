@@ -22,12 +22,13 @@ const MainLayout: React.FC = () => {
           width={230}
           collapsedWidth={0}
           collapsed={collapsed}
-          theme="light"
+          theme="dark"
           className="sidebar-wrapper"
           style={{
             height: '100%',
             overflow: 'auto',
-            borderRight: '1px solid #f0f0f0'
+            borderRight: '1px solid #000000',
+            background: '#000000'
           }}
         >
           <LeftSidebar collapsed={collapsed} />

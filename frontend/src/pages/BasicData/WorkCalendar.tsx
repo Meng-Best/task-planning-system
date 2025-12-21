@@ -465,7 +465,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
                   <Col>
                     <Select
                       size="small"
-                      dropdownMatchSelectWidth={false}
+                      popupMatchSelectWidth={false}
                       className="my-year-select"
                       value={year}
                       onChange={(newYear) => {
@@ -479,7 +479,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
                   <Col>
                     <Select
                       size="small"
-                      dropdownMatchSelectWidth={false}
+                      popupMatchSelectWidth={false}
                       value={month}
                       onChange={(newMonth) => {
                         const now = value.clone().month(newMonth);
@@ -523,7 +523,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
         }}
         confirmLoading={loading}
         width={550}
-        destroyOnClose
+        destroyOnHidden
         okText="保存"
         cancelText="取消"
       >

@@ -200,7 +200,7 @@ const Dashboard: React.FC = () => {
     };
   };
 
-  // 3. 热力图配置 (瓶颈识别 - 工业高精度版)
+  // 3. 热力图配置 (瓶颈识别 - 全息水晶风格)
   const getHeatmapOption = () => {
     if (!trend.length) return {};
 
@@ -221,22 +221,21 @@ const Dashboard: React.FC = () => {
         position: 'top',
         formatter: (params: any) => {
           const val = params.value[2];
-          return `<div style="padding: 4px 8px; border-radius: 8px;">
-            <div style="color: #94a3b8; font-size: 11px; margin-bottom: 4px;">${params.name} 负载分析</div>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-              <span style="font-weight: 600; color: #1e293b;">${categories[params.value[1]]}</span>
-              <span style="font-weight: 800; color: ${val > 80 ? '#f43f5e' : '#3b82f6'}; font-size: 15px;">${val}%</span>
+          return `<div style="padding: 10px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(100, 100, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.5);">
+            <div style="color: #64748b; font-size: 12px; margin-bottom: 6px; font-weight: 600;">${params.name} 能量维度</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+              <span style="font-weight: 700; color: #1e293b; font-size: 14px;">${categories[params.value[1]]}</span>
+              <span style="font-weight: 800; color: ${val > 80 ? '#f43f5e' : '#22d3ee'}; font-size: 18px;">${val}%</span>
             </div>
           </div>`;
         },
-        backgroundColor: 'rgba(255, 255, 255, 0.98)',
-        borderRadius: 12,
+        backgroundColor: 'transparent',
+        borderWidth: 0,
         padding: 0,
-        boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
         confine: true
       },
       grid: {
-        top: '10%',
+        top: '12%',
         bottom: '22%',
         left: '15%',
         right: '5%',
@@ -244,57 +243,67 @@ const Dashboard: React.FC = () => {
       xAxis: {
         type: 'category',
         data: dates,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { color: '#94a3b8', fontSize: 11, margin: 12 }
-      },
-      yAxis: {
-        type: 'category',
-        data: categories,
+        splitArea: { show: false },
         axisLine: { show: false },
         axisTick: { show: false },
         axisLabel: { 
           color: '#475569', 
-          fontWeight: 600, 
           fontSize: 12, 
+          margin: 12, 
+          fontWeight: 'bold' 
+        }
+      },
+      yAxis: {
+        type: 'category',
+        data: categories,
+        splitArea: { show: false },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { 
+          color: '#475569', 
+          fontWeight: 'bold', 
+          fontSize: 13, 
           margin: 12
         }
       },
       visualMap: {
+        type: 'continuous',
         min: 0,
         max: 100,
         calculable: true,
         orient: 'horizontal',
         left: 'center',
-        bottom: '0%',
-        itemWidth: 12,   // 修正：粗细
-        itemHeight: 180, // 修正：长度
-        text: ['饱和', '空闲'],
-        textStyle: { color: '#94a3b8', fontSize: 11 },
+        bottom: '2%',
+        itemWidth: 15,
+        itemHeight: 200,
+        text: ['爆发', '静默'],
+        textStyle: { color: '#475569', fontSize: 12, fontWeight: 'bold' },
         inRange: {
-          color: [
-            '#f8fafc', '#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8', 
-            '#34d399', '#fbbf24', '#f59e0b', '#ea580c', '#dc2626'
-          ]
+          color: ['#f0f2f5', '#22d3ee', '#8b5cf6', '#f43f5e']
         }
       },
       series: [{
-        name: '资源饱和度',
+        name: '全息能量矩阵',
         type: 'heatmap',
         data: data,
         itemStyle: {
-          borderRadius: 4,
-          borderColor: '#fff',
-          borderWidth: 3
+          borderRadius: 6,
+          borderColor: '#ffffff',
+          borderWidth: 2,
+          opacity: 0.85,
+          shadowBlur: 12,
+          shadowColor: 'rgba(100, 100, 255, 0.3)'
         },
         label: {
           show: false
         },
         emphasis: {
           itemStyle: {
-            borderRadius: 6,
-            shadowBlur: 15,
-            shadowColor: 'rgba(0, 0, 0, 0.2)'
+            opacity: 1,
+            shadowBlur: 20,
+            shadowColor: 'rgba(139, 92, 246, 0.6)',
+            borderColor: '#ffffff',
+            borderWidth: 2
           }
         }
       }]
@@ -381,10 +390,15 @@ const Dashboard: React.FC = () => {
           <Card 
             title={<div className="flex items-center gap-2"><DatabaseOutlined className="text-blue-500" /> 资源负载率趋势 (过去10天)</div>} 
             className="modern-card"
-            bordered={false}
+            variant="borderless"
           >
             {loading ? <Skeleton active paragraph={{ rows: 8 }} /> : (
-              <ReactECharts option={getTrendOption()} style={{ height: '380px' }} />
+              <ReactECharts 
+                option={getTrendOption()} 
+                style={{ height: '380px' }} 
+                notMerge={true}
+                lazyUpdate={true}
+              />
             )}
           </Card>
         </Col>
@@ -392,10 +406,15 @@ const Dashboard: React.FC = () => {
           <Card 
             title={<div className="flex items-center gap-2"><ThunderboltOutlined className="text-amber-500" /> 生产瓶颈识别热力图</div>} 
             className="modern-card"
-            bordered={false}
+            variant="borderless"
           >
             {loading ? <Skeleton active paragraph={{ rows: 8 }} /> : (
-              <ReactECharts option={getHeatmapOption()} style={{ height: '380px' }} />
+              <ReactECharts 
+                option={getHeatmapOption()} 
+                style={{ height: '380px' }} 
+                notMerge={true}
+                lazyUpdate={true}
+              />
             )}
           </Card>
         </Col>

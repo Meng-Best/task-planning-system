@@ -76,6 +76,13 @@ const ProductionLineManagement: React.FC = () => {
   const [resourcesLoading, setResourcesLoading] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
   
+  // 分页状态
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0
+  })
+
   const [associatedDevices, setAssociatedDevices] = useState<Device[]>([])
   const [associatedTeams, setAssociatedTeams] = useState<Team[]>([])
   
@@ -83,6 +90,11 @@ const ProductionLineManagement: React.FC = () => {
   const [unboundDevices, setUnboundDevices] = useState<Device[]>([])
   const [selectedDeviceIds, setSelectedDeviceIds] = useState<number[]>([])
   const [bindingLoading, setBindingLoading] = useState(false)
+
+  const [bindTeamModalOpen, setBindTeamModalOpen] = useState(false)
+  const [unboundTeams, setUnboundTeams] = useState<Team[]>([])
+  const [selectedTeamIds, setSelectedTeamIds] = useState<number[]>([])
+  const [teamBindingLoading, setTeamBindingLoading] = useState(false)
 
   // 统计数据
   const stats = {
@@ -92,13 +104,30 @@ const ProductionLineManagement: React.FC = () => {
     occupied: lines.filter(l => l.status === 2).length
   }
 
-  const fetchLines = async () => {
+  // 筛选状态
+  const [filterQuery, setFilterQuery] = useState<string>('')
+  const [filterStatus, setFilterStatus] = useState<number | undefined>(undefined)
+
+  const fetchLines = async (page?: number, size?: number, overrides?: any) => {
     setLoading(true)
     setFetchError(null)
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/production-lines`)
+      const params: any = {
+        current: page || pagination.current,
+        pageSize: size || pagination.pageSize
+      }
+
+      const sQuery = overrides?.query !== undefined ? overrides.query : filterQuery
+      const sStatus = overrides?.status !== undefined ? overrides.status : filterStatus
+
+      if (sQuery) params.name = sQuery // 简单起见，按名称搜索
+      if (sStatus !== undefined) params.status = sStatus
+
+      const response = await axios.get(`${API_BASE_URL}/api/production-lines`, { params })
       if (response.data && response.data.status === 'ok') {
-        setLines(response.data.data.map((item: any) => ({ ...item, key: item.id })))
+        const { list, total, current, pageSize } = response.data.data
+        setLines(list.map((item: any) => ({ ...item, key: item.id })))
+        setPagination({ current, pageSize, total })
       }
     } catch (error: any) {
       setFetchError(error.message)
@@ -123,7 +152,9 @@ const ProductionLineManagement: React.FC = () => {
     }
   }, [])
 
-  useEffect(() => { fetchLines() }, [])
+  useEffect(() => { 
+    fetchLines(1) 
+  }, [filterStatus])
 
   useEffect(() => {
     if (selectedLineId) fetchResources(selectedLineId)
@@ -137,6 +168,12 @@ const ProductionLineManagement: React.FC = () => {
     setBindModalOpen(true)
   }
 
+  const handleOpenBindTeamModal = () => {
+    fetchUnboundTeams()
+    setSelectedTeamIds([])
+    setBindTeamModalOpen(true)
+  }
+
   const fetchUnboundDevices = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/devices?pageSize=1000`)
@@ -144,6 +181,15 @@ const ProductionLineManagement: React.FC = () => {
         setUnboundDevices(response.data.data.list.filter((d: any) => !d.productionLineId))
       }
     } catch (error) { message.error('获取未绑定设备失败') }
+  }
+
+  const fetchUnboundTeams = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/teams?pageSize=1000`)
+      if (response.data.status === 'ok') {
+        setUnboundTeams(response.data.data.list.filter((t: any) => !t.productionLineId))
+      }
+    } catch (error) { message.error('获取未绑定班组失败') }
   }
 
   const handleBindDevices = async () => {
@@ -158,10 +204,30 @@ const ProductionLineManagement: React.FC = () => {
     finally { setBindingLoading(false) }
   }
 
+  const handleBindTeams = async () => {
+    if (selectedTeamIds.length === 0) return
+    setTeamBindingLoading(true)
+    try {
+      await axios.post(`${API_BASE_URL}/api/production-lines/${selectedLineId}/bind-teams`, { teamIds: selectedTeamIds })
+      message.success('班组绑定成功')
+      setBindTeamModalOpen(false)
+      if (selectedLineId) fetchResources(selectedLineId)
+    } catch (error) { message.error('绑定失败') }
+    finally { setTeamBindingLoading(false) }
+  }
+
   const handleUnbindDevice = async (deviceId: number) => {
     try {
       await axios.post(`${API_BASE_URL}/api/production-lines/${selectedLineId}/unbind-device`, { deviceId })
       message.success('设备已解绑')
+      if (selectedLineId) fetchResources(selectedLineId)
+    } catch (error) { message.error('解绑失败') }
+  }
+
+  const handleUnbindTeam = async (teamId: number) => {
+    try {
+      await axios.post(`${API_BASE_URL}/api/production-lines/${selectedLineId}/unbind-team`, { teamId })
+      message.success('班组已解绑，并重置为可占用状态')
       if (selectedLineId) fetchResources(selectedLineId)
     } catch (error) { message.error('解绑失败') }
   }
@@ -287,20 +353,36 @@ const ProductionLineManagement: React.FC = () => {
       title: '班组名', 
       dataIndex: 'name', 
       key: 'name',
-      width: '40%',
+      width: '35%',
       render: (val: string) => <span className="text-gray-800 font-medium">{val}</span>
     },
     { 
       title: '班组长', 
       key: 'leader', 
-      width: '25%',
+      width: '20%',
       render: (_: any, record: any) => <span className="text-gray-600">{record.leader?.name || '-'}</span> 
     },
     { 
       title: '人数', 
       key: 'memberCount', 
-      width: '20%',
+      width: '15%',
       render: (_: any, record: any) => <span className="text-gray-600">{record.staffs?.length || 0}</span> 
+    },
+    { 
+      title: '操作', 
+      key: 'action', 
+      width: '15%', 
+      render: (_: any, record: Team) => (
+        <Popconfirm 
+          title="确定解绑此班组？" 
+          description="解绑后，该班组状态将重置为“可占用”。"
+          onConfirm={() => handleUnbindTeam(record.id)} 
+          okText="确定" 
+          cancelText="取消"
+        >
+          <Button type="link" danger size="small" icon={<DisconnectOutlined />}>解绑</Button>
+        </Popconfirm>
+      )
     }
   ]
 
@@ -322,8 +404,9 @@ const ProductionLineManagement: React.FC = () => {
       label: <span style={{ fontSize: '15px', fontWeight: 500 }}><TeamOutlined /> 关联班组 ({associatedTeams.length})</span>,
       children: (
         <div style={{ padding: '16px 0' }}>
-          <div className="mb-4">
-            <Tag color="blue" icon={<InfoCircleOutlined />} style={{ padding: '4px 12px', borderRadius: '4px' }}>提示：班组绑定产线请前往“班组管理”模块操作</Tag>
+          <div className="mb-4 flex justify-between items-center">
+            <Tag color="blue" icon={<InfoCircleOutlined />} style={{ padding: '4px 12px', borderRadius: '4px' }}>提示：班组绑定产线也可以在此快速操作</Tag>
+            <Button type="primary" icon={<LinkOutlined />} onClick={handleOpenBindTeamModal}>添加班组</Button>
           </div>
           <Table dataSource={associatedTeams} columns={teamColumns} rowKey="id" loading={resourcesLoading} size="middle" pagination={false} />
         </div>
@@ -383,13 +466,18 @@ const ProductionLineManagement: React.FC = () => {
                 placeholder="产线名称/代码" 
                 style={{ width: 200 }}
                 allowClear
+                value={filterQuery}
+                onChange={e => setFilterQuery(e.target.value)}
+                onPressEnter={() => fetchLines(1)}
               />
-              <span className="text-gray-500 ml-2">类型:</span>
-              <Select placeholder="全部类型" style={{ width: 140 }} allowClear>
-                {/* 动态选项可以在此添加 */}
-              </Select>
               <span className="text-gray-500 ml-2">状态:</span>
-              <Select placeholder="全部状态" style={{ width: 130 }} allowClear>
+              <Select 
+                placeholder="全部状态" 
+                style={{ width: 130 }} 
+                allowClear
+                value={filterStatus}
+                onChange={setFilterStatus}
+              >
                 <Select.Option value={0}>可占用</Select.Option>
                 <Select.Option value={1}>不可用</Select.Option>
                 <Select.Option value={2}>已占用</Select.Option>
@@ -399,8 +487,12 @@ const ProductionLineManagement: React.FC = () => {
           <Col flex="auto" />
           <Col>
             <Space size="middle">
-              <Button type="primary" icon={<SearchOutlined />}>查询</Button>
-              <Button icon={<ReloadOutlined />} onClick={fetchLines}>重置</Button>
+              <Button type="primary" icon={<SearchOutlined />} onClick={() => fetchLines(1)}>查询</Button>
+              <Button icon={<ReloadOutlined />} onClick={() => {
+                setFilterQuery('')
+                setFilterStatus(undefined)
+                fetchLines(1, pagination.pageSize, { query: '', status: undefined })
+              }}>重置</Button>
             </Space>
           </Col>
         </Row>
@@ -414,7 +506,7 @@ const ProductionLineManagement: React.FC = () => {
           type="error"
           showIcon
           action={
-            <Button size="small" danger onClick={fetchLines}>重试</Button>
+            <Button size="small" danger onClick={() => fetchLines(1)}>重试</Button>
           }
         />
       )}
@@ -431,7 +523,7 @@ const ProductionLineManagement: React.FC = () => {
               type="primary"
               ghost
               icon={<ReloadOutlined />} 
-              onClick={fetchLines} 
+              onClick={() => fetchLines(1)} 
               loading={loading}
               size="middle"
             >
@@ -452,10 +544,13 @@ const ProductionLineManagement: React.FC = () => {
           loading={loading}
           size="middle"
           pagination={{ 
-            pageSize: 5, 
-            size: 'small', 
+            ...pagination,
+            showSizeChanger: true,
+            showQuickJumper: true,
             position: ['bottomLeft'],
-            showTotal: (total) => `共 ${total} 条产线`
+            showTotal: (total) => `共 ${total} 条记录`,
+            style: { marginLeft: '8px', marginTop: '16px' },
+            onChange: (page, size) => fetchLines(page, size)
           }}
           onRow={(record) => {
             const status = typeof record.status === 'number' ? record.status : 0;
@@ -510,6 +605,30 @@ const ProductionLineManagement: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <Space><span className="font-mono text-xs text-gray-400">[{device.code}]</span><span>{device.name}</span></Space>
                   <Tag>{getDeviceTypeLabel(device.type)}</Tag>
+                </div>
+              </Select.Option>
+            ))}
+          </Select>
+        </div>
+      </Modal>
+
+      <Modal
+        title="绑定班组到产线"
+        open={bindTeamModalOpen}
+        onOk={handleBindTeams}
+        onCancel={() => setBindTeamModalOpen(false)}
+        confirmLoading={teamBindingLoading}
+        width={600}
+        destroyOnHidden
+      >
+        <div className="py-4">
+          <p className="mb-4 text-gray-500">选择要绑定到当前产线的班组（仅显示闲置班组）：</p>
+          <Select mode="multiple" style={{ width: '100%' }} placeholder="请选择班组" value={selectedTeamIds} onChange={setSelectedTeamIds} optionLabelProp="label">
+            {unboundTeams.map(team => (
+              <Select.Option key={team.id} value={team.id} label={team.name}>
+                <div className="flex justify-between items-center">
+                  <Space><span className="font-mono text-xs text-gray-400">[{team.code}]</span><span>{team.name}</span></Space>
+                  <Tag color="cyan">{team.leader?.name || '无组长'}</Tag>
                 </div>
               </Select.Option>
             ))}

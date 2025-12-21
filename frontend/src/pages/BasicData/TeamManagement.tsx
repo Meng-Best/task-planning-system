@@ -190,20 +190,14 @@ const TeamManagement: React.FC = () => {
   // 获取产线列表
   const fetchProductionLines = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/factories`)
+      // 注意：这里需要获取所有产线以供下拉框选择，不应分页，或者请求一个较大的 pageSize
+      const res = await axios.get(`${API_BASE_URL}/api/production-lines`, {
+        params: { current: 1, pageSize: 1000 }
+      })
       if (res.data.status === 'ok') {
-        const allLines: ProductionLine[] = []
-        res.data.data.forEach((factory: any) => {
-          factory.productionLines.forEach((line: any) => {
-            allLines.push({
-              id: line.id,
-              name: line.name,
-              code: line.code,
-              factory: { name: factory.name }
-            })
-          })
-        })
-        setProductionLines(allLines)
+        // 兼容后端分页结构
+        const lineList = Array.isArray(res.data.data) ? res.data.data : (res.data.data.list || [])
+        setProductionLines(lineList)
       }
     } catch (error) {
       console.error("Fetch production lines failed", error)
@@ -264,27 +258,49 @@ const TeamManagement: React.FC = () => {
   }
 
   // 保存数据
-  const handleSave = async () => {
+  const handleSave = async (forceUnbind = false) => {
     try {
       const values = await form.validateFields()
       const postData = {
         ...values,
         memberIds: selectedMemberIds,
-        leaderId: currentLeaderId
+        leaderId: currentLeaderId,
+        forceUnbind
       }
 
       if (editingTeam) {
-        await axios.put(`${API_BASE_URL}/api/teams/${editingTeam.id}`, postData)
-        message.success('班组更新成功')
+        const response = await axios.put(`${API_BASE_URL}/api/teams/${editingTeam.id}`, postData)
+        if (response.data.status === 'ok') {
+          message.success('班组更新成功')
+          setModalOpen(false)
+          fetchTeams()
+        }
       } else {
-        await axios.post(`${API_BASE_URL}/api/teams`, postData)
-        message.success('班组创建成功')
+        const response = await axios.post(`${API_BASE_URL}/api/teams`, postData)
+        if (response.data.status === 'ok') {
+          message.success('班组创建成功')
+          setModalOpen(false)
+          fetchTeams()
+        }
       }
-      setModalOpen(false)
-      fetchTeams()
     } catch (error: any) {
+      // 处理解绑确认逻辑
+      if (error.response?.data?.status === 'confirm_required') {
+        Modal.confirm({
+          title: '解除绑定确认',
+          content: error.response.data.message,
+          okText: '确认移除并修改',
+          cancelText: '取消',
+          onOk: () => handleSave(true) // 递归调用，带上强制解绑标志
+        })
+        return
+      }
+
       if (error.response?.status === 409) {
         message.error(error.response.data.message)
+      } else if (error.errorFields) {
+        // 表单验证错误
+        return
       } else {
         message.error("保存失败")
       }
@@ -392,7 +408,7 @@ const TeamManagement: React.FC = () => {
   return (
     <div className="team-management flex flex-col gap-4 p-2">
       {/* 筛选区域 */}
-      <Card className="shadow-sm border-0" bodyStyle={{ padding: '16px' }}>
+      <Card className="shadow-sm border-0" styles={{ body: { padding: '16px' } }}>
         <Row gutter={[16, 16]} align="middle">
           <Col>
             <Space size={8}>
@@ -479,7 +495,7 @@ const TeamManagement: React.FC = () => {
             </Button>
           </div>
         }
-        bodyStyle={{ padding: '16px' }}
+        styles={{ body: { padding: '16px' } }}
       >
         <Table
           dataSource={teams}
@@ -511,68 +527,74 @@ const TeamManagement: React.FC = () => {
       </Card>
 
       {/* 详情页签区域 */}
-      <Card className="flex-1 shadow-sm overflow-hidden" bodyStyle={{ padding: '0 24px' }}>
+      <Card className="flex-1 shadow-sm overflow-hidden" styles={{ body: { padding: '0 24px' } }}>
         {selectedTeam ? (
-          <Tabs defaultActiveKey="members" className="h-full">
-            <Tabs.TabPane 
-              tab={
-                <Space>
-                  <TeamOutlined />
-                  组员列表
-                  <Badge count={selectedTeam._count.staffs} size="small" style={{ backgroundColor: '#52c41a' }} />
-                </Space>
-              } 
-              key="members"
-            >
-              <div className="overflow-y-auto overflow-x-hidden py-4" style={{ maxHeight: 'calc(100vh - 500px)' }}>
-                <Table
-                  dataSource={selectedTeam.staffs || []}
-                  size="small"
-                  pagination={false}
-                  rowKey="id"
-                  columns={[
-                    { title: '工号', dataIndex: 'staffId', width: '25%' },
-                    { title: '姓名', dataIndex: 'name', width: '25%' },
-                    { 
-                      title: '专业', 
-                      dataIndex: 'major', 
-                      width: '25%',
-                      render: (m: number) => MAJOR_OPTIONS.find(o => o.value === m)?.label || '未知'
-                    },
-                    { 
-                      title: '职级', 
-                      render: (_: any, r: Staff) => getStaffLevelLabel(r.major, r.level) 
-                    }
-                  ]}
-                />
-              </div>
-            </Tabs.TabPane>
-            <Tabs.TabPane 
-              tab={
-                <Space>
-                  <BankOutlined />
-                  产线信息
-                </Space>
-              } 
-              key="line"
-            >
-              <div className="overflow-y-auto overflow-x-hidden py-4" style={{ maxHeight: 'calc(100vh - 500px)' }}>
-                {selectedTeam?.productionLine ? (
-                  <div className="p-4 mt-4 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
-                    <Descriptions column={2} size="small">
-                      <Descriptions.Item label="产线名称">{selectedTeam.productionLine.name}</Descriptions.Item>
-                      <Descriptions.Item label="产线编码">{selectedTeam.productionLine.code}</Descriptions.Item>
-                      <Descriptions.Item label="所属工厂">{selectedTeam.productionLine.factory.name}</Descriptions.Item>
-                    </Descriptions>
+          <Tabs 
+            defaultActiveKey="members" 
+            className="h-full"
+            items={[
+              {
+                key: 'members',
+                label: (
+                  <Space>
+                    <TeamOutlined />
+                    组员列表
+                    <Badge count={selectedTeam._count.staffs} size="small" style={{ backgroundColor: '#52c41a' }} />
+                  </Space>
+                ),
+                children: (
+                  <div className="overflow-y-auto overflow-x-hidden py-4" style={{ maxHeight: 'calc(100vh - 500px)' }}>
+                    <Table
+                      dataSource={selectedTeam.staffs || []}
+                      size="small"
+                      pagination={false}
+                      rowKey="id"
+                      columns={[
+                        { title: '工号', dataIndex: 'staffId', width: '25%' },
+                        { title: '姓名', dataIndex: 'name', width: '25%' },
+                        { 
+                          title: '专业', 
+                          dataIndex: 'major', 
+                          width: '25%',
+                          render: (m: number) => MAJOR_OPTIONS.find(o => o.value === m)?.label || '未知'
+                        },
+                        { 
+                          title: '职级', 
+                          render: (_: any, r: Staff) => getStaffLevelLabel(r.major, r.level) 
+                        }
+                      ]}
+                    />
                   </div>
-                ) : (
-                  <div className="py-12 text-center">
-                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="该班组未绑定产线" />
+                )
+              },
+              {
+                key: 'line',
+                label: (
+                  <Space>
+                    <BankOutlined />
+                    产线信息
+                  </Space>
+                ),
+                children: (
+                  <div className="overflow-y-auto overflow-x-hidden py-4" style={{ maxHeight: 'calc(100vh - 500px)' }}>
+                    {selectedTeam?.productionLine ? (
+                      <div className="p-4 mt-4 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
+                        <Descriptions column={2} size="small">
+                          <Descriptions.Item label="产线名称">{selectedTeam.productionLine.name}</Descriptions.Item>
+                          <Descriptions.Item label="产线编码">{selectedTeam.productionLine.code}</Descriptions.Item>
+                          <Descriptions.Item label="所属工厂">{selectedTeam.productionLine.factory.name}</Descriptions.Item>
+                        </Descriptions>
+                      </div>
+                    ) : (
+                      <div className="py-12 text-center">
+                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="该班组未绑定产线" />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </Tabs.TabPane>
-          </Tabs>
+                )
+              }
+            ]}
+          />
         ) : (
           <div className="h-full flex items-center justify-center py-12">
             <Empty description="请从上方列表中选择班组以查看详情" />
@@ -584,11 +606,11 @@ const TeamManagement: React.FC = () => {
       <Modal
         title={editingTeam ? '编辑班组' : '新建班组'}
         open={modalOpen}
-        onOk={handleSave}
+        onOk={() => handleSave()}
         onCancel={() => setModalOpen(false)}
         width={700}
-        destroyOnClose
-        bodyStyle={{ paddingTop: '20px' }}
+        destroyOnHidden
+        styles={{ body: { paddingTop: '20px' } }}
       >
         <Form form={form} layout="vertical">
           <Row gutter={16}>
@@ -605,18 +627,29 @@ const TeamManagement: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item name="productionLineId" label="绑定产线">
-                <Select placeholder="选择产线" allowClear>
+                <Select 
+                  placeholder="选择产线" 
+                  allowClear
+                  popupMatchSelectWidth={false}
+                  styles={{ popup: { root: { minWidth: 350 } } }}
+                  style={{ width: '100%' }}
+                  optionLabelProp="label"
+                >
                   {productionLines.map(line => (
-                    <Select.Option key={line.id} value={line.id}>
-                      {line.factory.name} - {line.name} ({line.code})
+                    <Select.Option 
+                      key={line.id} 
+                      value={line.id}
+                      label={`[${line.code}] ${line.factory.name} - ${line.name}`}
+                    >
+                      <span className="text-gray-400">[{line.code}]</span> {line.factory.name} - {line.name}
                     </Select.Option>
                   ))}
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col span={7}>
               <Form.Item name="shiftType" label="所属班次" rules={[{ required: true, message: '请选择班次' }]}>
                 <Select placeholder="选择班次">
                   {SHIFT_TYPES.map(s => (
@@ -630,7 +663,7 @@ const TeamManagement: React.FC = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col span={5}>
               <Form.Item name="status" label="状态">
                 <Select placeholder="选择状态">
                   {BASIC_DATA_STATUS.map(s => (
@@ -682,12 +715,11 @@ const TeamManagement: React.FC = () => {
                   })).filter(m => m.children.length > 0);
 
                   return (
-                    <div className="p-2">
+                    <div style={{ height: 340, overflowY: 'auto', padding: '4px 8px' }}>
                       <Tree
                         blockNode
                         checkable
                         checkStrictly
-                        defaultExpandAll
                         treeData={treeData}
                         checkedKeys={selectedKeys.concat(selectedMemberIds.map(id => id.toString()))}
                         onCheck={(_, { node: { key } }) => {

@@ -9,7 +9,8 @@ const TopBanner: React.FC = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasNew, setHasNew] = useState(false);
-  const [lastViewedId, setLastViewedId] = useState<number>(0);
+  // 使用 Ref 存储最后查看的 ID，避免轮询中的闭包陷阱
+  const lastViewedIdRef = React.useRef<number>(0);
 
   // 轮询检查新通知 (短轮询：每1秒检查一次，确保实时性)
   useEffect(() => {
@@ -18,8 +19,8 @@ const TopBanner: React.FC = () => {
         const list = await getSystemNotifications();
         if (list.length > 0) {
           setNotifications(list);
-          // 如果列表中最新的 ID 大于最后一次查看的 ID，则显示红点
-          if (list[0].id > lastViewedId) {
+          // 实时对比 Ref 中的最新 ID
+          if (list[0].id > lastViewedIdRef.current) {
             setHasNew(true);
           }
         }
@@ -31,19 +32,25 @@ const TopBanner: React.FC = () => {
     checkNew();
     const timer = setInterval(checkNew, 1000); // 1秒轮询一次
     return () => clearInterval(timer);
-  }, [lastViewedId]);
+  }, []); // 仅挂载时执行
 
   // 处理通知面板打开
   const handleOpenChange = async (open: boolean) => {
     if (open) {
-      setHasNew(false);
-      if (notifications.length > 0) {
-        setLastViewedId(notifications[0].id);
-      }
       setLoading(true);
-      const list = await getSystemNotifications();
-      setNotifications(list);
-      setLoading(false);
+      try {
+        const list = await getSystemNotifications();
+        setNotifications(list);
+        setHasNew(false);
+        if (list.length > 0) {
+          // 同步更新 Ref
+          lastViewedIdRef.current = list[0].id;
+        }
+      } catch (err) {
+        console.error('Fetch notifications error:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -89,20 +96,34 @@ const TopBanner: React.FC = () => {
 
   return (
     <div 
-      className="h-[80px] flex items-center justify-between px-6 relative overflow-hidden"
+      className="h-[80px] flex items-center justify-between px-6 relative overflow-hidden select-none"
       style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+        background: '#000' // 底色兜底
       }}
     >
-      {/* 背景装饰图案 */}
+      {/* 动态流体星空背景 */}
       <div 
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-[-10%] z-0"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundImage: 'url("/images/topbanner.png")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          animation: 'starFloating 60s ease-in-out infinite',
+          filter: 'brightness(0.8)' // 稍微调暗，增强科幻感
+        }}
+      />
+
+      {/* 渐变遮罩层 */}
+      <div 
+        className="absolute inset-0 z-[1]"
+        style={{
+          background: 'linear-gradient(to right, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.5) 100%)',
         }}
       />
       
-      {/* 左侧：Logo 区域 */}
+      {/* 内容区域：提升 z-index 确保在背景之上 */}
       <div className="flex items-center gap-3 z-10">
         <div className="logo-container w-12 h-12 rounded-xl flex items-center justify-center cursor-pointer">
           <span className="rocket-wrapper">
@@ -112,7 +133,7 @@ const TopBanner: React.FC = () => {
         <span 
           className="text-white text-xl tracking-wide font-semibold"
           style={{ 
-            textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
             lineHeight: 1
           }}
         >
@@ -120,7 +141,6 @@ const TopBanner: React.FC = () => {
         </span>
       </div>
 
-      {/* 右侧：用户区域 */}
       <div className="flex items-center gap-6 z-10">
         {/* 通知铃铛 */}
         <Popover
@@ -148,6 +168,16 @@ const TopBanner: React.FC = () => {
           <span className="text-white text-sm font-medium ml-1">管理员</span>
         </div>
       </div>
+
+      <style>{`
+        @keyframes starFloating {
+          0% { transform: scale(1) translate(0, 0) rotate(0deg); }
+          25% { transform: scale(1.05) translate(-1%, -2%) rotate(0.5deg); }
+          50% { transform: scale(1.1) translate(-2%, 1%) rotate(-0.5deg); }
+          75% { transform: scale(1.05) translate(1%, 2%) rotate(0.2deg); }
+          100% { transform: scale(1) translate(0, 0) rotate(0deg); }
+        }
+      `}</style>
     </div>
   );
 };
