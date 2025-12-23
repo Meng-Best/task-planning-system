@@ -78,12 +78,29 @@ model ProductionLine {
   factoryId      Int             // 所属工厂ID
   factory        Factory         @relation(fields: [factoryId], references: [id], onDelete: Cascade)
   calendarEvents CalendarEvent[] // 该产线的专用日历事件
-  teams          Team[]          // 关联的班组
-  devices        Device[]        // 关联的设备
+  stations       Station[]       // 关联的工位
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
   @@map("production_lines")
+}
+
+// 工位表 - 产线下的最小生产单元
+model Station {
+  id               Int            @id @default(autoincrement())
+  code             String         @unique // 工位编号
+  name             String         // 工位名称
+  type             String?        // 工位类型
+  description      String?        // 工位描述
+  status           Int            @default(0) /// 0: 可占用, 1: 不可用, 2: 已占用
+  productionLineId Int?           // 关联产线ID
+  productionLine   ProductionLine? @relation(fields: [productionLineId], references: [id])
+  teams            Team[]         // 关联的班组
+  devices          Device[]       // 关联的设备
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@map("stations")
 }
 
 // 班组表 - 人员的组织单元
@@ -93,8 +110,8 @@ model Team {
   name             String          // 班组名称
   leaderId         Int?            @unique // 班组长ID（一名人员只能担任一个班组的组长）
   leader           Staff?          @relation("TeamLeader", fields: [leaderId], references: [id])
-  productionLineId Int?            // 关联产线ID
-  productionLine   ProductionLine? @relation(fields: [productionLineId], references: [id])
+  stationId        Int?            // 关联工位ID
+  station          Station?        @relation(fields: [stationId], references: [id])
   status           Int             @default(0) /// 0: 可占用, 1: 不可用, 2: 已占用
   shiftType        Int             @default(0) /// 0: 一班(08-16), 1: 二班(16-24)
   staffs           Staff[]         @relation("TeamMembers")
@@ -114,8 +131,8 @@ model Device {
   serialNumber       String?             // 出厂序列号
   purchaseDate       DateTime?           // 采购日期
   status             Int                 @default(0) /// 0: 可占用(Assignable), 1: 不可用(Unavailable), 2: 已占用(Occupied)
-  productionLineId   Int?                // 关联产线ID
-  productionLine     ProductionLine?     @relation(fields: [productionLineId], references: [id])
+  stationId          Int?                // 关联工位ID
+  station            Station?            @relation(fields: [stationId], references: [id])
   maintenanceRecords MaintenanceRecord[] // 关联的维护记录
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -155,5 +172,50 @@ model Staff {
   updatedAt DateTime @updatedAt
 
   @@map("staffs")
+}
+
+// 火箭表 - 库存管理
+model Rocket {
+  id          Int             @id @default(autoincrement())
+  code        String          @unique // 火箭编号 (如: CZ-5-01)
+  name        String          // 火箭名称
+  model       String?         // 型号
+  quantity    Int             @default(0) // 库存数量
+  sections    RocketSection[] // 关联的舱段
+  engines     Engine[]        // 关联的发动机
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("rockets")
+}
+
+// 舱段表 - 库存管理
+model RocketSection {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // 舱段编号
+  name        String   // 舱段名称
+  type        String   // 舱段类型 (整流罩, 助推器, 一级, 二级等)
+  quantity    Int      @default(0) // 库存数量
+  rocketId    Int?     // 关联火箭ID
+  rocket      Rocket?  @relation(fields: [rocketId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("rocket_sections")
+}
+
+// 发动机表 - 库存管理
+model Engine {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // 发动机编号
+  name        String   // 发动机名称
+  model       String?  // 型号
+  quantity    Int      @default(0) // 库存数量
+  rocketId    Int?     // 关联火箭ID
+  rocket      Rocket?  @relation(fields: [rocketId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("engines")
 }
 

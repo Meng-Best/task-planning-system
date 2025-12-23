@@ -26,11 +26,16 @@ exports.getDevices = async (req, res) => {
         skip: skip,
         take: size,
         include: {
-          productionLine: {
+          station: {
             select: {
               id: true,
               name: true,
-              code: true
+              code: true,
+              productionLine: {
+                select: {
+                  name: true
+                }
+              }
             }
           }
         },
@@ -86,11 +91,17 @@ exports.getDeviceById = async (req, res) => {
     const device = await prisma.device.findUnique({
       where: { id: parseInt(id) },
       include: {
-        productionLine: {
+        station: {
           select: {
             id: true,
             name: true,
-            code: true
+            code: true,
+            productionLine: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
           }
         }
       }
@@ -251,7 +262,7 @@ exports.updateDevice = async (req, res) => {
       // 查询更新前的设备状态
       const oldDevice = await tx.device.findUnique({
         where: { id: deviceId },
-        include: { productionLine: true }
+        include: { station: true }
       });
 
       if (!oldDevice) {
@@ -261,14 +272,14 @@ exports.updateDevice = async (req, res) => {
       const updateData = {};
 
       // 核心业务逻辑：已占用设备如果要改为可占用，必须确认解除绑定
-      if (status !== undefined && targetStatus === 0 && oldDevice.productionLineId) {
+      if (status !== undefined && targetStatus === 0 && oldDevice.stationId) {
         if (!forceUnbind) {
           const error = new Error('UNBIND_CONFIRM_REQUIRED');
-          error.lineName = oldDevice.productionLine.name;
+          error.lineName = oldDevice.station.name;
           throw error;
         }
-        // 如果确认强制解绑，将 productionLineId 设为 null
-        updateData.productionLineId = null;
+        // 如果确认强制解绑，将 stationId 设为 null
+        updateData.stationId = null;
       }
 
       if (code !== undefined) updateData.code = code;
@@ -342,7 +353,7 @@ exports.updateDevice = async (req, res) => {
     if (error.message === 'UNBIND_CONFIRM_REQUIRED') {
       return res.status(400).json({
         status: 'confirm_required',
-        message: `该设备当前正绑定在产组 [${error.lineName}] 上。若要将其状态改为“可占用”，必须先从产线移除。是否确认移除并修改状态？`,
+        message: `该设备当前正绑定在工位 [${error.lineName}] 上。若要将其状态改为“可占用”，必须先从工位移除。是否确认移除并修改状态？`,
         timestamp: new Date().toISOString()
       });
     }

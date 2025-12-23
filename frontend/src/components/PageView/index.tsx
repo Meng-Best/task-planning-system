@@ -3,10 +3,14 @@ import { findMenuItemByKey } from '../../config/menuConfig'
 import WorkCalendar from '../../pages/BasicData/WorkCalendar'
 import FactoryManagement from '../../pages/BasicData/FactoryManagement'
 import ProductionLineManagement from '../../pages/BasicData/ProductionLineManagement'
+import StationManagement from '../../pages/BasicData/StationManagement'
 import DeviceManagement from '../../pages/BasicData/DeviceManagement'
 import StaffManagement from '../../pages/BasicData/StaffManagement'
 import TeamManagement from '../../pages/BasicData/TeamManagement'
 import Dashboard from '../../pages/Workbench/Dashboard'
+import RocketManagement from '../../pages/InventoryManagement/RocketManagement'
+import SectionManagement from '../../pages/InventoryManagement/SectionManagement'
+import EngineManagement from '../../pages/InventoryManagement/EngineManagement'
 
 interface PageViewProps {
   tabKey: string
@@ -16,12 +20,12 @@ interface PageViewProps {
 const GenericPageView: React.FC<{ tabKey: string }> = ({ tabKey }) => {
   const { Title } = Typography
   const menuItem = findMenuItemByKey(tabKey)
-  
+
   return (
     <Card>
       <div className="text-center py-8">
         <Title level={4}>{menuItem?.label || tabKey}</Title>
-        <Empty 
+        <Empty
           description={
             <span className="text-gray-400">
               页面 "{menuItem?.label || tabKey}" 的内容区域
@@ -46,12 +50,20 @@ const PageView: React.FC<PageViewProps> = ({ tabKey }) => {
       return <FactoryManagement />
     case 'line-mgmt':
       return <ProductionLineManagement />
+    case 'station-mgmt':
+      return <StationManagement />
     case 'device-mgmt':
       return <DeviceManagement />
     case 'staff-mgmt':
       return <StaffManagement />
     case 'team-mgmt':
       return <TeamManagement />
+    case 'rocket-mgmt':
+      return <RocketManagement />
+    case 'section-mgmt':
+      return <SectionManagement />
+    case 'engine-mgmt':
+      return <EngineManagement />
     default:
       return <GenericPageView tabKey={tabKey} />
   }

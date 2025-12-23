@@ -12,7 +12,12 @@ import {
   DatabaseOutlined,
   BankOutlined,
   ToolOutlined,
-  ApartmentOutlined
+  ApartmentOutlined,
+  ClusterOutlined,
+  RocketOutlined,
+  AppstoreOutlined,
+  BuildOutlined,
+  ThunderboltOutlined
 } from '@ant-design/icons'
 import React from 'react'
 
@@ -52,6 +57,11 @@ export const menuItems: MenuItem[] = [
         icon: React.createElement(ApartmentOutlined)
       },
       {
+        key: 'station-mgmt',
+        label: '工位管理',
+        icon: React.createElement(ClusterOutlined)
+      },
+      {
         key: 'device-mgmt',
         label: '设备管理',
         icon: React.createElement(ToolOutlined)
@@ -65,6 +75,28 @@ export const menuItems: MenuItem[] = [
         key: 'team-mgmt',
         label: '班组管理',
         icon: React.createElement(TeamOutlined)
+      }
+    ]
+  },
+  {
+    key: 'inventory-mgmt',
+    label: '库存管理',
+    icon: React.createElement(AppstoreOutlined),
+    children: [
+      {
+        key: 'rocket-mgmt',
+        label: '火箭管理',
+        icon: React.createElement(RocketOutlined)
+      },
+      {
+        key: 'section-mgmt',
+        label: '舱段管理',
+        icon: React.createElement(BuildOutlined)
+      },
+      {
+        key: 'engine-mgmt',
+        label: '发动机管理',
+        icon: React.createElement(ThunderboltOutlined)
       }
     ]
   },

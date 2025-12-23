@@ -54,7 +54,7 @@ exports.getAllLines = async (req, res) => {
 };
 
 /**
- * 获取产线关联资源 (设备和班组)
+ * 获取产线关联资源 (工位)
  */
 exports.getLineResources = async (req, res) => {
   try {
@@ -63,11 +63,14 @@ exports.getLineResources = async (req, res) => {
     const productionLine = await prisma.productionLine.findUnique({
       where: { id: parseInt(id) },
       include: {
-        devices: true,
-        teams: {
+        stations: {
           include: {
-            leader: true,
-            staffs: true // 补全：包含成员以计算人数
+            _count: {
+              select: {
+                devices: true,
+                teams: true
+              }
+            }
           }
         }
       }
@@ -85,8 +88,7 @@ exports.getLineResources = async (req, res) => {
       status: 'ok',
       message: 'Production line resources fetched successfully',
       data: {
-        devices: productionLine.devices,
-        teams: productionLine.teams
+        stations: productionLine.stations
       },
       timestamp: new Date().toISOString()
     });
@@ -95,181 +97,60 @@ exports.getLineResources = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch production line resources',
-      error: 'Internal server error',
+      error: error.message,
       timestamp: new Date().toISOString()
     });
   }
 };
 
 /**
- * 绑定设备到产线
+ * 绑定工位到产线
  */
-exports.bindDevices = async (req, res) => {
+exports.bindStations = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { deviceIds } = req.body; // Array of device IDs
+    const { id } = req.params; // productionLineId
+    const { stationIds } = req.body;
 
-    if (!deviceIds || !Array.isArray(deviceIds)) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'deviceIds must be an array',
-        timestamp: new Date().toISOString()
-      });
+    if (!stationIds || !Array.isArray(stationIds)) {
+      return res.status(400).json({ status: 'error', message: 'stationIds 必须是数组' });
     }
 
-    // 使用事务确保一致性
     await prisma.$transaction(
-      deviceIds.map(deviceId => 
-        prisma.device.update({
-          where: { id: parseInt(deviceId) },
-          data: { 
-            productionLineId: parseInt(id),
-            status: 2 // 自动变为已占用
-          }
+      stationIds.map(stationId =>
+        prisma.station.update({
+          where: { id: parseInt(stationId) },
+          data: { productionLineId: parseInt(id) }
         })
       )
     );
 
-    res.json({
-      status: 'ok',
-      message: 'Devices bound to production line successfully',
-      timestamp: new Date().toISOString()
-    });
+    res.json({ status: 'ok', message: '工位绑定成功' });
   } catch (error) {
-    console.error(`[bindDevices] Error:`, error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to bind devices',
-      error: 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
+    console.error('Bind Stations to Line Error:', error);
+    res.status(500).json({ status: 'error', message: '服务器内部错误' });
   }
 };
 
 /**
- * 从产线解绑设备
+ * 从产线解绑工位
  */
-exports.unbindDevice = async (req, res) => {
+exports.unbindStation = async (req, res) => {
   try {
-    const { id } = req.params; // Production line ID (optional but provided in path)
-    const { deviceId } = req.body;
+    const { stationId } = req.body;
 
-    if (!deviceId) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'deviceId is required',
-        timestamp: new Date().toISOString()
-      });
+    if (!stationId) {
+      return res.status(400).json({ status: 'error', message: 'stationId 是必填项' });
     }
 
-    await prisma.device.update({
-      where: { id: parseInt(deviceId) },
-      data: { 
-        productionLineId: null,
-        status: 0 // 自动变为可占用
-      }
+    await prisma.station.update({
+      where: { id: parseInt(stationId) },
+      data: { productionLineId: null }
     });
 
-    res.json({
-      status: 'ok',
-      message: 'Device unbound from production line successfully',
-      timestamp: new Date().toISOString()
-    });
+    res.json({ status: 'ok', message: '工位已解绑' });
   } catch (error) {
-    console.error(`[unbindDevice] Error:`, error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to unbind device',
-      error: 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
-  }
-};
-
-/**
- * 从产线解绑班组
- * 并重置班组状态为可占用 (0)
- */
-exports.unbindTeam = async (req, res) => {
-  try {
-    const { id } = req.params; // Production line ID
-    const { teamId } = req.body;
-
-    if (!teamId) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'teamId is required',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    await prisma.team.update({
-      where: { id: parseInt(teamId) },
-      data: { 
-        productionLineId: null,
-        status: 0 // 重置为可占用
-      }
-    });
-
-    res.json({
-      status: 'ok',
-      message: 'Team unbound and status reset to available',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error(`[unbindTeam] Error:`, error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to unbind team',
-      error: 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
-  }
-};
-
-/**
- * 绑定班组到产线
- * 并将班组状态设为已占用 (2)
- */
-exports.bindTeams = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { teamIds } = req.body; // Array of team IDs
-
-    if (!teamIds || !Array.isArray(teamIds)) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'teamIds must be an array',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    // 使用事务确保一致性
-    await prisma.$transaction(
-      teamIds.map(teamId => 
-        prisma.team.update({
-          where: { id: parseInt(teamId) },
-          data: { 
-            productionLineId: parseInt(id),
-            status: 2 // 自动变为已占用
-          }
-        })
-      )
-    );
-
-    res.json({
-      status: 'ok',
-      message: 'Teams bound to production line successfully',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error(`[bindTeams] Error:`, error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to bind teams',
-      error: 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
+    console.error('Unbind Station from Line Error:', error);
+    res.status(500).json({ status: 'error', message: '服务器内部错误' });
   }
 };
 

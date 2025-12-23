@@ -5,7 +5,7 @@ const prisma = require('../prismaClient');
  */
 exports.getTeams = async (req, res) => {
   try {
-    const { current = 1, pageSize = 10, code, name, status } = req.query;
+    const { current = 1, pageSize = 10, code, name, status, shiftType } = req.query;
     const currentPage = parseInt(current);
     const size = parseInt(pageSize);
     const skip = (currentPage - 1) * size;
@@ -13,7 +13,8 @@ exports.getTeams = async (req, res) => {
     const whereClause = {};
     if (code) whereClause.code = { contains: code };
     if (name) whereClause.name = { contains: name };
-    if (status !== undefined) whereClause.status = parseInt(status);
+    if (status !== undefined && status !== '') whereClause.status = parseInt(status);
+    if (shiftType !== undefined && shiftType !== '') whereClause.shiftType = parseInt(shiftType);
 
     const [teams, total] = await Promise.all([
       prisma.team.findMany({
@@ -22,9 +23,9 @@ exports.getTeams = async (req, res) => {
           leader: {
             select: { name: true }
           },
-          productionLine: {
+          station: {
             include: {
-              factory: {
+              productionLine: {
                 select: { name: true }
               }
             }
@@ -112,16 +113,16 @@ exports.getAvailableStaff = async (req, res) => {
  */
 exports.createTeam = async (req, res) => {
   try {
-    const { code, name, leaderId, productionLineId, status, shiftType, memberIds = [] } = req.body;
+    const { code, name, leaderId, stationId, status, shiftType, memberIds = [] } = req.body;
 
     if (!code || !name) {
       return res.status(400).json({ status: 'error', message: '编号和名称为必填项' });
     }
 
     const team = await prisma.$transaction(async (tx) => {
-      // 核心业务逻辑：只要选择了产线，状态强制设为“已占用 (2)”
+      // 核心业务逻辑：只要选择了工位，状态强制设为“已占用 (2)”
       let finalStatus = status !== undefined ? parseInt(status) : 0;
-      if (productionLineId) {
+      if (stationId) {
         finalStatus = 2; // 已占用
       }
 
@@ -131,7 +132,7 @@ exports.createTeam = async (req, res) => {
           code,
           name,
           leaderId: leaderId ? parseInt(leaderId) : null,
-          productionLineId: productionLineId ? parseInt(productionLineId) : null,
+          stationId: stationId ? parseInt(stationId) : null,
           status: finalStatus,
           shiftType: shiftType !== undefined ? parseInt(shiftType) : 0
         }
@@ -171,14 +172,14 @@ exports.createTeam = async (req, res) => {
 exports.updateTeam = async (req, res) => {
   try {
     const { id } = req.params;
-    const { code, name, leaderId, productionLineId, status, shiftType, memberIds = [], forceUnbind } = req.body;
+    const { code, name, leaderId, stationId, status, shiftType, memberIds = [], forceUnbind } = req.body;
     const teamId = parseInt(id);
 
     const team = await prisma.$transaction(async (tx) => {
       // 查询更新前的班组状态
       const oldTeam = await tx.team.findUnique({
         where: { id: teamId },
-        include: { productionLine: true }
+        include: { station: true }
       });
 
       if (!oldTeam) {
@@ -186,30 +187,28 @@ exports.updateTeam = async (req, res) => {
       }
 
       let targetStatus = status !== undefined ? parseInt(status) : oldTeam.status;
-      let targetLineId = productionLineId !== undefined ? (productionLineId ? parseInt(productionLineId) : null) : oldTeam.productionLineId;
+      let targetStationId = stationId !== undefined ? (stationId ? parseInt(stationId) : null) : oldTeam.stationId;
 
       // 核心业务逻辑：
-      // A. 只要最终有产线绑定，状态就强制设为“已占用 (2)”
-      if (targetLineId) {
+      // A. 只要最终有工位绑定，状态就强制设为“已占用 (2)”
+      if (targetStationId) {
         targetStatus = 2;
       }
 
-      // B. 如果最终没有产线绑定，且原本有绑定，状态自动恢复为“可占用 (0)”
-      if (!targetLineId && oldTeam.productionLineId) {
+      // B. 如果最终没有工位绑定，且原本有绑定，状态自动恢复为“可占用 (0)”
+      if (!targetStationId && oldTeam.stationId) {
         targetStatus = 0;
       }
 
-      // C. 手动保护：如果班组“手动修改状态为 0”但“产线未移除”，则需要询问
-      // (由于上面的逻辑 A 已经把有产线的情况强制设为 2 了，这里的逻辑主要针对
-      // 用户尝试在有产线的情况下手动保存状态为 0 的意图)
-      if (status !== undefined && parseInt(status) === 0 && targetLineId) {
+      // C. 手动保护：如果班组“手动修改状态为 0”但“工位未移除”，则需要询问
+      if (status !== undefined && parseInt(status) === 0 && targetStationId) {
         if (!forceUnbind) {
           const error = new Error('UNBIND_CONFIRM_REQUIRED');
-          error.lineName = oldTeam.productionLine?.name || '当前产线';
+          error.lineName = oldTeam.station?.name || '当前工位';
           throw error;
         }
         // 如果确认强制解绑
-        targetLineId = null;
+        targetStationId = null;
         targetStatus = 0;
       }
 
@@ -220,7 +219,7 @@ exports.updateTeam = async (req, res) => {
           code,
           name,
           leaderId: leaderId ? parseInt(leaderId) : null,
-          productionLineId: targetLineId,
+          stationId: targetStationId,
           status: targetStatus,
           shiftType: shiftType !== undefined ? parseInt(shiftType) : 0
         }
@@ -261,7 +260,7 @@ exports.updateTeam = async (req, res) => {
     if (error.message === 'UNBIND_CONFIRM_REQUIRED') {
       return res.status(400).json({
         status: 'confirm_required',
-        message: `该班组当前正绑定在产组 [${error.lineName}] 上。若要将其状态改为“可占用”，必须先从产线移除。是否确认移除并修改状态？`,
+        message: `该班组当前正绑定在工位 [${error.lineName}] 上。若要将其状态改为“可占用”，必须先从工位移除。是否确认移除并修改状态？`,
       });
     }
     console.error('SERVER ERROR [updateTeam]:', error);

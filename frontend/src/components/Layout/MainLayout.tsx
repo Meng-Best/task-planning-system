@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Layout } from 'antd'
-import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
 import TopBanner from './TopBanner'
 import LeftSidebar from './LeftSidebar'
 import MainContent from './MainContent'

@@ -125,6 +125,10 @@ export const DEVICE_TYPE_OPTIONS = [
   { value: 5, label: '工业打印/喷码' },
 ];
 
+// 兼容性导出，供 DeviceManagement 等页面使用
+export const DEVICE_TYPES = DEVICE_TYPE_OPTIONS.map(opt => ({ id: opt.value, label: opt.label }));
+export const DEVICE_STATUS = STATUS_VALUE;
+
 /**
  * 人员专业字典
  */

@@ -6,33 +6,31 @@ import {
   Button,
   Tabs,
   Space,
-  Modal,
-  Select,
   message,
-  Popconfirm,
   Empty,
   Alert,
   Row,
   Col,
   Statistic,
-  Input
+  Input,
+  Select,
+  Popconfirm,
+  Modal
 } from 'antd'
 import {
-  ToolOutlined,
-  TeamOutlined,
-  LinkOutlined,
-  DisconnectOutlined,
   InfoCircleOutlined,
   ApartmentOutlined,
   ReloadOutlined,
-  SearchOutlined
+  SearchOutlined,
+  ClusterOutlined,
+  LinkOutlined,
+  DisconnectOutlined,
+  EditOutlined,
+  DeleteOutlined
 } from '@ant-design/icons'
 
 import axios from 'axios'
-import { 
-  getStatusConfig, 
-  getDeviceTypeLabel 
-} from '../../config/dictionaries'
+import { getStatusConfig } from '../../config/dictionaries'
 
 const API_BASE_URL = 'http://localhost:3001'
 
@@ -48,24 +46,15 @@ interface ProductionLine {
   }
 }
 
-interface Device {
+interface Station {
   id: number
   code: string
   name: string
-  type: number
-  model?: string
+  type: string
   status: number
-  productionLineId?: number | null
-}
-
-interface Team {
-  id: number
-  code: string
-  name: string
-  status: number
-  staffs?: any[]
-  leader?: {
-    name: string
+  _count?: {
+    devices: number
+    teams: number
   }
 }
 
@@ -83,155 +72,20 @@ const ProductionLineManagement: React.FC = () => {
     total: 0
   })
 
-  const [associatedDevices, setAssociatedDevices] = useState<Device[]>([])
-  const [associatedTeams, setAssociatedTeams] = useState<Team[]>([])
+  const [associatedStations, setAssociatedStations] = useState<Station[]>([])
   
-  const [bindModalOpen, setBindModalOpen] = useState(false)
-  const [unboundDevices, setUnboundDevices] = useState<Device[]>([])
-  const [selectedDeviceIds, setSelectedDeviceIds] = useState<number[]>([])
+  // 绑定工位相关的状态
+  const [bindStationModalOpen, setBindStationModalOpen] = useState(false)
+  const [unboundStations, setUnboundStations] = useState<Station[]>([])
+  const [selectedStationIds, setSelectedStationIds] = useState<number[]>([])
   const [bindingLoading, setBindingLoading] = useState(false)
-
-  const [bindTeamModalOpen, setBindTeamModalOpen] = useState(false)
-  const [unboundTeams, setUnboundTeams] = useState<Team[]>([])
-  const [selectedTeamIds, setSelectedTeamIds] = useState<number[]>([])
-  const [teamBindingLoading, setTeamBindingLoading] = useState(false)
-
-  // 统计数据
-  const stats = {
-    total: lines.length,
-    available: lines.filter(l => l.status === 0).length,
-    unavailable: lines.filter(l => l.status === 1).length,
-    occupied: lines.filter(l => l.status === 2).length
-  }
 
   // 筛选状态
   const [filterQuery, setFilterQuery] = useState<string>('')
+  const [filterCode, setFilterCode] = useState<string>('')
   const [filterStatus, setFilterStatus] = useState<number | undefined>(undefined)
 
-  const fetchLines = async (page?: number, size?: number, overrides?: any) => {
-    setLoading(true)
-    setFetchError(null)
-    try {
-      const params: any = {
-        current: page || pagination.current,
-        pageSize: size || pagination.pageSize
-      }
-
-      const sQuery = overrides?.query !== undefined ? overrides.query : filterQuery
-      const sStatus = overrides?.status !== undefined ? overrides.status : filterStatus
-
-      if (sQuery) params.name = sQuery // 简单起见，按名称搜索
-      if (sStatus !== undefined) params.status = sStatus
-
-      const response = await axios.get(`${API_BASE_URL}/api/production-lines`, { params })
-      if (response.data && response.data.status === 'ok') {
-        const { list, total, current, pageSize } = response.data.data
-        setLines(list.map((item: any) => ({ ...item, key: item.id })))
-        setPagination({ current, pageSize, total })
-      }
-    } catch (error: any) {
-      setFetchError(error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchResources = useCallback(async (lineId: number) => {
-    setResourcesLoading(true)
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/production-lines/${lineId}/resources`)
-      if (response.data.status === 'ok') {
-        setAssociatedDevices(response.data.data.devices || [])
-        setAssociatedTeams(response.data.data.teams || [])
-      }
-    } catch (error: any) {
-      console.error('Fetch resources failed:', error)
-      message.error('后端资源查询失败 (500)，请确保数据库已执行 push 操作')
-    } finally {
-      setResourcesLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { 
-    fetchLines(1) 
-  }, [filterStatus])
-
-  useEffect(() => {
-    if (selectedLineId) fetchResources(selectedLineId)
-  }, [selectedLineId, fetchResources])
-
-  const handleRowClick = (record: ProductionLine) => { setSelectedLineId(record.id) }
-
-  const handleOpenBindModal = () => {
-    fetchUnboundDevices()
-    setSelectedDeviceIds([])
-    setBindModalOpen(true)
-  }
-
-  const handleOpenBindTeamModal = () => {
-    fetchUnboundTeams()
-    setSelectedTeamIds([])
-    setBindTeamModalOpen(true)
-  }
-
-  const fetchUnboundDevices = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/devices?pageSize=1000`)
-      if (response.data.status === 'ok') {
-        setUnboundDevices(response.data.data.list.filter((d: any) => !d.productionLineId))
-      }
-    } catch (error) { message.error('获取未绑定设备失败') }
-  }
-
-  const fetchUnboundTeams = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/teams?pageSize=1000`)
-      if (response.data.status === 'ok') {
-        setUnboundTeams(response.data.data.list.filter((t: any) => !t.productionLineId))
-      }
-    } catch (error) { message.error('获取未绑定班组失败') }
-  }
-
-  const handleBindDevices = async () => {
-    if (selectedDeviceIds.length === 0) return
-    setBindingLoading(true)
-    try {
-      await axios.post(`${API_BASE_URL}/api/production-lines/${selectedLineId}/bind-devices`, { deviceIds: selectedDeviceIds })
-      message.success('设备绑定成功')
-      setBindModalOpen(false)
-      if (selectedLineId) fetchResources(selectedLineId)
-    } catch (error) { message.error('绑定失败') }
-    finally { setBindingLoading(false) }
-  }
-
-  const handleBindTeams = async () => {
-    if (selectedTeamIds.length === 0) return
-    setTeamBindingLoading(true)
-    try {
-      await axios.post(`${API_BASE_URL}/api/production-lines/${selectedLineId}/bind-teams`, { teamIds: selectedTeamIds })
-      message.success('班组绑定成功')
-      setBindTeamModalOpen(false)
-      if (selectedLineId) fetchResources(selectedLineId)
-    } catch (error) { message.error('绑定失败') }
-    finally { setTeamBindingLoading(false) }
-  }
-
-  const handleUnbindDevice = async (deviceId: number) => {
-    try {
-      await axios.post(`${API_BASE_URL}/api/production-lines/${selectedLineId}/unbind-device`, { deviceId })
-      message.success('设备已解绑')
-      if (selectedLineId) fetchResources(selectedLineId)
-    } catch (error) { message.error('解绑失败') }
-  }
-
-  const handleUnbindTeam = async (teamId: number) => {
-    try {
-      await axios.post(`${API_BASE_URL}/api/production-lines/${selectedLineId}/unbind-team`, { teamId })
-      message.success('班组已解绑，并重置为可占用状态')
-      if (selectedLineId) fetchResources(selectedLineId)
-    } catch (error) { message.error('解绑失败') }
-  }
-
+  // 1. 优先定义工具函数
   const renderStatusTag = (status: number) => {
     const config = getStatusConfig(status)
     return (
@@ -255,6 +109,7 @@ const ProductionLineManagement: React.FC = () => {
     )
   }
 
+  // 2. 定义表格列
   const lineColumns = [
     { 
       title: '状态', 
@@ -288,127 +143,205 @@ const ProductionLineManagement: React.FC = () => {
       title: '类型', 
       dataIndex: 'type', 
       key: 'type',
-      width: '20%',
+      width: '10%',
       render: (val: string) => <span className="text-gray-600">{val}</span>
-    }
-  ]
-
-  const deviceColumns = [
-    { 
-      title: '状态', 
-      dataIndex: 'status', 
-      key: 'status', 
-      width: '12%', 
-      render: (status: number) => renderStatusTag(status) 
     },
-    { 
-      title: '编号', 
-      dataIndex: 'code', 
-      key: 'code', 
-      width: '18%',
-      render: (val: string) => <span className="text-gray-700" style={{ fontWeight: 500 }}>{val}</span>
-    },
-    { 
-      title: '名称', 
-      dataIndex: 'name', 
-      key: 'name',
-      width: '25%',
-      render: (val: string) => <span className="text-gray-800">{val}</span>
-    },
-    { 
-      title: '类型', 
-      dataIndex: 'type', 
-      key: 'type', 
-      width: '15%',
-      render: (type: number) => <span className="text-gray-600">{getDeviceTypeLabel(type)}</span>
-    },
-    { 
-      title: '型号', 
-      dataIndex: 'model', 
-      key: 'model',
-      width: '20%',
-      render: (val: string) => <span className="text-gray-600">{val || '-'}</span>
-    },
-    { 
-      title: '操作', 
-      key: 'action', 
-      width: '10%', 
-      render: (_: any, record: Device) => (
-        <Popconfirm title="确定解绑此设备？" onConfirm={() => handleUnbindDevice(record.id)} okText="确定" cancelText="取消">
-          <Button type="link" danger size="small" icon={<DisconnectOutlined />}>移除</Button>
-        </Popconfirm>
+    {
+      title: '操作',
+      key: 'action',
+      width: '10%',
+      render: (_: any, record: ProductionLine) => (
+        <Space size="middle">
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={(e) => { e.stopPropagation(); handleEdit(record); }}>编辑</Button>
+          <Popconfirm 
+            title="确定删除此产线吗？" 
+            onConfirm={(e) => { e?.stopPropagation(); handleDelete(record.id); }}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={(e) => e.stopPropagation()}>删除</Button>
+          </Popconfirm>
+        </Space>
       )
     }
   ]
 
-  const teamColumns = [
-    { 
-      title: '状态', 
-      dataIndex: 'status', 
-      key: 'status', 
-      width: '15%', 
-      render: (status: number) => renderStatusTag(status) 
-    },
-    { 
-      title: '班组名', 
-      dataIndex: 'name', 
-      key: 'name',
-      width: '35%',
-      render: (val: string) => <span className="text-gray-800 font-medium">{val}</span>
-    },
-    { 
-      title: '班组长', 
-      key: 'leader', 
-      width: '20%',
-      render: (_: any, record: any) => <span className="text-gray-600">{record.leader?.name || '-'}</span> 
-    },
-    { 
-      title: '人数', 
-      key: 'memberCount', 
-      width: '15%',
-      render: (_: any, record: any) => <span className="text-gray-600">{record.staffs?.length || 0}</span> 
-    },
-    { 
-      title: '操作', 
-      key: 'action', 
-      width: '15%', 
-      render: (_: any, record: Team) => (
-        <Popconfirm 
-          title="确定解绑此班组？" 
-          description="解绑后，该班组状态将重置为“可占用”。"
-          onConfirm={() => handleUnbindTeam(record.id)} 
-          okText="确定" 
-          cancelText="取消"
-        >
-          <Button type="link" danger size="small" icon={<DisconnectOutlined />}>解绑</Button>
-        </Popconfirm>
-      )
+  const fetchLines = async (page?: number, size?: number, overrides?: any) => {
+    setLoading(true)
+    setFetchError(null)
+    try {
+      const params: any = {
+        current: page || pagination.current,
+        pageSize: size || pagination.pageSize
+      }
+
+      const sQuery = overrides?.query !== undefined ? overrides.query : filterQuery
+      const sCode = overrides?.code !== undefined ? overrides.code : filterCode
+      const sStatus = overrides?.status !== undefined ? overrides.status : filterStatus
+
+      if (sQuery) params.name = sQuery
+      if (sCode) params.code = sCode
+      if (sStatus !== undefined) params.status = sStatus
+
+      const response = await axios.get(`${API_BASE_URL}/api/production-lines`, { params })
+      if (response.data && response.data.status === 'ok') {
+        const { list, total, current, pageSize } = response.data.data
+        setLines(list.map((item: any) => ({ ...item, key: item.id })))
+        setPagination({ current, pageSize, total })
+      }
+    } catch (error: any) {
+      setFetchError(error.message)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const fetchResources = useCallback(async (lineId: number) => {
+    setResourcesLoading(true)
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/production-lines/${lineId}/resources`)
+      if (response.data.status === 'ok') {
+        setAssociatedStations(response.data.data.stations || [])
+      }
+    } catch (error: any) {
+      console.error('Fetch resources failed:', error)
+      message.error('获取产线关联工位失败')
+    } finally {
+      setResourcesLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { 
+    fetchLines(1) 
+  }, [filterStatus])
+
+  useEffect(() => {
+    if (selectedLineId) fetchResources(selectedLineId)
+  }, [selectedLineId, fetchResources])
+
+  const handleRowClick = (record: ProductionLine) => { setSelectedLineId(record.id) }
+
+  // 处理编辑和删除的占位逻辑（实际逻辑通常在工厂管理或补充到此页面）
+  const handleEdit = (record: ProductionLine) => {
+    message.info(`正在编辑产线: ${record.name} (请前往工厂管理模块进行完整编辑)`)
+  }
+
+  const handleDelete = async (id: number) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/api/factories/line/${id}`)
+      message.success('产线已删除')
+      fetchLines()
+      if (selectedLineId === id) setSelectedLineId(null)
+    } catch (error) {
+      message.error('删除失败')
+    }
+  }
+
+  // 打开绑定工位弹窗
+  const handleOpenBindStationModal = async () => {
+    try {
+      // 获取所有工位，筛选出未绑定产线的
+      const response = await axios.get(`${API_BASE_URL}/api/stations`, { params: { limit: 1000 } })
+      if (response.data.status === 'ok') {
+        const allStations = response.data.data.list
+        setUnboundStations(allStations.filter((s: any) => !s.productionLineId))
+        setSelectedStationIds([])
+        setBindStationModalOpen(true)
+      }
+    } catch (error) {
+      message.error('获取未绑定工位失败')
+    }
+  }
+
+  // 执行绑定工位
+  const handleBindStations = async () => {
+    if (selectedStationIds.length === 0) {
+      message.warning('请选择要绑定的工位')
+      return
+    }
+    setBindingLoading(true)
+    try {
+      await axios.post(`${API_BASE_URL}/api/production-lines/${selectedLineId}/bind-stations`, {
+        stationIds: selectedStationIds
+      })
+      message.success('工位绑定成功')
+      setBindStationModalOpen(false)
+      if (selectedLineId) fetchResources(selectedLineId)
+      fetchLines() // 刷新列表以更新计数（如果有计数的话）
+    } catch (error) {
+      message.error('绑定失败')
+    } finally {
+      setBindingLoading(false)
+    }
+  }
+
+  // 解绑工位
+  const handleUnbindStation = async (stationId: number) => {
+    try {
+      await axios.post(`${API_BASE_URL}/api/production-lines/${selectedLineId}/unbind-station`, {
+        stationId
+      })
+      message.success('工位解绑成功')
+      if (selectedLineId) fetchResources(selectedLineId)
+      fetchLines()
+    } catch (error) {
+      message.error('解绑失败')
+    }
+  }
+
+  // 统计数据
+  const stats = {
+    total: pagination.total,
+    available: lines.filter(l => l.status === 0).length,
+    unavailable: lines.filter(l => l.status === 1).length,
+    occupied: lines.filter(l => l.status === 2).length
+  }
 
   const tabItems = [
     {
-      key: 'devices',
-      label: <span style={{ fontSize: '15px', fontWeight: 500 }}><ToolOutlined /> 关联设备 ({associatedDevices.length})</span>,
+      key: 'stations',
+      label: <span style={{ fontSize: '15px', fontWeight: 500 }}><ClusterOutlined /> 关联工位 ({associatedStations.length})</span>,
       children: (
         <div style={{ padding: '16px 0' }}>
           <div className="mb-4 flex justify-end">
-            <Button type="primary" icon={<LinkOutlined />} onClick={handleOpenBindModal}>添加设备</Button>
+            <Button 
+              type="primary" 
+              icon={<LinkOutlined />} 
+              onClick={handleOpenBindStationModal}
+            >
+              添加工位
+            </Button>
           </div>
-          <Table dataSource={associatedDevices} columns={deviceColumns} rowKey="id" loading={resourcesLoading} size="middle" pagination={false} />
-        </div>
-      )
-    },
-    {
-      key: 'teams',
-      label: <span style={{ fontSize: '15px', fontWeight: 500 }}><TeamOutlined /> 关联班组 ({associatedTeams.length})</span>,
-      children: (
-        <div style={{ padding: '16px 0' }}>
-          <div className="mb-4 flex justify-between items-center">
-            <Tag color="blue" icon={<InfoCircleOutlined />} style={{ padding: '4px 12px', borderRadius: '4px' }}>提示：班组绑定产线也可以在此快速操作</Tag>
-            <Button type="primary" icon={<LinkOutlined />} onClick={handleOpenBindTeamModal}>添加班组</Button>
-          </div>
-          <Table dataSource={associatedTeams} columns={teamColumns} rowKey="id" loading={resourcesLoading} size="middle" pagination={false} />
+          <Table 
+            dataSource={associatedStations} 
+            rowKey="id" 
+            loading={resourcesLoading} 
+            size="middle" 
+            pagination={false}
+            columns={[
+              { title: '状态', dataIndex: 'status', key: 'status', width: '10%', render: (s: number) => renderStatusTag(s) },
+              { title: '工位编号', dataIndex: 'code', key: 'code', width: '15%' },
+              { title: '工位名称', dataIndex: 'name', key: 'name', width: '25%' },
+              { title: '类型', dataIndex: 'type', key: 'type', width: '12%' },
+              { title: '关联设备', key: 'deviceCount', width: '13%', render: (_: any, record: Station) => record._count?.devices || 0 },
+              { title: '关联班组', key: 'teamCount', width: '13%', render: (_: any, record: Station) => record._count?.teams || 0 },
+              { 
+                title: '操作', 
+                key: 'action', 
+                width: '12%',
+                render: (_: any, record: Station) => (
+                  <Popconfirm 
+                    title="确定解绑此工位？" 
+                    onConfirm={() => handleUnbindStation(record.id)}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <Button type="link" danger size="small" icon={<DisconnectOutlined />}>解绑</Button>
+                  </Popconfirm>
+                )
+              }
+            ]} 
+          />
         </div>
       )
     }
@@ -461,19 +394,28 @@ const ProductionLineManagement: React.FC = () => {
         <Row gutter={16} align="middle">
           <Col>
             <Space size="middle">
-              <span className="text-gray-500">搜索:</span>
+              <span className="text-gray-500">产线编号:</span>
               <Input 
-                placeholder="产线名称/代码" 
-                style={{ width: 200 }}
+                placeholder="搜索编号" 
+                style={{ width: 150 }}
+                allowClear
+                value={filterCode}
+                onChange={e => setFilterCode(e.target.value)}
+                onPressEnter={() => fetchLines(1)}
+              />
+              <span className="text-gray-500 ml-2">产线名称:</span>
+              <Input 
+                placeholder="搜索名称" 
+                style={{ width: 150 }}
                 allowClear
                 value={filterQuery}
                 onChange={e => setFilterQuery(e.target.value)}
                 onPressEnter={() => fetchLines(1)}
               />
-              <span className="text-gray-500 ml-2">状态:</span>
+              <span className="text-gray-500 ml-2">产线状态:</span>
               <Select 
                 placeholder="全部状态" 
-                style={{ width: 130 }} 
+                style={{ width: 120 }} 
                 allowClear
                 value={filterStatus}
                 onChange={setFilterStatus}
@@ -484,14 +426,14 @@ const ProductionLineManagement: React.FC = () => {
               </Select>
             </Space>
           </Col>
-          <Col flex="auto" />
-          <Col>
+          <Col flex="auto" className="flex justify-end">
             <Space size="middle">
               <Button type="primary" icon={<SearchOutlined />} onClick={() => fetchLines(1)}>查询</Button>
               <Button icon={<ReloadOutlined />} onClick={() => {
                 setFilterQuery('')
+                setFilterCode('')
                 setFilterStatus(undefined)
-                fetchLines(1, pagination.pageSize, { query: '', status: undefined })
+                fetchLines(1, pagination.pageSize, { query: '', code: '', status: undefined })
               }}>重置</Button>
             </Space>
           </Col>
@@ -519,16 +461,6 @@ const ProductionLineManagement: React.FC = () => {
               <ApartmentOutlined className="text-blue-500" style={{ fontSize: '20px' }} />
               <span style={{ fontSize: '18px', fontWeight: 'bold' }}>产线列表</span>
             </Space>
-            <Button 
-              type="primary"
-              ghost
-              icon={<ReloadOutlined />} 
-              onClick={() => fetchLines(1)} 
-              loading={loading}
-              size="middle"
-            >
-              刷新列表
-            </Button>
           </div>
         }
         className="shadow-sm border-none"
@@ -584,56 +516,41 @@ const ProductionLineManagement: React.FC = () => {
             <p className="text-sm">请在上方列表中点击选中一条产线</p>
           </div>
         ) : (
-          <Tabs defaultActiveKey="devices" items={tabItems} className="h-full" />
+          <Tabs defaultActiveKey="stations" items={tabItems} className="h-full" />
         )}
       </Card>
 
+      {/* 绑定工位 Modal */}
       <Modal
-        title="绑定设备到产线"
-        open={bindModalOpen}
-        onOk={handleBindDevices}
-        onCancel={() => setBindModalOpen(false)}
+        title="关联工位到产线"
+        open={bindStationModalOpen}
+        onOk={handleBindStations}
+        onCancel={() => setBindStationModalOpen(false)}
         confirmLoading={bindingLoading}
         width={600}
-        destroyOnHidden
+        destroyOnClose
       >
-        <div className="py-4">
-          <p className="mb-4 text-gray-500">选择要绑定到当前产线的设备（仅显示闲置设备）：</p>
-          <Select mode="multiple" style={{ width: '100%' }} placeholder="请选择设备" value={selectedDeviceIds} onChange={setSelectedDeviceIds} optionLabelProp="label">
-            {unboundDevices.map(device => (
-              <Select.Option key={device.id} value={device.id} label={`${device.name} (${device.code})`}>
-                <div className="flex justify-between items-center">
-                  <Space><span className="font-mono text-xs text-gray-400">[{device.code}]</span><span>{device.name}</span></Space>
-                  <Tag>{getDeviceTypeLabel(device.type)}</Tag>
-                </div>
-              </Select.Option>
-            ))}
-          </Select>
+        <div className="mb-4 text-gray-500 italic flex items-center gap-2">
+          <InfoCircleOutlined />
+          <span>仅显示当前未绑定任何产线的工位</span>
         </div>
-      </Modal>
-
-      <Modal
-        title="绑定班组到产线"
-        open={bindTeamModalOpen}
-        onOk={handleBindTeams}
-        onCancel={() => setBindTeamModalOpen(false)}
-        confirmLoading={teamBindingLoading}
-        width={600}
-        destroyOnHidden
-      >
-        <div className="py-4">
-          <p className="mb-4 text-gray-500">选择要绑定到当前产线的班组（仅显示闲置班组）：</p>
-          <Select mode="multiple" style={{ width: '100%' }} placeholder="请选择班组" value={selectedTeamIds} onChange={setSelectedTeamIds} optionLabelProp="label">
-            {unboundTeams.map(team => (
-              <Select.Option key={team.id} value={team.id} label={team.name}>
-                <div className="flex justify-between items-center">
-                  <Space><span className="font-mono text-xs text-gray-400">[{team.code}]</span><span>{team.name}</span></Space>
-                  <Tag color="cyan">{team.leader?.name || '无组长'}</Tag>
-                </div>
-              </Select.Option>
-            ))}
-          </Select>
-        </div>
+        <Select
+          mode="multiple"
+          style={{ width: '100%' }}
+          placeholder="请选择要绑定的工位"
+          value={selectedStationIds}
+          onChange={setSelectedStationIds}
+          optionLabelProp="label"
+        >
+          {unboundStations.map(station => (
+            <Select.Option key={station.id} value={station.id} label={station.name}>
+              <div className="flex justify-between items-center">
+                <span>{station.name}</span>
+                <span className="text-gray-400 text-xs font-mono">[{station.code}]</span>
+              </div>
+            </Select.Option>
+          ))}
+        </Select>
       </Modal>
 
       <style>{`

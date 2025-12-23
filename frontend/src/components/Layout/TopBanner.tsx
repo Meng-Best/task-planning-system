@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { RocketOutlined, UserOutlined, BellOutlined, HistoryOutlined, ClockCircleOutlined } from '@ant-design/icons'
-import { Avatar, Badge, Tooltip, Popover, List, Typography, Empty, Space, Tag } from 'antd'
+import { Avatar, Badge, Popover, List, Typography, Empty, Space, Tag } from 'antd'
 import { getSystemNotifications, NotificationItem } from '../../api/notificationApi'
 
 const { Text } = Typography;

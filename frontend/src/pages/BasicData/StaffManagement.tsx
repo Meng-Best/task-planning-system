@@ -307,7 +307,7 @@ const StaffManagement: React.FC = () => {
         <Row gutter={[16, 16]} align="middle">
           <Col>
             <Space>
-              <span className="text-gray-500">工号:</span>
+              <span className="text-gray-500">人员工号:</span>
               <Input 
                 placeholder="请输入工号" 
                 style={{ width: 140 }} 
@@ -319,7 +319,7 @@ const StaffManagement: React.FC = () => {
           </Col>
           <Col>
             <Space>
-              <span className="text-gray-500">姓名:</span>
+              <span className="text-gray-500">人员姓名:</span>
               <Input 
                 placeholder="请输入姓名" 
                 style={{ width: 140 }} 
@@ -331,7 +331,7 @@ const StaffManagement: React.FC = () => {
           </Col>
           <Col>
             <Space>
-              <span className="text-gray-500">专业:</span>
+              <span className="text-gray-500">人员专业:</span>
               <Select
                 placeholder="全部专业"
                 style={{ width: 130 }}
@@ -344,7 +344,7 @@ const StaffManagement: React.FC = () => {
           </Col>
           <Col>
             <Space>
-              <span className="text-gray-500">状态:</span>
+              <span className="text-gray-500">人员状态:</span>
               <Select
                 placeholder="全部状态"
                 style={{ width: 130 }}

@@ -31,8 +31,12 @@ const deviceRoutes = require('./routes/deviceRoutes');
 const staffRoutes = require('./routes/staffRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const productionLineRoutes = require('./routes/productionLineRoutes');
+const stationRoutes = require('./routes/stationRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const rocketRoutes = require('./routes/rocketRoutes');
+const sectionRoutes = require('./routes/sectionRoutes');
+const engineRoutes = require('./routes/engineRoutes');
 
 // 挂载路由
 app.use('/api/tasks', taskRoutes);
@@ -42,8 +46,12 @@ app.use('/api/devices', deviceRoutes);
 app.use('/api/staffs', staffRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/production-lines', productionLineRoutes);
+app.use('/api/stations', stationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/rockets', rocketRoutes);
+app.use('/api/sections', sectionRoutes);
+app.use('/api/engines', engineRoutes);
 
 /**
  * @swagger

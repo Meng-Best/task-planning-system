@@ -327,7 +327,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
     }
 
     // 判断是否为工作日（默认工作日或调休上班）
-    const isWorkDay = event ? event.type === 'WORK' : (dayOfWeek !== 0 && dayOfWeek !== 6)
+    // const isWorkDay = event ? event.type === 'WORK' : (dayOfWeek !== 0 && dayOfWeek !== 6)
 
     return (
       <div className={cellClassName} onClick={handleCellClick}>

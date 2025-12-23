@@ -5,20 +5,14 @@ const productionLineController = require('../controllers/productionLineControlle
 // 获取所有产线
 router.get('/', productionLineController.getAllLines);
 
-// 获取产线资源 (设备和班组)
+// 获取产线资源 (工位)
 router.get('/:id/resources', productionLineController.getLineResources);
 
-// 绑定设备
-router.post('/:id/bind-devices', productionLineController.bindDevices);
+// 绑定工位
+router.post('/:id/bind-stations', productionLineController.bindStations);
 
-// 绑定班组
-router.post('/:id/bind-teams', productionLineController.bindTeams);
-
-// 解绑设备
-router.post('/:id/unbind-device', productionLineController.unbindDevice);
-
-// 解绑班组
-router.post('/:id/unbind-team', productionLineController.unbindTeam);
+// 解绑工位
+router.post('/:id/unbind-station', productionLineController.unbindStation);
 
 module.exports = router;
 
