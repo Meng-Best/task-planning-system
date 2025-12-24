@@ -207,8 +207,10 @@ const SectionManagement: React.FC = () => {
                     loading={loading}
                     size="middle"
                     pagination={{
+                        position: ['bottomLeft'],
                         showSizeChanger: true,
                         showTotal: (total) => `共 ${total} 条记录`,
+                        style: { marginLeft: '8px' }
                     }}
                     locale={{ emptyText: '暂无舱段数据' }}
                 />

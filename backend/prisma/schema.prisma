@@ -219,3 +219,17 @@ model Engine {
   @@map("engines")
 }
 
+// 产品管理 (路由产品)
+model Product {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // 产品编号
+  name        String   // 产品名称
+  type        String?  // 产品类型
+  model       String?  // 产品型号
+  description String?  // 产品描述
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("products")
+}
+

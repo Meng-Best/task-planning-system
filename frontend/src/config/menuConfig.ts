@@ -17,7 +17,8 @@ import {
   RocketOutlined,
   AppstoreOutlined,
   BuildOutlined,
-  ThunderboltOutlined
+  ThunderboltOutlined,
+  ReadOutlined
 } from '@ant-design/icons'
 import React from 'react'
 
@@ -97,6 +98,18 @@ export const menuItems: MenuItem[] = [
         key: 'engine-mgmt',
         label: '发动机管理',
         icon: React.createElement(ThunderboltOutlined)
+      }
+    ]
+  },
+  {
+    key: 'product-process-mgmt',
+    label: '产品工艺管理',
+    icon: React.createElement(ReadOutlined),
+    children: [
+      {
+        key: 'product-mgmt',
+        label: '产品管理',
+        icon: React.createElement(ProjectOutlined)
       }
     ]
   },
