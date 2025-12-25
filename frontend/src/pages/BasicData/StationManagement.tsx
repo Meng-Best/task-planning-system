@@ -31,7 +31,7 @@ import {
 } from '@ant-design/icons'
 
 import axios from 'axios'
-import { getStatusConfig, getDeviceTypeLabel } from '../../config/dictionaries'
+import { getStatusConfig, getDeviceTypeLabel, BASIC_DATA_STATUS } from '../../config/dictionaries'
 
 const API_BASE_URL = 'http://localhost:3001'
 
@@ -526,9 +526,22 @@ const StationManagement: React.FC = () => {
                   value={filterStatus}
                   onChange={setFilterStatus}
                 >
-                  <Select.Option value={0}>可占用</Select.Option>
-                  <Select.Option value={1}>不可用</Select.Option>
-                  <Select.Option value={2}>已占用</Select.Option>
+                  {BASIC_DATA_STATUS.map(s => (
+                    <Select.Option key={s.value} value={s.value}>
+                      <Space size={4}>
+                        <span 
+                          style={{ 
+                            display: 'inline-block', 
+                            width: '6px', 
+                            height: '6px', 
+                            borderRadius: '50%', 
+                            backgroundColor: s.themeColor 
+                          }} 
+                        />
+                        {s.label}
+                      </Space>
+                    </Select.Option>
+                  ))}
                 </Select>
               </div>
             </Space>

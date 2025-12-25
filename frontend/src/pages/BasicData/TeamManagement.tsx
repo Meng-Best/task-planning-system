@@ -723,13 +723,11 @@ const TeamManagement: React.FC = () => {
           </Row>
 
           <Form.Item name="memberIds" label="选择组员" rules={[{ required: true, message: '请至少选择一名组员' }]}>
-            <div style={{ border: '1px solid #d9d9d9', borderRadius: '4px' }}>
-              <TreeTransfer
-                dataSource={availableStaff}
-                targetKeys={selectedMemberIds.map(id => id.toString())}
-                onChange={handleTransferChange}
-              />
-            </div>
+            <TreeTransfer
+              dataSource={availableStaff}
+              targetKeys={selectedMemberIds.map(id => id.toString())}
+              onChange={handleTransferChange}
+            />
           </Form.Item>
         </Form>
       </Modal>

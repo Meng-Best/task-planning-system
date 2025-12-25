@@ -8,6 +8,7 @@ import {
     Input,
     Modal,
     Form,
+    Select,
     message,
     Row,
     Col,
@@ -35,7 +36,7 @@ interface Section {
     quantity: number;
     rocketId?: number | null;
     rocket?: {
-        name: string;
+        code: string;
     };
 }
 
@@ -49,6 +50,7 @@ const SectionManagement: React.FC = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSection, setEditingSection] = useState<Section | null>(null);
+    const [rockets, setRockets] = useState<any[]>([]);
     const [form] = Form.useForm();
 
     const fetchSections = async () => {
@@ -65,8 +67,20 @@ const SectionManagement: React.FC = () => {
         }
     };
 
+    const fetchRockets = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/rockets`);
+            if (response.data.status === 'ok') {
+                setRockets(response.data.data);
+            }
+        } catch (error) {
+            console.error('Fetch rockets failed:', error);
+        }
+    };
+
     useEffect(() => {
         fetchSections();
+        fetchRockets();
     }, []);
 
     const handleReset = () => {
@@ -119,7 +133,7 @@ const SectionManagement: React.FC = () => {
             width: '15%',
             render: (val: number) => <Text strong>{val}</Text>
         },
-        { title: '所属火箭', dataIndex: ['rocket', 'name'], key: 'rocket', width: '15%', render: (val: string) => val || <span className="text-gray-400">未关联</span> },
+        { title: '所属火箭编号', dataIndex: ['rocket', 'code'], key: 'rocket', width: '15%', render: (val: string) => val || <span className="text-gray-400">未关联</span> },
         {
             title: '操作',
             key: 'action',
@@ -235,6 +249,15 @@ const SectionManagement: React.FC = () => {
                     </Form.Item>
                     <Form.Item name="quantity" label="库存数量" initialValue={0} rules={[{ required: true, message: '请输入库存数量' }]}>
                         <InputNumber min={0} placeholder="请输入库存数量" style={{ width: '100%' }} />
+                    </Form.Item>
+                    <Form.Item name="rocketId" label="所属火箭">
+                        <Select placeholder="请选择火箭" allowClear>
+                            {rockets.map(rocket => (
+                                <Select.Option key={rocket.id} value={rocket.id}>
+                                    [{rocket.code}] {rocket.name}
+                                </Select.Option>
+                            ))}
+                        </Select>
                     </Form.Item>
                 </Form>
             </Modal>

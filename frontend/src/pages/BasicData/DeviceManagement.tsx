@@ -555,9 +555,22 @@ const DeviceManagement: React.FC = () => {
                 value={filterStatus}
                 onChange={setFilterStatus}
               >
-                <Select.Option value={0}>可占用</Select.Option>
-                <Select.Option value={1}>不可用</Select.Option>
-                <Select.Option value={2}>已占用</Select.Option>
+                {BASIC_DATA_STATUS.map(s => (
+                  <Select.Option key={s.value} value={s.value}>
+                    <Space size={4}>
+                      <span 
+                        style={{ 
+                          display: 'inline-block', 
+                          width: '6px', 
+                          height: '6px', 
+                          borderRadius: '50%', 
+                          backgroundColor: s.themeColor 
+                        }} 
+                      />
+                      {s.label}
+                    </Space>
+                  </Select.Option>
+                ))}
               </Select>
             </Space>
           </Col>
