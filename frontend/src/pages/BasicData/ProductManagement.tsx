@@ -149,9 +149,9 @@ const ProductManagement: React.FC = () => {
                     <Row gutter={24}>
                         <Col span={24}>
                             <div className="bg-gray-50/50 p-4 rounded-lg border border-dashed border-gray-200">
-                                <div className="text-gray-400 mb-2">产品描述 / 备注</div>
+                                <div className="text-gray-400 mb-2">产品描述</div>
                                 <div className="text-gray-700 whitespace-pre-wrap">
-                                    {selectedProduct?.description || <span className="text-gray-300 italic">暂无描述信息</span>}
+                                    {selectedProduct?.description || <span className="text-gray-300 italic">暂无产品描述信息</span>}
                                 </div>
                             </div>
                         </Col>
