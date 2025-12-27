@@ -8,6 +8,8 @@ import DeviceManagement from '../../pages/BasicData/DeviceManagement'
 import StaffManagement from '../../pages/BasicData/StaffManagement'
 import TeamManagement from '../../pages/BasicData/TeamManagement'
 import ProductManagement from '../../pages/BasicData/ProductManagement'
+import RoutingManagement from '../../pages/BasicData/RoutingManagement'
+import ProcessManagement from '../../pages/BasicData/ProcessManagement'
 import Dashboard from '../../pages/Workbench/Dashboard'
 import RocketManagement from '../../pages/InventoryManagement/RocketManagement'
 import SectionManagement from '../../pages/InventoryManagement/SectionManagement'
@@ -61,6 +63,10 @@ const PageView: React.FC<PageViewProps> = ({ tabKey }) => {
       return <TeamManagement />
     case 'product-mgmt':
       return <ProductManagement />
+    case 'routing-mgmt':
+      return <RoutingManagement />
+    case 'process-mgmt':
+      return <ProcessManagement />
     case 'rocket-mgmt':
       return <RocketManagement />
     case 'section-mgmt':

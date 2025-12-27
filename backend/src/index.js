@@ -38,6 +38,8 @@ const rocketRoutes = require('./routes/rocketRoutes');
 const sectionRoutes = require('./routes/sectionRoutes');
 const engineRoutes = require('./routes/engineRoutes');
 const productRoutes = require('./routes/productRoutes');
+const routingRoutes = require('./routes/routingRoutes');
+const processRoutes = require('./routes/processRoutes');
 
 // 挂载路由
 app.use('/api/tasks', taskRoutes);
@@ -54,6 +56,8 @@ app.use('/api/rockets', rocketRoutes);
 app.use('/api/sections', sectionRoutes);
 app.use('/api/engines', engineRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/routings', routingRoutes);
+app.use('/api/processes', processRoutes);
 
 /**
  * @swagger

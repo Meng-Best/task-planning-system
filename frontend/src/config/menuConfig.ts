@@ -18,7 +18,9 @@ import {
   AppstoreOutlined,
   BuildOutlined,
   ThunderboltOutlined,
-  ReadOutlined
+  ReadOutlined,
+  PartitionOutlined,
+  ControlOutlined
 } from '@ant-design/icons'
 import React from 'react'
 
@@ -110,6 +112,16 @@ export const menuItems: MenuItem[] = [
         key: 'product-mgmt',
         label: '产品管理',
         icon: React.createElement(ProjectOutlined)
+      },
+      {
+        key: 'routing-mgmt',
+        label: '工艺路线管理',
+        icon: React.createElement(PartitionOutlined)
+      },
+      {
+        key: 'process-mgmt',
+        label: '工序配置管理',
+        icon: React.createElement(ControlOutlined)
       }
     ]
   },
