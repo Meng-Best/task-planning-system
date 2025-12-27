@@ -51,7 +51,6 @@ interface Team {
     name: string
   }
   staffs?: any[]
-  status: number
 }
 
 interface Station {
@@ -404,28 +403,28 @@ const StationManagement: React.FC = () => {
           <div className="mb-4 flex justify-end">
             <Button type="primary" icon={<LinkOutlined />} onClick={handleOpenBindTeamModal}>添加班组</Button>
           </div>
-          <Table 
-            dataSource={associatedTeams} 
-            rowKey="id" 
-            loading={resourcesLoading} 
-            size="middle" 
+          <Table
+            dataSource={associatedTeams}
+            rowKey="id"
+            loading={resourcesLoading}
+            size="middle"
             pagination={false}
             columns={[
-              { title: '状态', dataIndex: 'status', key: 'status', width: '15%', render: (s: number) => renderStatusTag(s) },
+              { title: '班组编号', dataIndex: 'code', key: 'code', width: '20%' },
               { title: '班组名', dataIndex: 'name', key: 'name', width: '30%' },
               { title: '班组长', dataIndex: ['leader', 'name'], key: 'leader', width: '20%', render: (val: string) => val || '-' },
               { title: '人数', key: 'memberCount', width: '15%', render: (_: any, record: Team) => record.staffs?.length || 0 },
-              { 
-                title: '操作', 
-                key: 'action', 
-                width: '20%',
+              {
+                title: '操作',
+                key: 'action',
+                width: '15%',
                 render: (_: any, record: Team) => (
                   <Popconfirm title="确定解绑此班组？" onConfirm={() => handleUnbindTeam(record.id)}>
                     <Button type="link" danger size="small" icon={<DisconnectOutlined />}>解绑</Button>
                   </Popconfirm>
                 )
               }
-            ]} 
+            ]}
           />
         </div>
       )

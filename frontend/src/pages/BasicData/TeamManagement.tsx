@@ -59,7 +59,6 @@ interface Team {
       };
     };
   };
-  status: number;
   shiftType: number;
   _count: {
     staffs: number;
@@ -85,14 +84,13 @@ const TeamManagement: React.FC = () => {
   const [filterCode, setFilterCode] = useState<string>('');
   const [filterName, setFilterName] = useState<string>('');
   const [filterShiftType, setFilterShiftType] = useState<number | undefined>(undefined);
-  const [filterStatus, setFilterStatus] = useState<number | undefined>(undefined);
 
   // 联动数据
   const [stations, setStations] = useState<any[]>([]);
   const [availableStaff, setAvailableStaff] = useState<any[]>([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
 
-  // 1. 优先定义状态渲染函数
+  // 渲染状态标签（用于显示工位状态等）
   const renderStatusTag = (status: number) => {
     const config = getStatusConfig(status);
     return (
@@ -116,15 +114,8 @@ const TeamManagement: React.FC = () => {
     );
   };
 
-  // 2. 定义表格列
+  // 定义表格列
   const columns = [
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: '8%',
-      render: (status: number) => renderStatusTag(status)
-    },
     {
       title: '班组编号',
       dataIndex: 'code',
@@ -207,12 +198,10 @@ const TeamManagement: React.FC = () => {
       const sCode = overrides?.code !== undefined ? overrides.code : filterCode;
       const sName = overrides?.name !== undefined ? overrides.name : filterName;
       const sShift = overrides?.shiftType !== undefined ? overrides.shiftType : filterShiftType;
-      const sStatus = overrides?.status !== undefined ? overrides.status : filterStatus;
 
       if (sCode) params.code = sCode;
       if (sName) params.name = sName;
       if (sShift !== undefined) params.shiftType = sShift;
-      if (sStatus !== undefined) params.status = sStatus;
 
       const response = await axios.get(`${API_BASE_URL}/api/teams`, { params });
       if (response.data.status === 'ok') {
@@ -223,7 +212,7 @@ const TeamManagement: React.FC = () => {
           pageSize: pSize,
           total
         });
-        
+
         // 如果当前有选中的班组，刷新其详情数据
         if (selectedTeam) {
           const updated = list.find((t: Team) => t.id === selectedTeam.id);
@@ -238,11 +227,11 @@ const TeamManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.current, pagination.pageSize, filterCode, filterName, filterShiftType, filterStatus, selectedTeam]);
+  }, [pagination.current, pagination.pageSize, filterCode, filterName, filterShiftType, selectedTeam]);
 
   useEffect(() => {
     fetchTeams(1);
-  }, [filterShiftType, filterStatus]);
+  }, [filterShiftType]);
 
   const fetchStations = async () => {
     try {
@@ -334,7 +323,7 @@ const TeamManagement: React.FC = () => {
   };
 
   const updateTeamWithSafePayload = async (teamId: number, overrides: any = {}) => {
-    // ⚠️ 注意：后端 updateTeam 的 memberIds 默认是 []，若不传会导致“清空组员”
+    // ⚠️ 注意：后端 updateTeam 的 memberIds 默认是 []，若不传会导致"清空组员"
     if (!selectedTeam) return;
 
     const memberIds = selectedTeam.staffs?.map(s => s.id) || [];
@@ -343,7 +332,6 @@ const TeamManagement: React.FC = () => {
       name: selectedTeam.name,
       leaderId: selectedTeam.leaderId,
       stationId: selectedTeam.stationId,
-      status: selectedTeam.status,
       shiftType: selectedTeam.shiftType,
       memberIds,
       ...overrides
@@ -376,8 +364,7 @@ const TeamManagement: React.FC = () => {
     if (!selectedTeam) return;
     try {
       await updateTeamWithSafePayload(selectedTeam.id, {
-        stationId: null,
-        status: 0
+        stationId: null
       });
       message.success('工位已解绑');
       fetchTeams();
@@ -494,24 +481,9 @@ const TeamManagement: React.FC = () => {
     <div className="flex flex-col gap-4 p-2">
       {/* 统计看板 */}
       <Row gutter={16}>
-        <Col span={6}>
+        <Col span={24}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
             <Statistic title="班组总数" value={pagination.total} valueStyle={{ color: '#1890ff', fontWeight: 700 }} />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic title="可占用" value={teams.filter(t => t.status === 0).length} valueStyle={{ color: '#52c41a', fontWeight: 700 }} />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic title="已占用" value={teams.filter(t => t.status === 2).length} valueStyle={{ color: '#faad14', fontWeight: 700 }} />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic title="不可用" value={teams.filter(t => t.status === 1).length} valueStyle={{ color: '#ff4d4f', fontWeight: 700 }} />
           </Card>
         </Col>
       </Row>
@@ -540,9 +512,9 @@ const TeamManagement: React.FC = () => {
                 onPressEnter={() => fetchTeams(1)}
               />
               <span className="text-gray-500 ml-2">所属班次:</span>
-              <Select 
-                placeholder="全部班次" 
-                style={{ width: 200 }} 
+              <Select
+                placeholder="全部班次"
+                style={{ width: 200 }}
                 allowClear
                 value={filterShiftType}
                 onChange={setFilterShiftType}
@@ -550,32 +522,6 @@ const TeamManagement: React.FC = () => {
               >
                 {SHIFT_TYPES.map(s => (
                   <Select.Option key={s.value} value={s.value}>{s.label}</Select.Option>
-                ))}
-              </Select>
-              <span className="text-gray-500 ml-2">班组状态:</span>
-              <Select 
-                placeholder="全部状态" 
-                style={{ width: 140 }} 
-                allowClear
-                value={filterStatus}
-                onChange={setFilterStatus}
-                popupMatchSelectWidth={false}
-              >
-                {BASIC_DATA_STATUS.map(s => (
-                  <Select.Option key={s.value} value={s.value}>
-                    <Space>
-                      <span 
-                        style={{ 
-                          display: 'inline-block', 
-                          width: '8px', 
-                          height: '8px', 
-                          borderRadius: '50%', 
-                          backgroundColor: s.themeColor 
-                        }} 
-                      />
-                      {s.label}
-                    </Space>
-                  </Select.Option>
                 ))}
               </Select>
             </Space>
@@ -587,8 +533,7 @@ const TeamManagement: React.FC = () => {
                 setFilterCode('');
                 setFilterName('');
                 setFilterShiftType(undefined);
-                setFilterStatus(undefined);
-                fetchTeams(1, pagination.pageSize, { code: '', name: '', shiftType: undefined, status: undefined });
+                fetchTeams(1, pagination.pageSize, { code: '', name: '', shiftType: undefined });
               }}>重置</Button>
             </Space>
           </Col>
@@ -628,7 +573,7 @@ const TeamManagement: React.FC = () => {
             onClick: () => setSelectedTeam(record),
             className: `cursor-pointer transition-all ${selectedTeam?.id === record.id ? 'selected-row' : ''}`,
             style: {
-              borderLeft: `4px solid ${getStatusConfig(record.status).themeColor}`,
+              borderLeft: `4px solid #1890ff`,
               marginBottom: '4px'
             }
           })}
@@ -656,7 +601,7 @@ const TeamManagement: React.FC = () => {
         width={800}
         destroyOnClose
       >
-        <Form form={form} layout="vertical" initialValues={{ status: 0, shiftType: 0 }}>
+        <Form form={form} layout="vertical" initialValues={{ shiftType: 0 }}>
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item name="code" label="班组编号" rules={[{ required: true }]}>
@@ -682,8 +627,8 @@ const TeamManagement: React.FC = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="stationId" label="绑定工位">
-                <Select 
-                  placeholder="选择工位" 
+                <Select
+                  placeholder="选择工位"
                   allowClear
                   popupMatchSelectWidth={false}
                   styles={{ popup: { root: { minWidth: 350 } } }}
@@ -691,8 +636,8 @@ const TeamManagement: React.FC = () => {
                   optionLabelProp="label"
                 >
                   {stations.map(s => (
-                    <Select.Option 
-                      key={s.id} 
+                    <Select.Option
+                      key={s.id}
                       value={s.id}
                       label={`[${s.code}] ${s.name} ${s.productionLine ? `- ${s.productionLine.name}` : ''}`}
                     >
@@ -702,16 +647,7 @@ const TeamManagement: React.FC = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={6}>
-              <Form.Item name="status" label="班组状态" rules={[{ required: true }]}>
-                <Select placeholder="选择状态" popupMatchSelectWidth={false}>
-                  {BASIC_DATA_STATUS.map(s => (
-                    <Select.Option key={s.value} value={s.value}>{s.label}</Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={6}>
+            <Col span={12}>
               <Form.Item name="leaderId" label="指定班组长">
                 <Select placeholder="请先选择组员" allowClear popupMatchSelectWidth={false}>
                   {(availableStaff.filter(s => selectedMemberIds.includes(s.id)) || []).map(s => (

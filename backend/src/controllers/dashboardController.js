@@ -87,7 +87,7 @@ exports.getResourceTrend = async (req, res) => {
       prisma.device.count().then(async total => ({ total, occupied: await prisma.device.count({ where: { status: 2 } }) })),
       prisma.productionLine.count().then(async total => ({ total, occupied: await prisma.productionLine.count({ where: { status: 2 } }) })),
       prisma.staff.count().then(async total => ({ total, occupied: await prisma.staff.count({ where: { status: 2 } }) })),
-      prisma.team.count().then(async total => ({ total, occupied: await prisma.team.count({ where: { status: 2 } }) }))
+      prisma.team.count().then(async total => ({ total, occupied: 0 })) // 班组不再有状态，占用数始终为0
     ]);
 
     const calculateRate = (stats) => {

@@ -5,7 +5,7 @@ const prisma = require('../prismaClient');
  */
 exports.getTeams = async (req, res) => {
   try {
-    const { current = 1, pageSize = 10, code, name, status, shiftType } = req.query;
+    const { current = 1, pageSize = 10, code, name, shiftType } = req.query;
     const currentPage = parseInt(current);
     const size = parseInt(pageSize);
     const skip = (currentPage - 1) * size;
@@ -13,7 +13,6 @@ exports.getTeams = async (req, res) => {
     const whereClause = {};
     if (code) whereClause.code = { contains: code };
     if (name) whereClause.name = { contains: name };
-    if (status !== undefined && status !== '') whereClause.status = parseInt(status);
     if (shiftType !== undefined && shiftType !== '') whereClause.shiftType = parseInt(shiftType);
 
     const [teams, total] = await Promise.all([
@@ -113,19 +112,13 @@ exports.getAvailableStaff = async (req, res) => {
  */
 exports.createTeam = async (req, res) => {
   try {
-    const { code, name, leaderId, stationId, status, shiftType, memberIds = [] } = req.body;
+    const { code, name, leaderId, stationId, shiftType, memberIds = [] } = req.body;
 
     if (!code || !name) {
       return res.status(400).json({ status: 'error', message: '编号和名称为必填项' });
     }
 
     const team = await prisma.$transaction(async (tx) => {
-      // 核心业务逻辑：只要选择了工位，状态强制设为“已占用 (2)”
-      let finalStatus = status !== undefined ? parseInt(status) : 0;
-      if (stationId) {
-        finalStatus = 2; // 已占用
-      }
-
       // 1. 创建班组
       const newTeam = await tx.team.create({
         data: {
@@ -133,7 +126,6 @@ exports.createTeam = async (req, res) => {
           name,
           leaderId: leaderId ? parseInt(leaderId) : null,
           stationId: stationId ? parseInt(stationId) : null,
-          status: finalStatus,
           shiftType: shiftType !== undefined ? parseInt(shiftType) : 0
         }
       });
@@ -142,9 +134,9 @@ exports.createTeam = async (req, res) => {
       if (memberIds.length > 0) {
         await tx.staff.updateMany({
           where: { id: { in: memberIds.map(id => parseInt(id)) } },
-          data: { 
+          data: {
             teamId: newTeam.id,
-            status: 2 // 自动变为“已占用”
+            status: 2 // 自动变为"已占用"
           }
         });
       }
@@ -172,7 +164,7 @@ exports.createTeam = async (req, res) => {
 exports.updateTeam = async (req, res) => {
   try {
     const { id } = req.params;
-    const { code, name, leaderId, stationId, status, shiftType, memberIds = [], forceUnbind } = req.body;
+    const { code, name, leaderId, stationId, shiftType, memberIds = [] } = req.body;
     const teamId = parseInt(id);
 
     const team = await prisma.$transaction(async (tx) => {
@@ -186,31 +178,7 @@ exports.updateTeam = async (req, res) => {
         throw new Error('NOT_FOUND');
       }
 
-      let targetStatus = status !== undefined ? parseInt(status) : oldTeam.status;
-      let targetStationId = stationId !== undefined ? (stationId ? parseInt(stationId) : null) : oldTeam.stationId;
-
-      // 核心业务逻辑：
-      // A. 只要最终有工位绑定，状态就强制设为“已占用 (2)”
-      if (targetStationId) {
-        targetStatus = 2;
-      }
-
-      // B. 如果最终没有工位绑定，且原本有绑定，状态自动恢复为“可占用 (0)”
-      if (!targetStationId && oldTeam.stationId) {
-        targetStatus = 0;
-      }
-
-      // C. 手动保护：如果班组“手动修改状态为 0”但“工位未移除”，则需要询问
-      if (status !== undefined && parseInt(status) === 0 && targetStationId) {
-        if (!forceUnbind) {
-          const error = new Error('UNBIND_CONFIRM_REQUIRED');
-          error.lineName = oldTeam.station?.name || '当前工位';
-          throw error;
-        }
-        // 如果确认强制解绑
-        targetStationId = null;
-        targetStatus = 0;
-      }
+      const targetStationId = stationId !== undefined ? (stationId ? parseInt(stationId) : null) : oldTeam.stationId;
 
       // 1. 更新班组基本信息
       const updatedTeam = await tx.team.update({
@@ -220,25 +188,24 @@ exports.updateTeam = async (req, res) => {
           name,
           leaderId: leaderId ? parseInt(leaderId) : null,
           stationId: targetStationId,
-          status: targetStatus,
           shiftType: shiftType !== undefined ? parseInt(shiftType) : 0
         }
       });
 
-      // 2. 将原成员的 teamId 设为 null，并恢复状态为“可占用 (0)”
+      // 2. 将原成员的 teamId 设为 null，并恢复状态为"可占用 (0)"
       await tx.staff.updateMany({
         where: { teamId: teamId },
-        data: { 
+        data: {
           teamId: null,
           status: 0 // 恢复为可占用
         }
       });
 
-      // 3. 将新成员的 teamId 设为当前班组 ID，并更新状态为“已占用 (2)”
+      // 3. 将新成员的 teamId 设为当前班组 ID，并更新状态为"已占用 (2)"
       if (memberIds.length > 0) {
         await tx.staff.updateMany({
           where: { id: { in: memberIds.map(mid => parseInt(mid)) } },
-          data: { 
+          data: {
             teamId: teamId,
             status: 2 // 自动变为已占用
           }
@@ -256,12 +223,6 @@ exports.updateTeam = async (req, res) => {
   } catch (error) {
     if (error.message === 'NOT_FOUND') {
       return res.status(404).json({ status: 'error', message: '班组不存在' });
-    }
-    if (error.message === 'UNBIND_CONFIRM_REQUIRED') {
-      return res.status(400).json({
-        status: 'confirm_required',
-        message: `该班组当前正绑定在工位 [${error.lineName}] 上。若要将其状态改为“可占用”，必须先从工位移除。是否确认移除并修改状态？`,
-      });
     }
     console.error('SERVER ERROR [updateTeam]:', error);
     if (error.code === 'P2002') {

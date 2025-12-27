@@ -112,7 +112,6 @@ model Team {
   leader           Staff?          @relation("TeamLeader", fields: [leaderId], references: [id])
   stationId        Int?            // 关联工位ID
   station          Station?        @relation(fields: [stationId], references: [id])
-  status           Int             @default(0) /// 0: 可占用, 1: 不可用, 2: 已占用
   shiftType        Int             @default(0) /// 0: 一班(08-16), 1: 二班(16-24)
   staffs           Staff[]         @relation("TeamMembers")
   createdAt        DateTime        @default(now())

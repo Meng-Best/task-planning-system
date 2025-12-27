@@ -3,3 +3,5 @@ node_modules/
 dist/
 .DS_Store
 backend/backup-production-lines.json
+.claude/
+claude.md

@@ -48,6 +48,14 @@ interface RoutingProcess {
     description: string;
 }
 
+interface Process {
+    id: number;
+    code: string;
+    name: string;
+    type: string;
+    description: string;
+}
+
 const RoutingManagement: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<Routing[]>([]);
@@ -59,6 +67,10 @@ const RoutingManagement: React.FC = () => {
     const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
     const [editingProcess, setEditingProcess] = useState<RoutingProcess | null>(null);
     const [processForm] = Form.useForm();
+
+    // 标准工序库
+    const [standardProcesses, setStandardProcesses] = useState<Process[]>([]);
+    const [selectedProcessId, setSelectedProcessId] = useState<number | null>(null);
 
     // 筛选状态
     const [filterCode, setFilterCode] = useState('');
@@ -87,12 +99,25 @@ const RoutingManagement: React.FC = () => {
         try {
             const response = await axios.get(`${API_BASE_URL}/api/routings/${routingId}/processes`);
             if (response.data.status === 'ok') {
-                setProcesses(response.data.data);
+                // 按seq排序
+                const sortedProcesses = response.data.data.sort((a: RoutingProcess, b: RoutingProcess) => a.seq - b.seq);
+                setProcesses(sortedProcesses);
             }
         } catch (error) {
             message.error('获取工序配置失败');
         } finally {
             setProcessesLoading(false);
+        }
+    };
+
+    const fetchStandardProcesses = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/processes`);
+            if (response.data.status === 'ok') {
+                setStandardProcesses(response.data.data);
+            }
+        } catch (error) {
+            message.error('获取标准工序库失败');
         }
     };
 
@@ -144,16 +169,35 @@ const RoutingManagement: React.FC = () => {
 
     const handleOpenProcessModal = (record?: RoutingProcess) => {
         if (record) {
+            // 编辑模式
             setEditingProcess(record);
+            setSelectedProcessId(null);
             processForm.setFieldsValue(record);
         } else {
+            // 新增模式
             setEditingProcess(null);
+            setSelectedProcessId(null);
             processForm.resetFields();
             // 自动计算下一个工序号
             const nextSeq = processes.length > 0 ? Math.max(...processes.map(p => p.seq)) + 10 : 10;
             processForm.setFieldsValue({ seq: nextSeq });
+            // 加载标准工序库
+            fetchStandardProcesses();
         }
         setIsProcessModalOpen(true);
+    };
+
+    // 处理标准工序选择
+    const handleProcessSelect = (processId: number) => {
+        setSelectedProcessId(processId);
+        const selectedProcess = standardProcesses.find(p => p.id === processId);
+        if (selectedProcess) {
+            processForm.setFieldsValue({
+                code: selectedProcess.code,
+                name: selectedProcess.name,
+                description: selectedProcess.description
+            });
+        }
     };
 
     const handleSaveProcess = async (values: any) => {
@@ -232,9 +276,19 @@ const RoutingManagement: React.FC = () => {
     ];
 
     const processColumns = [
-        { title: '工序号', dataIndex: 'seq', key: 'seq', width: '15%' },
-        { title: '工序编号', dataIndex: 'code', key: 'code', width: '20%' },
-        { title: '工序名称', dataIndex: 'name', key: 'name', width: '25%' },
+        {
+            title: '顺序',
+            dataIndex: 'seq',
+            key: 'seq',
+            width: '10%',
+            render: (seq: number) => (
+                <Tag color="blue" style={{ fontSize: '14px', fontWeight: 600 }}>
+                    {seq}
+                </Tag>
+            )
+        },
+        { title: '工序编号', dataIndex: 'code', key: 'code', width: '18%' },
+        { title: '工序名称', dataIndex: 'name', key: 'name', width: '22%' },
         { title: '描述', dataIndex: 'description', key: 'description' },
         {
             title: '操作',
@@ -275,7 +329,11 @@ const RoutingManagement: React.FC = () => {
             label: <span style={{ fontSize: '15px', fontWeight: 500 }}> 工序配置</span>,
             children: (
                 <div className="py-4">
-                    <div className="flex justify-end mb-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <div className="text-gray-500 text-sm flex items-center gap-2">
+                            <InfoCircleOutlined />
+                            <span>工序按照顺序号排列执行，建议以10为间隔（10, 20, 30...）以便后期插入新工序</span>
+                        </div>
                         <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => handleOpenProcessModal()}>
                             新增工序
                         </Button>
@@ -434,25 +492,46 @@ const RoutingManagement: React.FC = () => {
                 onOk={() => processForm.submit()}
                 onCancel={() => setIsProcessModalOpen(false)}
                 destroyOnClose
+                width={600}
             >
                 <Form form={processForm} layout="vertical" onFinish={handleSaveProcess}>
+                    {!editingProcess && (
+                        <Form.Item label="选择标准工序" rules={[{ required: true, message: '请选择标准工序' }]}>
+                            <Select
+                                placeholder="请选择工序"
+                                value={selectedProcessId}
+                                onChange={handleProcessSelect}
+                                showSearch
+                                optionFilterProp="children"
+                                filterOption={(input, option) =>
+                                    (option?.children as string).toLowerCase().includes(input.toLowerCase())
+                                }
+                            >
+                                {standardProcesses.map(process => (
+                                    <Select.Option key={process.id} value={process.id}>
+                                        [{process.code}] {process.name} {process.type && `(${process.type})`}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
+                    )}
                     <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item name="seq" label="工序号" rules={[{ required: true, message: '请输入工序号' }]}>
-                                <InputNumber style={{ width: '100%' }} placeholder="如: 10" />
+                        <Col span={8}>
+                            <Form.Item name="seq" label="工序号" rules={[{ required: true, message: '请输入工序号' }]} tooltip="工序号决定工序的执行顺序，建议以10为间隔递增（10, 20, 30...）">
+                                <InputNumber style={{ width: '100%' }} placeholder="如: 10" min={1} />
                             </Form.Item>
                         </Col>
-                        <Col span={12}>
+                        <Col span={16}>
                             <Form.Item name="code" label="工序编号" rules={[{ required: true, message: '请输入工序编号' }]}>
-                                <Input placeholder="如: OP-10" />
+                                <Input placeholder="如: OP-10" disabled={!editingProcess && !selectedProcessId} />
                             </Form.Item>
                         </Col>
                     </Row>
                     <Form.Item name="name" label="工序名称" rules={[{ required: true, message: '请输入工序名称' }]}>
-                        <Input placeholder="如: 零部件准备" />
+                        <Input placeholder="如: 零部件准备" disabled={!editingProcess && !selectedProcessId} />
                     </Form.Item>
                     <Form.Item name="description" label="描述">
-                        <Input.TextArea rows={2} placeholder="请输入工序描述信息" />
+                        <Input.TextArea rows={3} placeholder="请输入工序描述信息" disabled={!editingProcess && !selectedProcessId} />
                     </Form.Item>
                 </Form>
             </Modal>
