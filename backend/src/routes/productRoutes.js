@@ -91,7 +91,13 @@ router.get('/:id/routings', async (req, res) => {
     const productRoutings = await prisma.productRouting.findMany({
       where: { productId: parseInt(id) },
       include: {
-        routing: true
+        routing: {
+          include: {
+            processes: {
+              orderBy: { seq: 'asc' } // 按工序号排序
+            }
+          }
+        }
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -117,6 +123,30 @@ router.post('/:id/routings', async (req, res) => {
       return res.status(400).json({ status: 'error', message: '请选择至少一个工艺路线' });
     }
 
+    // 验证产品是否存在
+    const product = await prisma.product.findUnique({
+      where: { id: parseInt(id) }
+    });
+    if (!product) {
+      return res.status(404).json({ status: 'error', message: '产品不存在' });
+    }
+
+    // 验证所有工艺路线是否存在
+    const routings = await prisma.routing.findMany({
+      where: {
+        id: { in: routingIds.map(rid => parseInt(rid)) }
+      }
+    });
+
+    if (routings.length !== routingIds.length) {
+      const foundIds = routings.map(r => r.id);
+      const missingIds = routingIds.filter(rid => !foundIds.includes(parseInt(rid)));
+      return res.status(404).json({
+        status: 'error',
+        message: `以下工艺路线不存在: ${missingIds.join(', ')}`
+      });
+    }
+
     // 批量创建产品工艺路线关联
     const productRoutings = await prisma.$transaction(
       routingIds.map(routingId =>
@@ -126,7 +156,13 @@ router.post('/:id/routings', async (req, res) => {
             routingId: parseInt(routingId)
           },
           include: {
-            routing: true
+            routing: {
+              include: {
+                processes: {
+                  orderBy: { seq: 'asc' }
+                }
+              }
+            }
           }
         })
       )
@@ -134,11 +170,19 @@ router.post('/:id/routings', async (req, res) => {
 
     res.json({ status: 'ok', data: productRoutings });
   } catch (error) {
+    console.error('配置工艺路线失败:', error);
+
     // 处理重复配置的情况
     if (error.code === 'P2002') {
       return res.status(409).json({ status: 'error', message: '该工艺路线已配置，请勿重复添加' });
     }
-    res.status(500).json({ status: 'error', message: error.message });
+
+    // 处理外键约束失败
+    if (error.code === 'P2003') {
+      return res.status(400).json({ status: 'error', message: '无效的产品或工艺路线ID' });
+    }
+
+    res.status(500).json({ status: 'error', message: error.message || '配置工艺路线失败' });
   }
 });
 

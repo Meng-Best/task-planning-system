@@ -4,7 +4,6 @@ import {
     Table,
     Space,
     Button,
-    Typography,
     Input,
     Modal,
     Form,
@@ -48,6 +47,16 @@ interface Routing {
     name: string;
     type: string;
     status: string;
+    description: string;
+    processes?: RoutingProcess[]; // 关联的工序
+}
+
+interface RoutingProcess {
+    id: number;
+    routingId: number;
+    seq: number;
+    code: string;
+    name: string;
     description: string;
 }
 
@@ -170,7 +179,10 @@ const ProductManagement: React.FC = () => {
     // 打开配置工艺路线弹窗
     const handleOpenRoutingModal = async () => {
         if (!selectedProduct) return;
+        // 先获取可用的工艺路线
         await fetchAvailableRoutings();
+        // 再获取当前产品已配置的工艺路线
+        await fetchProductRoutings(selectedProduct.id);
         setSelectedRoutingIds([]);
         setIsRoutingModalOpen(true);
     };
@@ -188,8 +200,15 @@ const ProductManagement: React.FC = () => {
             message.success('工艺路线配置成功');
             setIsRoutingModalOpen(false);
             fetchProductRoutings(selectedProduct.id);
-        } catch (error) {
-            message.error('配置失败');
+        } catch (error: any) {
+            // 处理特定的错误响应
+            if (error.response?.status === 409) {
+                message.error(error.response.data.message || '该工艺路线已配置，请勿重复添加');
+            } else if (error.response?.data?.message) {
+                message.error(error.response.data.message);
+            } else {
+                message.error('配置失败，请稍后重试');
+            }
         }
     };
 
@@ -287,6 +306,169 @@ const ProductManagement: React.FC = () => {
                         loading={routingsLoading}
                         size="small"
                         pagination={false}
+                        expandable={{
+                            expandedRowRender: (record) => {
+                                const processes = record.routing?.processes || [];
+                                if (processes.length === 0) {
+                                    return (
+                                        <div className="py-4 text-center text-gray-400">
+                                            该工艺路线暂无配置工序
+                                        </div>
+                                    );
+                                }
+                                return (
+                                    <div style={{
+                                        margin: '16px 0 16px 120px',
+                                        padding: '0 24px'
+                                    }}>
+                                        <div style={{
+                                            fontSize: '13px',
+                                            color: '#999',
+                                            marginBottom: '20px',
+                                            fontWeight: 500
+                                        }}>
+                                            工艺流程 · 共 {processes.length} 道工序
+                                        </div>
+                                        <div style={{ position: 'relative' }}>
+                                            {processes.map((process, index) => (
+                                                <div key={process.id} style={{
+                                                    position: 'relative',
+                                                    paddingLeft: '40px',
+                                                    paddingBottom: index < processes.length - 1 ? '32px' : '0'
+                                                }}>
+                                                    {/* 时间线圆点 */}
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        left: '0',
+                                                        top: '4px',
+                                                        width: '24px',
+                                                        height: '24px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: '#1890ff',
+                                                        border: '3px solid #e6f4ff',
+                                                        boxShadow: '0 0 0 4px #fff',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        zIndex: 2
+                                                    }}>
+                                                        <span style={{
+                                                            color: '#fff',
+                                                            fontSize: '10px',
+                                                            fontWeight: 'bold'
+                                                        }}>
+                                                            {index + 1}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* 时间线连接线 */}
+                                                    {index < processes.length - 1 && (
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            left: '11px',
+                                                            top: '28px',
+                                                            bottom: '-8px',
+                                                            width: '2px',
+                                                            backgroundColor: '#e8e8e8',
+                                                            zIndex: 1
+                                                        }} />
+                                                    )}
+
+                                                    {/* 内容卡片 */}
+                                                    <div style={{
+                                                        backgroundColor: '#fafafa',
+                                                        border: '1px solid #e8e8e8',
+                                                        borderRadius: '8px',
+                                                        padding: '16px',
+                                                        transition: 'all 0.3s ease',
+                                                        cursor: 'default'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.backgroundColor = '#f0f7ff';
+                                                        e.currentTarget.style.borderColor = '#91caff';
+                                                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(24, 144, 255, 0.15)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.backgroundColor = '#fafafa';
+                                                        e.currentTarget.style.borderColor = '#e8e8e8';
+                                                        e.currentTarget.style.boxShadow = 'none';
+                                                    }}
+                                                    >
+                                                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                                                            <div style={{ flex: 1 }}>
+                                                                {/* 工序号标签 */}
+                                                                <div style={{ marginBottom: '8px' }}>
+                                                                    <Tag color="blue" style={{
+                                                                        fontSize: '12px',
+                                                                        fontWeight: 'bold',
+                                                                        padding: '2px 10px'
+                                                                    }}>
+                                                                        工序 {process.seq}
+                                                                    </Tag>
+                                                                    <span style={{
+                                                                        color: '#999',
+                                                                        fontSize: '12px',
+                                                                        fontFamily: 'monospace',
+                                                                        marginLeft: '8px'
+                                                                    }}>
+                                                                        {process.code}
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* 工序名称 */}
+                                                                <div style={{
+                                                                    fontSize: '16px',
+                                                                    fontWeight: 600,
+                                                                    color: '#333',
+                                                                    marginBottom: '8px'
+                                                                }}>
+                                                                    {process.name}
+                                                                </div>
+
+                                                                {/* 工序描述 */}
+                                                                {process.description && (
+                                                                    <div style={{
+                                                                        fontSize: '13px',
+                                                                        color: '#666',
+                                                                        lineHeight: '1.6',
+                                                                        marginTop: '8px'
+                                                                    }}>
+                                                                        {process.description}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            },
+                            rowExpandable: (record) => {
+                                // 只有有工序的工艺路线才可展开
+                                return (record.routing?.processes?.length || 0) > 0;
+                            },
+                            expandIcon: ({ expanded, onExpand, record }) => {
+                                const processCount = record.routing?.processes?.length || 0;
+                                if (processCount === 0) return null;
+                                return expanded ? (
+                                    <Button
+                                        type="link"
+                                        size="small"
+                                        icon={<span>▼</span>}
+                                        onClick={e => onExpand(record, e)}
+                                    />
+                                ) : (
+                                    <Button
+                                        type="link"
+                                        size="small"
+                                        icon={<span>▶</span>}
+                                        onClick={e => onExpand(record, e)}
+                                    />
+                                );
+                            }
+                        }}
                         columns={[
                             {
                                 title: '工艺路线编号',
@@ -304,14 +486,27 @@ const ProductManagement: React.FC = () => {
                                 title: '类型',
                                 dataIndex: ['routing', 'type'],
                                 key: 'type',
-                                width: '15%',
+                                width: '12%',
                                 render: (type: string) => type || '-'
+                            },
+                            {
+                                title: '工序数量',
+                                key: 'processCount',
+                                width: '12%',
+                                render: (_: any, record: ProductRouting) => {
+                                    const count = record.routing?.processes?.length || 0;
+                                    return (
+                                        <Tag color={count > 0 ? 'green' : 'default'}>
+                                            {count} 个工序
+                                        </Tag>
+                                    );
+                                }
                             },
                             {
                                 title: '状态',
                                 dataIndex: ['routing', 'status'],
                                 key: 'status',
-                                width: '15%',
+                                width: '12%',
                                 render: (status: string) => {
                                     const color = status === 'active' ? 'green' : 'orange';
                                     const text = status === 'active' ? '启用' : '禁用';
@@ -321,7 +516,7 @@ const ProductManagement: React.FC = () => {
                             {
                                 title: '操作',
                                 key: 'action',
-                                width: '15%',
+                                width: '12%',
                                 render: (_: any, record: ProductRouting) => (
                                     <Popconfirm
                                         title="确定解绑此工艺路线？"
@@ -420,8 +615,10 @@ const ProductManagement: React.FC = () => {
                     onRow={(record) => ({
                         onClick: () => setSelectedProduct(record),
                         className: `cursor-pointer transition-all ${selectedProduct?.id === record.id ? 'selected-row' : ''}`,
-                        style: {
+                        style: selectedProduct?.id === record.id ? {
                             borderLeft: `4px solid #1890ff`,
+                            marginBottom: '4px'
+                        } : {
                             marginBottom: '4px'
                         }
                     })}
@@ -490,7 +687,7 @@ const ProductManagement: React.FC = () => {
             >
                 <div className="mb-4 text-gray-500 italic flex items-center gap-2">
                     <InfoCircleOutlined />
-                    <span>选择要为产品 [{selectedProduct?.name}] 配置的工艺路线（仅显示启用状态的工艺路线）</span>
+                    <span>选择要为产品 [{selectedProduct?.name}] 配置的工艺路线（仅显示未配置的启用状态工艺路线）</span>
                 </div>
                 <Select
                     mode="multiple"
@@ -500,25 +697,27 @@ const ProductManagement: React.FC = () => {
                     onChange={setSelectedRoutingIds}
                     optionLabelProp="label"
                     showSearch
-                    optionFilterProp="children"
+                    optionFilterProp="label"
                     filterOption={(input, option) =>
-                        (option?.children as string).toLowerCase().includes(input.toLowerCase())
+                        (option?.label as string).toLowerCase().includes(input.toLowerCase())
                     }
                 >
-                    {availableRoutings.map(routing => (
-                        <Select.Option
-                            key={routing.id}
-                            value={routing.id}
-                            label={`[${routing.code}] ${routing.name}`}
-                        >
-                            <div className="flex justify-between items-center">
-                                <span>
-                                    <span className="text-gray-400 font-mono">[{routing.code}]</span> {routing.name}
-                                </span>
-                                {routing.type && <Tag color="blue" className="ml-2">{routing.type}</Tag>}
-                            </div>
-                        </Select.Option>
-                    ))}
+                    {availableRoutings
+                        .filter(routing => !productRoutings.some(pr => pr.routingId === routing.id))
+                        .map(routing => (
+                            <Select.Option
+                                key={routing.id}
+                                value={routing.id}
+                                label={`[${routing.code}] ${routing.name}`}
+                            >
+                                <div className="flex justify-between items-center">
+                                    <span>
+                                        <span className="text-gray-400 font-mono">[{routing.code}]</span> {routing.name}
+                                    </span>
+                                    {routing.type && <Tag color="blue" className="ml-2">{routing.type}</Tag>}
+                                </div>
+                            </Select.Option>
+                        ))}
                 </Select>
             </Modal>
 
