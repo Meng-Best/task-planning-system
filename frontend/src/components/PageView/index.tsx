@@ -14,6 +14,12 @@ import Dashboard from '../../pages/Workbench/Dashboard'
 import RocketManagement from '../../pages/InventoryManagement/RocketManagement'
 import SectionManagement from '../../pages/InventoryManagement/SectionManagement'
 import EngineManagement from '../../pages/InventoryManagement/EngineManagement'
+import OrderManagement from '../../pages/SchedulingManagement/OrderManagement'
+import TaskManagement from '../../pages/SchedulingManagement/TaskManagement'
+import ScheduleManagement from '../../pages/SchedulingManagement/ScheduleManagement'
+import PlanMaking from '../../pages/SchedulingManagement/PlanMaking'
+import SimulationEvaluation from '../../pages/SchedulingManagement/SimulationEvaluation'
+import ScheduleResult from '../../pages/SchedulingManagement/ScheduleResult'
 
 interface PageViewProps {
   tabKey: string
@@ -73,6 +79,18 @@ const PageView: React.FC<PageViewProps> = ({ tabKey }) => {
       return <SectionManagement />
     case 'engine-mgmt':
       return <EngineManagement />
+    case 'order-mgmt':
+      return <OrderManagement />
+    case 'task-mgmt':
+      return <TaskManagement />
+    case 'schedule-mgmt':
+      return <ScheduleManagement />
+    case 'plan-making':
+      return <PlanMaking />
+    case 'simulation-eval':
+      return <SimulationEvaluation />
+    case 'schedule-result':
+      return <ScheduleResult />
     default:
       return <GenericPageView tabKey={tabKey} />
   }

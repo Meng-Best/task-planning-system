@@ -71,6 +71,52 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+
+    // 先查询该工序的信息
+    const process = await prisma.process.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!process) {
+      return res.status(404).json({
+        status: 'error',
+        message: '工序不存在'
+      });
+    }
+
+    // 检查是否有工艺路线正在使用该工序（通过 code 匹配）
+    const usedInRoutings = await prisma.routingProcess.findMany({
+      where: { code: process.code },
+      include: {
+        routing: {
+          select: {
+            id: true,
+            name: true,
+            code: true
+          }
+        }
+      }
+    });
+
+    if (usedInRoutings.length > 0) {
+      // 获取使用该工序的工艺路线名称列表
+      const routingNames = usedInRoutings
+        .map(rp => rp.routing.name || rp.routing.code)
+        .filter((name, index, self) => self.indexOf(name) === index) // 去重
+        .slice(0, 3); // 最多显示3个
+
+      const moreCount = usedInRoutings.length > 3 ? usedInRoutings.length - 3 : 0;
+      const routingList = routingNames.join('、') + (moreCount > 0 ? ` 等${moreCount}个` : '');
+
+      return res.status(400).json({
+        status: 'error',
+        message: `该工序已被 ${usedInRoutings.length} 条工艺路线使用（${routingList}），无法删除`,
+        usedCount: usedInRoutings.length,
+        routings: usedInRoutings.map(rp => rp.routing)
+      });
+    }
+
+    // 没有被引用，可以删除
     await prisma.process.delete({ where: { id: parseInt(id) } });
     res.json({ status: 'ok', message: 'Process deleted' });
   } catch (error) {

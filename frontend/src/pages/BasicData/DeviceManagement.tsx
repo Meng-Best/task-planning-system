@@ -655,7 +655,7 @@ const DeviceManagement: React.FC = () => {
             <p className="text-sm">请在上方列表中点击选中一台设备查看详情</p>
           </div>
         ) : (
-          <Tabs defaultActiveKey="basic" items={tabItems} className="h-full" destroyInactiveTabPane />
+          <Tabs defaultActiveKey="basic" items={tabItems} className="h-full" destroyOnHidden />
         )}
       </Card>
 
@@ -666,7 +666,7 @@ const DeviceManagement: React.FC = () => {
         onOk={() => handleSave()}
         onCancel={() => setModalOpen(false)}
         width={640}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical" initialValues={{ status: 0 }} className="mt-4">
           <Row gutter={16}>

@@ -216,7 +216,7 @@ const RocketManagement: React.FC = () => {
                 open={isModalOpen}
                 onOk={() => form.submit()}
                 onCancel={() => setIsModalOpen(false)}
-                destroyOnClose
+                destroyOnHidden
             >
                 <Form form={form} layout="vertical" onFinish={handleSave}>
                     <Form.Item name="code" label="火箭编号" rules={[{ required: true, message: '请输入火箭编号' }]}>

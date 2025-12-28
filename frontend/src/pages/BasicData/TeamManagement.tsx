@@ -18,7 +18,6 @@ import {
 } from '@ant-design/icons';
 import axios from 'axios';
 import { 
-  BASIC_DATA_STATUS,
   getStatusConfig,
   SHIFT_TYPES,
   MAJOR_OPTIONS,
@@ -588,7 +587,7 @@ const TeamManagement: React.FC = () => {
             <p className="text-sm">请在上方列表中点击选中一个班组</p>
           </div>
         ) : (
-          <Tabs defaultActiveKey="members" items={tabItems} className="h-full" destroyInactiveTabPane />
+          <Tabs defaultActiveKey="members" items={tabItems} className="h-full" destroyOnHidden />
         )}
       </Card>
 
@@ -599,7 +598,7 @@ const TeamManagement: React.FC = () => {
         onOk={() => handleSave()}
         onCancel={() => setModalOpen(false)}
         width={800}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical" initialValues={{ shiftType: 0 }}>
           <Row gutter={16}>

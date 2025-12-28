@@ -23,8 +23,7 @@ import {
     ReloadOutlined,
     EditOutlined,
     DeleteOutlined,
-    InfoCircleOutlined,
-    SettingOutlined
+    InfoCircleOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 
@@ -172,19 +171,28 @@ const RoutingManagement: React.FC = () => {
             // 编辑模式
             setEditingProcess(record);
             setSelectedProcessId(null);
-            processForm.setFieldsValue(record);
         } else {
             // 新增模式
             setEditingProcess(null);
             setSelectedProcessId(null);
-            processForm.resetFields();
-            // 自动计算下一个工序号
-            const nextSeq = processes.length > 0 ? Math.max(...processes.map(p => p.seq)) + 10 : 10;
-            processForm.setFieldsValue({ seq: nextSeq });
             // 加载标准工序库
             fetchStandardProcesses();
         }
         setIsProcessModalOpen(true);
+    };
+
+    // Modal 打开后的回调，用于初始化表单
+    const handleProcessModalAfterOpen = (open: boolean) => {
+        if (open) {
+            if (editingProcess) {
+                processForm.setFieldsValue(editingProcess);
+            } else {
+                processForm.resetFields();
+                // 自动计算下一个工序号
+                const nextSeq = processes.length > 0 ? Math.max(...processes.map(p => p.seq)) + 10 : 10;
+                processForm.setFieldsValue({ seq: nextSeq });
+            }
+        }
     };
 
     // 处理标准工序选择
@@ -444,7 +452,7 @@ const RoutingManagement: React.FC = () => {
                         <p className="text-sm">请在上方列表中点击选中一个工艺路线以查看详情</p>
                     </div>
                 ) : (
-                    <Tabs defaultActiveKey="basic" items={tabItems} className="h-full" destroyInactiveTabPane />
+                    <Tabs defaultActiveKey="basic" items={tabItems} className="h-full" destroyOnHidden />
                 )}
             </Card>
 
@@ -454,7 +462,7 @@ const RoutingManagement: React.FC = () => {
                 open={isModalOpen}
                 onOk={() => form.submit()}
                 onCancel={() => setIsModalOpen(false)}
-                destroyOnClose
+                destroyOnHidden
             >
                 <Form form={form} layout="vertical" onFinish={handleSave}>
                     <Row gutter={16}>
@@ -496,7 +504,8 @@ const RoutingManagement: React.FC = () => {
                 open={isProcessModalOpen}
                 onOk={() => processForm.submit()}
                 onCancel={() => setIsProcessModalOpen(false)}
-                destroyOnClose
+                afterOpenChange={handleProcessModalAfterOpen}
+                destroyOnHidden
                 width={600}
             >
                 <Form form={processForm} layout="vertical" onFinish={handleSaveProcess}>
@@ -509,7 +518,10 @@ const RoutingManagement: React.FC = () => {
                                 showSearch
                                 optionFilterProp="children"
                                 filterOption={(input, option) =>
-                                    (option?.children as string).toLowerCase().includes(input.toLowerCase())
+                                    ((option?.label ?? option?.children ?? '') as string)
+                                      .toString()
+                                      .toLowerCase()
+                                      .includes(input.toLowerCase())
                                 }
                             >
                                 {standardProcesses.map(process => (

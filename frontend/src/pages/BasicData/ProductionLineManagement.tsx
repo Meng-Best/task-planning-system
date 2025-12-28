@@ -541,7 +541,7 @@ const ProductionLineManagement: React.FC = () => {
         onCancel={() => setBindStationModalOpen(false)}
         confirmLoading={bindingLoading}
         width={600}
-        destroyOnClose
+        destroyOnHidden
       >
         <div className="mb-4 text-gray-500 italic flex items-center gap-2">
           <InfoCircleOutlined />

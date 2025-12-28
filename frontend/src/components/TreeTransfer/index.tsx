@@ -62,7 +62,7 @@ const TreeTransfer: React.FC<TreeTransferProps> = ({ dataSource, targetKeys, ...
     >
       {({ direction, onItemSelect, selectedKeys }) => {
         if (direction === 'left') {
-          const checkedKeys = [...selectedKeys, ...(targetKeys || [])];
+          const checkedKeys = [...selectedKeys, ...(targetKeys || [])].map(key => key.toString());
           return (
             <div style={{ padding: '4px 8px', height: 350, overflowY: 'auto' }}>
               <Tree

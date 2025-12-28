@@ -235,7 +235,7 @@ const SectionManagement: React.FC = () => {
                 open={isModalOpen}
                 onOk={() => form.submit()}
                 onCancel={() => setIsModalOpen(false)}
-                destroyOnClose
+                destroyOnHidden
             >
                 <Form form={form} layout="vertical" onFinish={handleSave}>
                     <Form.Item name="code" label="舱段编号" rules={[{ required: true, message: '请输入舱段编号' }]}>

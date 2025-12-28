@@ -633,7 +633,7 @@ const ProductManagement: React.FC = () => {
                         <p className="text-sm">请在上方列表中点击选中一个产品以查看详情</p>
                     </div>
                 ) : (
-                    <Tabs defaultActiveKey="routings" items={tabItems} className="h-full" destroyInactiveTabPane />
+                    <Tabs defaultActiveKey="routings" items={tabItems} className="h-full" destroyOnHidden />
                 )}
             </Card>
 
@@ -643,7 +643,7 @@ const ProductManagement: React.FC = () => {
                 open={isModalOpen}
                 onOk={() => form.submit()}
                 onCancel={() => setIsModalOpen(false)}
-                destroyOnClose
+                destroyOnHidden
             >
                 <Form form={form} layout="vertical" onFinish={handleSave}>
                     <Row gutter={16}>
@@ -683,7 +683,7 @@ const ProductManagement: React.FC = () => {
                 onOk={handleBindRoutings}
                 onCancel={() => setIsRoutingModalOpen(false)}
                 width={700}
-                destroyOnClose
+                destroyOnHidden
             >
                 <div className="mb-4 text-gray-500 italic flex items-center gap-2">
                     <InfoCircleOutlined />

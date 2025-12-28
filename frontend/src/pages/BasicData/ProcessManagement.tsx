@@ -123,18 +123,56 @@ const ProcessManagement: React.FC = () => {
             render: (_: any, record: Process) => (
                 <Space size="middle">
                     <Button type="link" size="small" icon={<EditOutlined />} onClick={(e) => { e.stopPropagation(); handleOpenModal(record); }}>编辑</Button>
-                    <Popconfirm title="确定删除该工序？" onConfirm={async (e) => {
-                        e?.stopPropagation();
-                        try {
-                            await axios.delete(`${API_BASE_URL}/api/processes/${record.id}`);
-                            message.success('删除成功');
-                            if (selectedProcess?.id === record.id) setSelectedProcess(null);
-                            fetchProcesses();
-                        } catch (error) {
-                            message.error('删除失败');
-                        }
-                    }}
-                    onCancel={(e) => e?.stopPropagation()}
+                    <Popconfirm
+                        title="确定删除该工序？"
+                        description="注意：如果该工序已被工艺路线使用，将无法删除"
+                        onConfirm={async (e) => {
+                            e?.stopPropagation();
+                            try {
+                                await axios.delete(`${API_BASE_URL}/api/processes/${record.id}`);
+                                message.success('删除成功');
+                                if (selectedProcess?.id === record.id) setSelectedProcess(null);
+                                fetchProcesses();
+                            } catch (error: any) {
+                                // 显示后端返回的详细错误信息
+                                const errorData = error?.response?.data;
+                                const errorMsg = errorData?.message || '删除失败';
+
+                                // 如果是被引用导致的删除失败，显示详细的 Modal
+                                if (errorData?.usedCount && errorData?.routings) {
+                                    Modal.error({
+                                        title: '无法删除工序',
+                                        width: 520,
+                                        content: (
+                                            <div>
+                                                <p className="mb-3">{errorMsg}</p>
+                                                <div className="bg-gray-50 p-3 rounded">
+                                                    <div className="text-sm text-gray-600 mb-2">引用该工序的工艺路线：</div>
+                                                    <ul className="list-disc list-inside space-y-1">
+                                                        {errorData.routings.map((routing: any) => (
+                                                            <li key={routing.id} className="text-sm">
+                                                                <span className="font-medium">{routing.name || routing.code}</span>
+                                                                {routing.code && routing.name && <span className="text-gray-500"> ({routing.code})</span>}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                                <p className="mt-3 text-sm text-gray-500">
+                                                    提示：请先从这些工艺路线中移除该工序，或者保留此工序供继续使用。
+                                                </p>
+                                            </div>
+                                        )
+                                    });
+                                } else {
+                                    // 其他错误直接显示 message
+                                    message.error({
+                                        content: errorMsg,
+                                        duration: 5
+                                    });
+                                }
+                            }
+                        }}
+                        onCancel={(e) => e?.stopPropagation()}
                     >
                         <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={(e) => e.stopPropagation()}>删除</Button>
                     </Popconfirm>
@@ -252,7 +290,7 @@ const ProcessManagement: React.FC = () => {
                         <p className="text-sm">请在上方列表中点击选中一个工序以查看详情</p>
                     </div>
                 ) : (
-                    <Tabs defaultActiveKey="basic" items={tabItems} className="h-full" destroyInactiveTabPane />
+                    <Tabs defaultActiveKey="basic" items={tabItems} className="h-full" destroyOnHidden />
                 )}
             </Card>
 
@@ -261,7 +299,7 @@ const ProcessManagement: React.FC = () => {
                 open={isModalOpen}
                 onOk={() => form.submit()}
                 onCancel={() => setIsModalOpen(false)}
-                destroyOnClose
+                destroyOnHidden
             >
                 <Form form={form} layout="vertical" onFinish={handleSave}>
                     <Row gutter={16}>

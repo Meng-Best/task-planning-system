@@ -4,11 +4,8 @@ import {
   ProjectOutlined,
   SettingOutlined,
   CalendarOutlined,
-  FolderOutlined,
-  FileTextOutlined,
   TeamOutlined,
   UserOutlined,
-  BarChartOutlined,
   DatabaseOutlined,
   BankOutlined,
   ToolOutlined,
@@ -20,7 +17,13 @@ import {
   ThunderboltOutlined,
   ReadOutlined,
   PartitionOutlined,
-  ControlOutlined
+  ControlOutlined,
+  ScheduleOutlined,
+  ProfileOutlined,
+  SnippetsOutlined,
+  DeploymentUnitOutlined,
+  ExperimentOutlined,
+  AreaChartOutlined
 } from '@ant-design/icons'
 import React from 'react'
 
@@ -122,6 +125,43 @@ export const menuItems: MenuItem[] = [
         key: 'process-mgmt',
         label: '工序配置管理',
         icon: React.createElement(ControlOutlined)
+      }
+    ]
+  },
+  {
+    key: 'scheduling-mgmt',
+    label: '生产调度管理',
+    icon: React.createElement(ScheduleOutlined),
+    children: [
+      {
+        key: 'order-mgmt',
+        label: '订单管理',
+        icon: React.createElement(ProfileOutlined)
+      },
+      {
+        key: 'task-mgmt',
+        label: '任务管理',
+        icon: React.createElement(SnippetsOutlined)
+      },
+      {
+        key: 'schedule-mgmt',
+        label: '排程管理',
+        icon: React.createElement(DeploymentUnitOutlined)
+      },
+      {
+        key: 'plan-making',
+        label: '生产计划制定',
+        icon: React.createElement(ProjectOutlined)
+      },
+      {
+        key: 'simulation-eval',
+        label: '模拟排程评估',
+        icon: React.createElement(ExperimentOutlined)
+      },
+      {
+        key: 'schedule-result',
+        label: '排程结果展示',
+        icon: React.createElement(AreaChartOutlined)
       }
     ]
   },

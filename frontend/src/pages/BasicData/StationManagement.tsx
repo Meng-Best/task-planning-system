@@ -609,7 +609,7 @@ const StationManagement: React.FC = () => {
             <p className="text-sm">请在上方列表中点击选中一个工位</p>
           </div>
         ) : (
-          <Tabs defaultActiveKey="devices" items={tabItems} className="h-full" destroyInactiveTabPane />
+          <Tabs defaultActiveKey="devices" items={tabItems} className="h-full" destroyOnHidden />
         )}
       </Card>
 
@@ -619,7 +619,7 @@ const StationManagement: React.FC = () => {
         open={modalOpen}
         onOk={handleSave}
         onCancel={() => setModalOpen(false)}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical" initialValues={{ status: 0 }}>
           <Form.Item name="id" hidden><Input /></Form.Item>
