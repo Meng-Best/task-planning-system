@@ -13,7 +13,9 @@ import {
     Col,
     Popconfirm,
     Tabs,
-    Empty
+    Empty,
+    Select,
+    Tag
 } from 'antd';
 import {
     ProjectOutlined,
@@ -23,7 +25,9 @@ import {
     EditOutlined,
     DeleteOutlined,
     InfoCircleOutlined,
-    BuildOutlined
+    PartitionOutlined,
+    LinkOutlined,
+    DisconnectOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 
@@ -38,10 +42,33 @@ interface Product {
     description: string;
 }
 
+interface Routing {
+    id: number;
+    code: string;
+    name: string;
+    type: string;
+    status: string;
+    description: string;
+}
+
+interface ProductRouting {
+    id: number;
+    productId: number;
+    routingId: number;
+    routing?: Routing;
+}
+
 const ProductManagement: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<Product[]>([]);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+    // 工艺路线相关状态
+    const [productRoutings, setProductRoutings] = useState<ProductRouting[]>([]);
+    const [routingsLoading, setRoutingsLoading] = useState(false);
+    const [isRoutingModalOpen, setIsRoutingModalOpen] = useState(false);
+    const [availableRoutings, setAvailableRoutings] = useState<Routing[]>([]);
+    const [selectedRoutingIds, setSelectedRoutingIds] = useState<number[]>([]);
 
     // 筛选状态
     const [filterCode, setFilterCode] = useState('');
@@ -65,9 +92,47 @@ const ProductManagement: React.FC = () => {
         }
     };
 
+    // 获取产品的工艺路线配置
+    const fetchProductRoutings = async (productId: number) => {
+        setRoutingsLoading(true);
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/products/${productId}/routings`);
+            if (response.data.status === 'ok') {
+                setProductRoutings(response.data.data);
+            }
+        } catch (error) {
+            console.error('获取产品工艺路线失败:', error);
+            setProductRoutings([]);
+        } finally {
+            setRoutingsLoading(false);
+        }
+    };
+
+    // 获取可用的工艺路线列表
+    const fetchAvailableRoutings = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/routings`);
+            if (response.data.status === 'ok') {
+                // 只显示启用状态的工艺路线
+                const activeRoutings = response.data.data.filter((r: Routing) => r.status === 'active');
+                setAvailableRoutings(activeRoutings);
+            }
+        } catch (error) {
+            message.error('获取工艺路线列表失败');
+        }
+    };
+
     useEffect(() => {
         fetchProducts();
     }, []);
+
+    useEffect(() => {
+        if (selectedProduct) {
+            fetchProductRoutings(selectedProduct.id);
+        } else {
+            setProductRoutings([]);
+        }
+    }, [selectedProduct]);
 
     const handleReset = () => {
         setFilterCode('');
@@ -99,6 +164,44 @@ const ProductManagement: React.FC = () => {
             fetchProducts();
         } catch (error) {
             message.error('保存失败');
+        }
+    };
+
+    // 打开配置工艺路线弹窗
+    const handleOpenRoutingModal = async () => {
+        if (!selectedProduct) return;
+        await fetchAvailableRoutings();
+        setSelectedRoutingIds([]);
+        setIsRoutingModalOpen(true);
+    };
+
+    // 绑定工艺路线
+    const handleBindRoutings = async () => {
+        if (!selectedProduct || selectedRoutingIds.length === 0) {
+            message.warning('请至少选择一个工艺路线');
+            return;
+        }
+        try {
+            await axios.post(`${API_BASE_URL}/api/products/${selectedProduct.id}/routings`, {
+                routingIds: selectedRoutingIds
+            });
+            message.success('工艺路线配置成功');
+            setIsRoutingModalOpen(false);
+            fetchProductRoutings(selectedProduct.id);
+        } catch (error) {
+            message.error('配置失败');
+        }
+    };
+
+    // 解绑工艺路线
+    const handleUnbindRouting = async (productRoutingId: number) => {
+        if (!selectedProduct) return;
+        try {
+            await axios.delete(`${API_BASE_URL}/api/products/routings/${productRoutingId}`);
+            message.success('工艺路线已解绑');
+            fetchProductRoutings(selectedProduct.id);
+        } catch (error) {
+            message.error('解绑失败');
         }
     };
 
@@ -160,19 +263,85 @@ const ProductManagement: React.FC = () => {
             )
         },
         {
-            key: 'structure',
-            label: <span style={{ fontSize: '15px', fontWeight: 500 }}> 工序结构</span>,
+            key: 'routings',
+            label: <span style={{ fontSize: '15px', fontWeight: 500 }}><PartitionOutlined /> 工艺路线 ({productRoutings.length})</span>,
             children: (
-                <div className="py-12 text-center">
-                    <Empty
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description={
-                            <span className="text-gray-400">
-                                正在为产品 [{selectedProduct?.name}] 加载工序结构...
-                                <br />
-                                <span className="text-sm">功能开发中，敬请期待</span>
-                            </span>
-                        }
+                <div className="py-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <div className="text-gray-500 text-sm flex items-center gap-2">
+                            <InfoCircleOutlined />
+                            <span>为产品配置工艺路线，可配置多个工艺路线供生产选择</span>
+                        </div>
+                        <Button
+                            type="primary"
+                            icon={<LinkOutlined />}
+                            onClick={handleOpenRoutingModal}
+                            style={{ height: '32px' }}
+                        >
+                            配置工艺路线
+                        </Button>
+                    </div>
+                    <Table
+                        dataSource={productRoutings}
+                        rowKey="id"
+                        loading={routingsLoading}
+                        size="small"
+                        pagination={false}
+                        columns={[
+                            {
+                                title: '工艺路线编号',
+                                dataIndex: ['routing', 'code'],
+                                key: 'code',
+                                width: '20%'
+                            },
+                            {
+                                title: '工艺路线名称',
+                                dataIndex: ['routing', 'name'],
+                                key: 'name',
+                                width: '25%'
+                            },
+                            {
+                                title: '类型',
+                                dataIndex: ['routing', 'type'],
+                                key: 'type',
+                                width: '15%',
+                                render: (type: string) => type || '-'
+                            },
+                            {
+                                title: '状态',
+                                dataIndex: ['routing', 'status'],
+                                key: 'status',
+                                width: '15%',
+                                render: (status: string) => {
+                                    const color = status === 'active' ? 'green' : 'orange';
+                                    const text = status === 'active' ? '启用' : '禁用';
+                                    return <Tag color={color}>{text}</Tag>;
+                                }
+                            },
+                            {
+                                title: '操作',
+                                key: 'action',
+                                width: '15%',
+                                render: (_: any, record: ProductRouting) => (
+                                    <Popconfirm
+                                        title="确定解绑此工艺路线？"
+                                        onConfirm={() => handleUnbindRouting(record.id)}
+                                        okText="确定"
+                                        cancelText="取消"
+                                    >
+                                        <Button type="link" danger size="small" icon={<DisconnectOutlined />}>解绑</Button>
+                                    </Popconfirm>
+                                )
+                            }
+                        ]}
+                        locale={{
+                            emptyText: (
+                                <Empty
+                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                    description="暂无工艺路线配置，请点击右上角按钮添加"
+                                />
+                            )
+                        }}
                     />
                 </div>
             )
@@ -267,10 +436,11 @@ const ProductManagement: React.FC = () => {
                         <p className="text-sm">请在上方列表中点击选中一个产品以查看详情</p>
                     </div>
                 ) : (
-                    <Tabs defaultActiveKey="structure" items={tabItems} className="h-full" destroyInactiveTabPane />
+                    <Tabs defaultActiveKey="routings" items={tabItems} className="h-full" destroyInactiveTabPane />
                 )}
             </Card>
 
+            {/* 产品信息弹窗 */}
             <Modal
                 title={editingProduct ? "编辑产品" : "新增产品"}
                 open={isModalOpen}
@@ -307,6 +477,49 @@ const ProductManagement: React.FC = () => {
                         <Input.TextArea rows={3} placeholder="请输入备注信息" />
                     </Form.Item>
                 </Form>
+            </Modal>
+
+            {/* 配置工艺路线弹窗 */}
+            <Modal
+                title="配置工艺路线"
+                open={isRoutingModalOpen}
+                onOk={handleBindRoutings}
+                onCancel={() => setIsRoutingModalOpen(false)}
+                width={700}
+                destroyOnClose
+            >
+                <div className="mb-4 text-gray-500 italic flex items-center gap-2">
+                    <InfoCircleOutlined />
+                    <span>选择要为产品 [{selectedProduct?.name}] 配置的工艺路线（仅显示启用状态的工艺路线）</span>
+                </div>
+                <Select
+                    mode="multiple"
+                    style={{ width: '100%' }}
+                    placeholder="请选择工艺路线"
+                    value={selectedRoutingIds}
+                    onChange={setSelectedRoutingIds}
+                    optionLabelProp="label"
+                    showSearch
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                        (option?.children as string).toLowerCase().includes(input.toLowerCase())
+                    }
+                >
+                    {availableRoutings.map(routing => (
+                        <Select.Option
+                            key={routing.id}
+                            value={routing.id}
+                            label={`[${routing.code}] ${routing.name}`}
+                        >
+                            <div className="flex justify-between items-center">
+                                <span>
+                                    <span className="text-gray-400 font-mono">[{routing.code}]</span> {routing.name}
+                                </span>
+                                {routing.type && <Tag color="blue" className="ml-2">{routing.type}</Tag>}
+                            </div>
+                        </Select.Option>
+                    ))}
+                </Select>
             </Modal>
 
             <style>{`

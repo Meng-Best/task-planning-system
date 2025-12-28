@@ -126,58 +126,6 @@ export const menuItems: MenuItem[] = [
     ]
   },
   {
-    key: 'projects',
-    label: '项目管理',
-    icon: React.createElement(ProjectOutlined),
-    children: [
-      {
-        key: 'project-a',
-        label: 'Project A',
-        icon: React.createElement(FolderOutlined)
-      },
-      {
-        key: 'project-b',
-        label: 'Project B',
-        icon: React.createElement(FolderOutlined)
-      },
-      {
-        key: 'project-c',
-        label: 'Project C',
-        icon: React.createElement(FolderOutlined)
-      }
-    ]
-  },
-  {
-    key: 'tasks',
-    label: '任务中心',
-    icon: React.createElement(FileTextOutlined),
-    children: [
-      {
-        key: 'my-tasks',
-        label: '我的任务'
-      },
-      {
-        key: 'today-tasks',
-        label: '今日待办',
-        icon: React.createElement(CalendarOutlined)
-      },
-      {
-        key: 'completed-tasks',
-        label: '已完成'
-      }
-    ]
-  },
-  {
-    key: 'team',
-    label: '团队协作',
-    icon: React.createElement(TeamOutlined)
-  },
-  {
-    key: 'statistics',
-    label: '数据统计',
-    icon: React.createElement(BarChartOutlined)
-  },
-  {
     key: 'settings',
     label: '系统设置',
     icon: React.createElement(SettingOutlined),

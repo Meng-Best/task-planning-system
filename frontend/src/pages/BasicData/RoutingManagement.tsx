@@ -334,7 +334,12 @@ const RoutingManagement: React.FC = () => {
                             <InfoCircleOutlined />
                             <span>工序按照顺序号排列执行，建议以10为间隔（10, 20, 30...）以便后期插入新工序</span>
                         </div>
-                        <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => handleOpenProcessModal()}>
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            onClick={() => handleOpenProcessModal()}
+                            style={{ height: '32px' }}
+                        >
                             新增工序
                         </Button>
                     </div>

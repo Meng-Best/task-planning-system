@@ -220,16 +220,31 @@ model Engine {
 
 // 产品管理 (路由产品)
 model Product {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique // 产品编号
-  name        String   // 产品名称
-  type        String?  // 产品类型
-  model       String?  // 产品型号
-  description String?  // 产品描述
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          Int              @id @default(autoincrement())
+  code        String           @unique // 产品编号
+  name        String           // 产品名称
+  type        String?          // 产品类型
+  model       String?          // 产品型号
+  description String?          // 产品描述
+  routings    ProductRouting[] // 关联的工艺路线
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   @@map("products")
+}
+
+// 产品工艺路线关联表
+model ProductRouting {
+  id        Int      @id @default(autoincrement())
+  productId Int      // 产品ID
+  routingId Int      // 工艺路线ID
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  routing   Routing  @relation(fields: [routingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, routingId]) // 一个产品不能重复配置同一条工艺路线
+  @@map("product_routings")
 }
 
 // 工艺路线管理
@@ -241,6 +256,7 @@ model Routing {
   status      String           @default("active") // 状态
   description String?          // 描述
   processes   RoutingProcess[] // 关联的工序
+  products    ProductRouting[] // 关联的产品
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
