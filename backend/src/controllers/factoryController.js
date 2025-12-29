@@ -92,13 +92,13 @@ exports.createFactory = async (req, res) => {
       });
     }
 
-    // 验证状态值（0: 可占用, 1: 不可用, 2: 已占用）
+    // 验证状态值（0: 可用, 1: 不可用）
     if (status !== undefined) {
       const statusInt = parseInt(status);
-      if (![0, 1, 2].includes(statusInt)) {
+      if (![0, 1].includes(statusInt)) {
         return res.status(400).json({
           status: 'error',
-          message: 'Invalid status. Must be one of: 0 (可占用), 1 (不可用), 2 (已占用)',
+          message: 'Invalid status. Must be one of: 0 (可用), 1 (不可用)',
           timestamp: new Date().toISOString()
         });
       }
@@ -110,7 +110,7 @@ exports.createFactory = async (req, res) => {
         name,
         location,
         description,
-        status: status !== undefined ? parseInt(status) : 0 // 默认为0(可占用)
+        status: status !== undefined ? parseInt(status) : 0 // 默认为0(可用)
       },
       include: {
         productionLines: true
@@ -141,13 +141,13 @@ exports.updateFactory = async (req, res) => {
     const { id } = req.params;
     const { code, name, location, description, status } = req.body;
 
-    // 验证状态值（0: 可占用, 1: 不可用, 2: 已占用）
+    // 验证状态值（0: 可用, 1: 不可用）
     if (status !== undefined) {
       const statusInt = parseInt(status);
-      if (![0, 1, 2].includes(statusInt)) {
+      if (![0, 1].includes(statusInt)) {
         return res.status(400).json({
           status: 'error',
-          message: 'Invalid status. Must be one of: 0 (可占用), 1 (不可用), 2 (已占用)',
+          message: 'Invalid status. Must be one of: 0 (可用), 1 (不可用)',
           timestamp: new Date().toISOString()
         });
       }
@@ -298,13 +298,13 @@ exports.updateProductionLine = async (req, res) => {
     const { id } = req.params;
     const { code, name, type, capacity, status } = req.body;
 
-    // 验证状态值（全局三态标准：0=可占用, 1=不可用, 2=已占用）
+    // 验证状态值（0=可用, 1=不可用）
     if (status !== undefined) {
       const statusInt = parseInt(status);
-      if (![0, 1, 2].includes(statusInt)) {
+      if (![0, 1].includes(statusInt)) {
         return res.status(400).json({
           status: 'error',
-          message: 'Invalid status. Must be one of: 0 (可占用), 1 (不可用), 2 (已占用)',
+          message: 'Invalid status. Must be one of: 0 (可用), 1 (不可用)',
           timestamp: new Date().toISOString()
         });
       }

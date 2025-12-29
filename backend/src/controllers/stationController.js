@@ -13,7 +13,7 @@ exports.getStations = async (req, res) => {
     if (status !== undefined && status !== '') where.status = parseInt(status);
     if (productionLineId) where.productionLineId = parseInt(productionLineId);
 
-    const [list, total, availableCount, unavailableCount, occupiedCount] = await Promise.all([
+    const [list, total, availableCount, unavailableCount] = await Promise.all([
       prisma.station.findMany({
         where,
         skip,
@@ -34,8 +34,7 @@ exports.getStations = async (req, res) => {
       prisma.station.count({ where: { ...where, status: undefined } }), // 总数忽略状态过滤？不，通常总数是过滤后的。
       // 但统计看板通常是全局总数。
       prisma.station.count({ where: { status: 0 } }),
-      prisma.station.count({ where: { status: 1 } }),
-      prisma.station.count({ where: { status: 2 } })
+      prisma.station.count({ where: { status: 1 } })
     ]);
 
     // 重新获取真正的过滤后总数
@@ -43,15 +42,14 @@ exports.getStations = async (req, res) => {
 
     res.json({
       status: 'ok',
-      data: { 
-        list, 
-        total: filteredTotal, 
-        availableCount, 
-        unavailableCount, 
-        occupiedCount,
+      data: {
+        list,
+        total: filteredTotal,
+        availableCount,
+        unavailableCount,
         allTotal: await prisma.station.count(),
-        page: parseInt(page), 
-        limit: parseInt(limit) 
+        page: parseInt(page),
+        limit: parseInt(limit)
       }
     });
   } catch (error) {
@@ -121,12 +119,12 @@ exports.bindDevices = async (req, res) => {
     }
 
     await prisma.$transaction(
-      deviceIds.map(deviceId => 
+      deviceIds.map(deviceId =>
         prisma.device.update({
           where: { id: parseInt(deviceId) },
-          data: { 
-            stationId: parseInt(id),
-            status: 2 // 已占用
+          data: {
+            stationId: parseInt(id)
+            // 不再自动修改状态
           }
         })
       )
@@ -163,9 +161,9 @@ exports.unbindDevice = async (req, res) => {
 
     await prisma.device.update({
       where: { id: parseInt(deviceId) },
-      data: { 
-        stationId: null,
-        status: 0 // 可占用
+      data: {
+        stationId: null
+        // 不再自动修改状态
       }
     });
 
@@ -200,12 +198,12 @@ exports.bindTeams = async (req, res) => {
     }
 
     await prisma.$transaction(
-      teamIds.map(teamId => 
+      teamIds.map(teamId =>
         prisma.team.update({
           where: { id: parseInt(teamId) },
-          data: { 
-            stationId: parseInt(id),
-            status: 2 // 已占用
+          data: {
+            stationId: parseInt(id)
+            // 不再自动修改状态
           }
         })
       )
@@ -242,9 +240,9 @@ exports.unbindTeam = async (req, res) => {
 
     await prisma.team.update({
       where: { id: parseInt(teamId) },
-      data: { 
-        stationId: null,
-        status: 0 // 可占用
+      data: {
+        stationId: null
+        // 不再自动修改状态
       }
     });
 

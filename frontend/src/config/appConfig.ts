@@ -26,17 +26,16 @@ export const CODE_CONFIG = {
   lineMaxNumber: 99
 } as const
 
-// 全局三态标准（工厂、产线等基础资源通用）
+// 全局状态标准（工厂、产线等基础资源通用）
 export const RESOURCE_STATUS = {
-  AVAILABLE: 0,    // 可占用
-  UNAVAILABLE: 1,  // 不可用
-  OCCUPIED: 2      // 已占用
+  AVAILABLE: 0,    // 可用
+  UNAVAILABLE: 1   // 不可用
 } as const
 
 // 状态映射配置（适用于工厂、产线等所有基础资源）
 export const RESOURCE_STATUS_MAP = {
   [RESOURCE_STATUS.AVAILABLE]: {
-    text: '可占用',
+    text: '可用',
     color: 'success',
     badge: 'processing'
   },
@@ -44,11 +43,6 @@ export const RESOURCE_STATUS_MAP = {
     text: '不可用',
     color: 'error',
     badge: 'default'
-  },
-  [RESOURCE_STATUS.OCCUPIED]: {
-    text: '已占用',
-    color: 'warning',
-    badge: 'warning'
   }
 } as const
 

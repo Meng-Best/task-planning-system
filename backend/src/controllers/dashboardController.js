@@ -7,28 +7,25 @@ const prisma = require('../prismaClient');
 exports.getDashboardStats = async (req, res) => {
   try {
     const [
-      deviceTotal, deviceAssignable, deviceOccupied, deviceUnavailable,
-      lineTotal, lineAssignable, lineOccupied, lineUnavailable,
-      staffTotal, staffAssignable, staffOccupied, staffUnavailable,
+      deviceTotal, deviceAssignable, deviceUnavailable,
+      lineTotal, lineAssignable, lineUnavailable,
+      staffTotal, staffAssignable, staffUnavailable,
       teamTotal,
-      factoryTotal, factoryAssignable, factoryOccupied, factoryUnavailable
+      factoryTotal, factoryAssignable, factoryUnavailable
     ] = await Promise.all([
       // 设备统计
       prisma.device.count(),
       prisma.device.count({ where: { status: 0 } }),
-      prisma.device.count({ where: { status: 2 } }),
       prisma.device.count({ where: { status: 1 } }),
 
       // 产线统计
       prisma.productionLine.count(),
       prisma.productionLine.count({ where: { status: 0 } }),
-      prisma.productionLine.count({ where: { status: 2 } }),
       prisma.productionLine.count({ where: { status: 1 } }),
 
       // 人员统计
       prisma.staff.count(),
       prisma.staff.count({ where: { status: 0 } }),
-      prisma.staff.count({ where: { status: 2 } }),
       prisma.staff.count({ where: { status: 1 } }),
 
       // 班组统计
@@ -37,7 +34,6 @@ exports.getDashboardStats = async (req, res) => {
       // 工厂统计
       prisma.factory.count(),
       prisma.factory.count({ where: { status: 0 } }),
-      prisma.factory.count({ where: { status: 2 } }),
       prisma.factory.count({ where: { status: 1 } })
     ]);
 
@@ -45,17 +41,17 @@ exports.getDashboardStats = async (req, res) => {
     const isDataEmpty = deviceTotal === 0 && lineTotal === 0 && factoryTotal === 0;
     
     const responseData = isDataEmpty ? {
-      device: { total: 42, assignable: 15, occupied: 22, unavailable: 5 },
-      line: { total: 12, assignable: 4, occupied: 7, unavailable: 1 },
-      staff: { total: 85, assignable: 30, occupied: 45, unavailable: 10 },
+      device: { total: 42, assignable: 37, unavailable: 5 },
+      line: { total: 12, assignable: 11, unavailable: 1 },
+      staff: { total: 85, assignable: 75, unavailable: 10 },
       team: { total: 8 },
-      factory: { total: 3, assignable: 1, occupied: 2, unavailable: 0 }
+      factory: { total: 3, assignable: 3, unavailable: 0 }
     } : {
-      device: { total: deviceTotal, assignable: deviceAssignable, occupied: deviceOccupied, unavailable: deviceUnavailable },
-      line: { total: lineTotal, assignable: lineAssignable, occupied: lineOccupied, unavailable: lineUnavailable },
-      staff: { total: staffTotal, assignable: staffAssignable, occupied: staffOccupied, unavailable: staffUnavailable },
+      device: { total: deviceTotal, assignable: deviceAssignable, unavailable: deviceUnavailable },
+      line: { total: lineTotal, assignable: lineAssignable, unavailable: lineUnavailable },
+      staff: { total: staffTotal, assignable: staffAssignable, unavailable: staffUnavailable },
       team: { total: teamTotal },
-      factory: { total: factoryTotal, assignable: factoryAssignable, occupied: factoryOccupied, unavailable: factoryUnavailable }
+      factory: { total: factoryTotal, assignable: factoryAssignable, unavailable: factoryUnavailable }
     };
 
     res.json({
@@ -75,24 +71,24 @@ exports.getDashboardStats = async (req, res) => {
 };
 
 /**
- * 获取资源负载率趋势（过去10天）
- * 负载率 = 已占用数量 / 总数 * 100%
+ * 获取资源使用率趋势（过去10天）
+ * 使用率 = (总数 - 不可用数量) / 总数 * 100%
  */
 exports.getResourceTrend = async (req, res) => {
   try {
     const [
       factoryStats, deviceStats, lineStats, staffStats, teamStats
     ] = await Promise.all([
-      prisma.factory.count().then(async total => ({ total, occupied: await prisma.factory.count({ where: { status: 2 } }) })),
-      prisma.device.count().then(async total => ({ total, occupied: await prisma.device.count({ where: { status: 2 } }) })),
-      prisma.productionLine.count().then(async total => ({ total, occupied: await prisma.productionLine.count({ where: { status: 2 } }) })),
-      prisma.staff.count().then(async total => ({ total, occupied: await prisma.staff.count({ where: { status: 2 } }) })),
-      prisma.team.count().then(async total => ({ total, occupied: 0 })) // 班组不再有状态，占用数始终为0
+      prisma.factory.count().then(async total => ({ total, unavailable: await prisma.factory.count({ where: { status: 1 } }) })),
+      prisma.device.count().then(async total => ({ total, unavailable: await prisma.device.count({ where: { status: 1 } }) })),
+      prisma.productionLine.count().then(async total => ({ total, unavailable: await prisma.productionLine.count({ where: { status: 1 } }) })),
+      prisma.staff.count().then(async total => ({ total, unavailable: await prisma.staff.count({ where: { status: 1 } }) })),
+      prisma.team.count().then(async total => ({ total, unavailable: 0 })) // 班组没有状态
     ]);
 
     const calculateRate = (stats) => {
       if (!stats.total) return null; // 返回 null 表示无数据
-      return Math.round((stats.occupied / stats.total) * 100);
+      return Math.round(((stats.total - stats.unavailable) / stats.total) * 100);
     };
 
     const currentRates = {

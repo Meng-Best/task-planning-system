@@ -20,7 +20,7 @@ exports.getStaffs = async (req, res) => {
     if (status !== undefined) whereClause.status = parseInt(status);
 
     // 并行查询数据和总数
-    const [staffs, total, availableCount, unavailableCount, occupiedCount] = await Promise.all([
+    const [staffs, total, availableCount, unavailableCount] = await Promise.all([
       prisma.staff.findMany({
         where: whereClause,
         skip: skip,
@@ -33,13 +33,10 @@ exports.getStaffs = async (req, res) => {
         where: whereClause
       }),
       prisma.staff.count({
-        where: { ...whereClause, status: 0 } // 可占用
+        where: { ...whereClause, status: 0 } // 可用
       }),
       prisma.staff.count({
         where: { ...whereClause, status: 1 } // 不可用
-      }),
-      prisma.staff.count({
-        where: { ...whereClause, status: 2 } // 已占用
       })
     ]);
 
@@ -51,7 +48,6 @@ exports.getStaffs = async (req, res) => {
         total: total,
         availableCount,
         unavailableCount,
-        occupiedCount,
         current: currentPage,
         pageSize: size
       },

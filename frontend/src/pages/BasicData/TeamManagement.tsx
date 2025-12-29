@@ -129,16 +129,6 @@ const TeamManagement: React.FC = () => {
       width: '12%'
     },
     {
-      title: '所属班次',
-      dataIndex: 'shiftType',
-      key: 'shiftType',
-      width: '18%',
-      render: (val: number) => {
-        const shift = SHIFT_TYPES.find(s => s.value === val);
-        return shift ? shift.label : '-';
-      }
-    },
-    {
       title: '绑定工位',
       dataIndex: 'station',
       key: 'station',
@@ -295,6 +285,7 @@ const TeamManagement: React.FC = () => {
       const values = await form.validateFields();
       const data = {
         ...values,
+        shiftType: selectedTeam?.shiftType ?? 0,
         forceUnbind
       };
 
@@ -312,7 +303,7 @@ const TeamManagement: React.FC = () => {
         const stationName = error.response.data.stationName || '当前工位';
         Modal.confirm({
           title: '解绑确认',
-          content: `该班组当前绑定在工位 [${stationName}] 上。将其状态改为“可占用”将自动解除该绑定，是否继续？`,
+          content: `该班组当前绑定在工位 [${stationName}] 上。将其状态改为"可用"将自动解除该绑定，是否继续？`,
           onOk: () => handleSave(true)
         });
       } else {
@@ -600,25 +591,16 @@ const TeamManagement: React.FC = () => {
         width={800}
         destroyOnHidden
       >
-        <Form form={form} layout="vertical" initialValues={{ shiftType: 0 }}>
+        <Form form={form} layout="vertical">
           <Row gutter={16}>
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item name="code" label="班组编号" rules={[{ required: true }]}>
                 <Input placeholder="输入编号" />
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item name="name" label="班组名称" rules={[{ required: true }]}>
                 <Input placeholder="输入名称" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="shiftType" label="所属班次" rules={[{ required: true, message: '请选择班次' }]}>
-                <Select placeholder="选择班次" popupMatchSelectWidth={false}>
-                  {SHIFT_TYPES.map(s => (
-                    <Select.Option key={s.value} value={s.value}>{s.label}</Select.Option>
-                  ))}
-                </Select>
               </Form.Item>
             </Col>
           </Row>

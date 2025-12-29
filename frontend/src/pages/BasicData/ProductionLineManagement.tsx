@@ -293,8 +293,7 @@ const ProductionLineManagement: React.FC = () => {
   const stats = {
     total: pagination.total,
     available: lines.filter(l => l.status === 0).length,
-    unavailable: lines.filter(l => l.status === 1).length,
-    occupied: lines.filter(l => l.status === 2).length
+    unavailable: lines.filter(l => l.status === 1).length
   }
 
   const tabItems = [
@@ -362,8 +361,8 @@ const ProductionLineManagement: React.FC = () => {
         </Col>
         <Col span={6}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
-              title={<span className="text-gray-500 font-medium">可占用</span>} 
+            <Statistic
+              title={<span className="text-gray-500 font-medium">可用</span>}
               value={stats.available} 
               valueStyle={{ color: '#52c41a', fontWeight: 700 }} 
             />
@@ -371,16 +370,7 @@ const ProductionLineManagement: React.FC = () => {
         </Col>
         <Col span={6}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
-              title={<span className="text-gray-500 font-medium">已占用</span>} 
-              value={stats.occupied} 
-              valueStyle={{ color: '#faad14', fontWeight: 700 }} 
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
+            <Statistic
               title={<span className="text-gray-500 font-medium">不可用</span>} 
               value={stats.unavailable} 
               valueStyle={{ color: '#ff4d4f', fontWeight: 700 }} 

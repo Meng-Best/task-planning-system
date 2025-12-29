@@ -38,8 +38,8 @@ const factoryController = require('../controllers/factoryController');
  *           example: "主要生产组装业务"
  *         status:
  *           type: integer
- *           enum: [0, 1, 2]
- *           description: 工厂状态 (0=可占用, 1=不可用, 2=已占用)
+ *           enum: [0, 1]
+ *           description: 工厂状态 (0=可用, 1=不可用)
  *           example: 0
  *         createdAt:
  *           type: string
@@ -77,8 +77,8 @@ const factoryController = require('../controllers/factoryController');
  *           example: 100
  *         status:
  *           type: integer
- *           enum: [0, 1, 2]
- *           description: 产线状态 (0=可占用, 1=不可用, 2=已占用)
+ *           enum: [0, 1]
+ *           description: 产线状态 (0=可用, 1=不可用)
  *           example: 0
  *         factoryId:
  *           type: integer
@@ -115,8 +115,8 @@ const factoryController = require('../controllers/factoryController');
  *           example: "新建工厂，主要生产包装业务"
  *         status:
  *           type: integer
- *           enum: [0, 1, 2]
- *           description: 工厂状态 (0=可占用, 1=不可用, 2=已占用)
+ *           enum: [0, 1]
+ *           description: 工厂状态 (0=可用, 1=不可用)
  *           example: 0
  *     
  *     ProductionLineInput:
@@ -148,8 +148,8 @@ const factoryController = require('../controllers/factoryController');
  *           example: 150
  *         status:
  *           type: integer
- *           enum: [0, 1, 2]
- *           description: 产线状态 (0=可占用, 1=不可用, 2=已占用)
+ *           enum: [0, 1]
+ *           description: 产线状态 (0=可用, 1=不可用)
  *           example: 0
  */
 

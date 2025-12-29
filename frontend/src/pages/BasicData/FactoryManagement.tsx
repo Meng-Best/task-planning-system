@@ -47,7 +47,7 @@ interface ProductionLine {
   name: string
   type?: string
   capacity: number
-  status: number  // 改为整数类型: 0=可用, 1=不可用, 2=已占用
+  status: number  // 改为整数类型: 0=可用, 1=不可用
   factoryId: number
   createdAt: string
   updatedAt: string
@@ -59,7 +59,7 @@ interface Factory {
   name: string
   location?: string
   description?: string
-  status: number  // 全局三态标准: 0=可占用, 1=不可用, 2=已占用
+  status: number  // 全局状态标准: 0=可用, 1=不可用
   productionLines: ProductionLine[]
   createdAt: string
   updatedAt: string
@@ -122,7 +122,7 @@ const FactoryManagement: React.FC = () => {
       })
     } else {
       factoryForm.resetFields()
-      // 新建工厂时设置默认状态为可占用
+      // 新建工厂时设置默认状态为可用
       factoryForm.setFieldsValue({
         status: STATUS_VALUE.AVAILABLE
       })
@@ -353,7 +353,7 @@ const FactoryManagement: React.FC = () => {
         lineForm.setFieldsValue({
           code: autoCode,
           capacity: 100,
-          status: STATUS_VALUE.AVAILABLE  // 默认为可占用(0)
+          status: STATUS_VALUE.AVAILABLE  // 默认为可用(0)
         })
       }
     }
@@ -723,8 +723,7 @@ const FactoryManagement: React.FC = () => {
     return {
       total: filteredLines.length,
       available: filteredLines.filter(l => l.status === STATUS_VALUE.AVAILABLE).length,
-      unavailable: filteredLines.filter(l => l.status === STATUS_VALUE.UNAVAILABLE).length,
-      occupied: filteredLines.filter(l => l.status === STATUS_VALUE.OCCUPIED).length
+      unavailable: filteredLines.filter(l => l.status === STATUS_VALUE.UNAVAILABLE).length
     }
   }
 
@@ -969,15 +968,6 @@ const FactoryManagement: React.FC = () => {
                         title={renderStatusTag(STATUS_VALUE.UNAVAILABLE)}
                         value={stats.unavailable}
                         valueStyle={{ color: getStatusConfig(STATUS_VALUE.UNAVAILABLE).textColor, fontWeight: 'bold' }}
-                      />
-                    </Card>
-                  </Col>
-                  <Col span={6}>
-                    <Card size="small" styles={{ body: { padding: '12px' } }}>
-                      <Statistic
-                        title={renderStatusTag(STATUS_VALUE.OCCUPIED)}
-                        value={stats.occupied}
-                        valueStyle={{ color: getStatusConfig(STATUS_VALUE.OCCUPIED).textColor, fontWeight: 'bold' }}
                       />
                     </Card>
                   </Col>

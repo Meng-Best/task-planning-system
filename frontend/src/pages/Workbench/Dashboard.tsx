@@ -422,7 +422,7 @@ const Dashboard: React.FC = () => {
 
       {/* 第三行：磁贴式入口 */}
       <div className="grid grid-cols-3 gap-5">
-        <div className="action-tile group bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-blue-200 transition-all cursor-pointer" onClick={() => message.info('功能集成中...')}>
+        <div className="action-tile group bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-blue-200 transition-all cursor-pointer" onClick={() => addTab({ key: 'plan-making', label: '生产计划制定' })}>
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
               <PlusOutlined />

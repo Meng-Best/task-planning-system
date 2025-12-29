@@ -20,7 +20,7 @@ exports.getDevices = async (req, res) => {
     const skip = (currentPage - 1) * size;
 
     // 并行查询数据、总数以及各个状态的数量
-    const [devices, total, availableCount, unavailableCount, occupiedCount] = await Promise.all([
+    const [devices, total, availableCount, unavailableCount] = await Promise.all([
       prisma.device.findMany({
         where: whereClause,
         skip: skip,
@@ -47,13 +47,10 @@ exports.getDevices = async (req, res) => {
         where: whereClause
       }),
       prisma.device.count({
-        where: { ...whereClause, status: 0 } // 可占用
+        where: { ...whereClause, status: 0 } // 可用
       }),
       prisma.device.count({
         where: { ...whereClause, status: 1 } // 不可用
-      }),
-      prisma.device.count({
-        where: { ...whereClause, status: 2 } // 已占用
       })
     ]);
 
@@ -65,7 +62,6 @@ exports.getDevices = async (req, res) => {
         total: total,
         availableCount,
         unavailableCount,
-        occupiedCount,
         current: currentPage,
         pageSize: size
       },
@@ -157,12 +153,12 @@ exports.createDevice = async (req, res) => {
       });
     }
 
-    // 验证状态值（全局三态标准：0=可占用, 1=不可用, 2=已占用）
+    // 验证状态值（0=可用, 1=不可用）
     const finalStatus = status !== undefined ? parseInt(status) : 0;
-    if (![0, 1, 2].includes(finalStatus)) {
+    if (![0, 1].includes(finalStatus)) {
       return res.status(400).json({
         status: 'error',
-        message: '状态值无效，必须为 0（可占用）、1（不可用）或 2（已占用）',
+        message: '状态值无效，必须为 0（可用）或 1（不可用）',
         timestamp: new Date().toISOString()
       });
     }
@@ -248,10 +244,10 @@ exports.updateDevice = async (req, res) => {
     let targetStatus = undefined;
     if (status !== undefined) {
       targetStatus = parseInt(status);
-      if (![0, 1, 2].includes(targetStatus)) {
+      if (![0, 1].includes(targetStatus)) {
         return res.status(400).json({
           status: 'error',
-          message: '状态值无效，必须为 0（可占用）、1（不可用）或 2（已占用）',
+          message: '状态值无效，必须为 0（可用）或 1（不可用）',
           timestamp: new Date().toISOString()
         });
       }
@@ -271,7 +267,7 @@ exports.updateDevice = async (req, res) => {
 
       const updateData = {};
 
-      // 核心业务逻辑：已占用设备如果要改为可占用，必须确认解除绑定
+      // 核心业务逻辑：绑定的设备如果要改为可用，必须确认解除绑定
       if (status !== undefined && targetStatus === 0 && oldDevice.stationId) {
         if (!forceUnbind) {
           const error = new Error('UNBIND_CONFIRM_REQUIRED');
@@ -353,7 +349,7 @@ exports.updateDevice = async (req, res) => {
     if (error.message === 'UNBIND_CONFIRM_REQUIRED') {
       return res.status(400).json({
         status: 'confirm_required',
-        message: `该设备当前正绑定在工位 [${error.lineName}] 上。若要将其状态改为“可占用”，必须先从工位移除。是否确认移除并修改状态？`,
+        message: `该设备当前正绑定在工位 [${error.lineName}] 上。若要将其状态改为"可用"，必须先从工位移除。是否确认移除并修改状态？`,
         timestamp: new Date().toISOString()
       });
     }

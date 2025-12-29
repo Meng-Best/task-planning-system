@@ -91,6 +91,36 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed }) => {
         .custom-dark-menu .ant-menu-inline-collapsed .ant-menu-item-selected {
           border-right: none !important;
         }
+
+        /* 自定义滚动条样式 */
+        .custom-dark-menu::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .custom-dark-menu::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.02);
+          border-radius: 3px;
+        }
+
+        .custom-dark-menu::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 3px;
+          transition: background 0.3s ease;
+        }
+
+        .custom-dark-menu::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
+
+        .custom-dark-menu::-webkit-scrollbar-thumb:active {
+          background: rgba(24, 144, 255, 0.5);
+        }
+
+        /* Firefox 滚动条样式 */
+        .custom-dark-menu {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.02);
+        }
       `}</style>
     </div>
   )

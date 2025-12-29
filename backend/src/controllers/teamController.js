@@ -130,13 +130,13 @@ exports.createTeam = async (req, res) => {
         }
       });
 
-      // 2. 更新成员的 teamId 和状态
+      // 2. 更新成员的 teamId
       if (memberIds.length > 0) {
         await tx.staff.updateMany({
           where: { id: { in: memberIds.map(id => parseInt(id)) } },
           data: {
-            teamId: newTeam.id,
-            status: 2 // 自动变为"已占用"
+            teamId: newTeam.id
+            // 不再自动修改状态
           }
         });
       }
@@ -192,22 +192,22 @@ exports.updateTeam = async (req, res) => {
         }
       });
 
-      // 2. 将原成员的 teamId 设为 null，并恢复状态为"可占用 (0)"
+      // 2. 将原成员的 teamId 设为 null，并恢复状态为"可用 (0)"
       await tx.staff.updateMany({
         where: { teamId: teamId },
         data: {
           teamId: null,
-          status: 0 // 恢复为可占用
+          status: 0 // 恢复为可用
         }
       });
 
-      // 3. 将新成员的 teamId 设为当前班组 ID，并更新状态为"已占用 (2)"
+      // 3. 将新成员的 teamId 设为当前班组 ID
       if (memberIds.length > 0) {
         await tx.staff.updateMany({
           where: { id: { in: memberIds.map(mid => parseInt(mid)) } },
           data: {
-            teamId: teamId,
-            status: 2 // 自动变为已占用
+            teamId: teamId
+            // 不再自动修改状态
           }
         });
       }
@@ -241,12 +241,12 @@ exports.deleteTeam = async (req, res) => {
     const teamId = parseInt(id);
 
     await prisma.$transaction(async (tx) => {
-      // 1. 先将该班组成员的 teamId 置空，并恢复状态为“可占用 (0)”
+      // 1. 先将该班组成员的 teamId 置空，并恢复状态为"可用 (0)"
       await tx.staff.updateMany({
         where: { teamId: teamId },
         data: { 
           teamId: null,
-          status: 0 // 恢复为可占用
+          status: 0 // 恢复为可用
         }
       });
 

@@ -89,8 +89,7 @@ const StationManagement: React.FC = () => {
   const [stats, setStats] = useState({
     total: 0,
     available: 0,
-    unavailable: 0,
-    occupied: 0
+    unavailable: 0
   })
   
   // 筛选
@@ -187,14 +186,13 @@ const StationManagement: React.FC = () => {
       
       const response = await axios.get(`${API_BASE_URL}/api/stations`, { params })
       if (response.data.status === 'ok') {
-        const { list, total, page: current, limit: pageSize, availableCount, unavailableCount, occupiedCount, allTotal } = response.data.data
+        const { list, total, page: current, limit: pageSize, availableCount, unavailableCount, allTotal } = response.data.data
         setStations(list)
         setPagination({ current, pageSize, total })
         setStats({
           total: allTotal,
           available: availableCount,
-          unavailable: unavailableCount,
-          occupied: occupiedCount
+          unavailable: unavailableCount
         })
       }
     } catch (error: any) {
@@ -369,20 +367,19 @@ const StationManagement: React.FC = () => {
           <div className="mb-4 flex justify-end">
             <Button type="primary" icon={<LinkOutlined />} onClick={handleOpenBindDeviceModal}>添加设备</Button>
           </div>
-          <Table 
-            dataSource={associatedDevices} 
-            rowKey="id" 
-            loading={resourcesLoading} 
-            size="middle" 
+          <Table
+            dataSource={associatedDevices}
+            rowKey="id"
+            loading={resourcesLoading}
+            size="middle"
             pagination={false}
             columns={[
-              { title: '状态', dataIndex: 'status', key: 'status', width: '12%', render: (s: number) => renderStatusTag(s) },
-              { title: '编号', dataIndex: 'code', key: 'code', width: '18%' },
-              { title: '名称', dataIndex: 'name', key: 'name', width: '25%' },
-              { title: '类型', dataIndex: 'type', key: 'type', width: '25%', render: (t: number) => getDeviceTypeLabel(t) },
-              { 
-                title: '操作', 
-                key: 'action', 
+              { title: '编号', dataIndex: 'code', key: 'code', width: '20%' },
+              { title: '名称', dataIndex: 'name', key: 'name', width: '30%' },
+              { title: '类型', dataIndex: 'type', key: 'type', width: '30%', render: (t: number) => getDeviceTypeLabel(t) },
+              {
+                title: '操作',
+                key: 'action',
                 width: '20%',
                 render: (_: any, record: Device) => (
                   <Popconfirm title="确定解绑此设备？" onConfirm={() => handleUnbindDevice(record.id)}>
@@ -390,7 +387,7 @@ const StationManagement: React.FC = () => {
                   </Popconfirm>
                 )
               }
-            ]} 
+            ]}
           />
         </div>
       )
@@ -446,8 +443,8 @@ const StationManagement: React.FC = () => {
         </Col>
         <Col span={6}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
-              title={<span className="text-gray-500 font-medium">可占用</span>} 
+            <Statistic
+              title={<span className="text-gray-500 font-medium">可用</span>}
               value={stats.available} 
               valueStyle={{ color: '#52c41a', fontWeight: 700 }} 
             />
@@ -455,16 +452,7 @@ const StationManagement: React.FC = () => {
         </Col>
         <Col span={6}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
-              title={<span className="text-gray-500 font-medium">已占用</span>} 
-              value={stats.occupied} 
-              valueStyle={{ color: '#faad14', fontWeight: 700 }} 
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
+            <Statistic
               title={<span className="text-gray-500 font-medium">不可用</span>} 
               value={stats.unavailable} 
               valueStyle={{ color: '#ff4d4f', fontWeight: 700 }} 
@@ -643,9 +631,8 @@ const StationManagement: React.FC = () => {
           </Form.Item>
           <Form.Item name="status" label="状态">
             <Select>
-              <Select.Option value={0}>可占用</Select.Option>
+              <Select.Option value={0}>可用</Select.Option>
               <Select.Option value={1}>不可用</Select.Option>
-              <Select.Option value={2}>已占用</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item name="description" label="描述">

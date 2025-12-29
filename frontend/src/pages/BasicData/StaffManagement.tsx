@@ -80,8 +80,7 @@ const StaffManagement: React.FC = () => {
   const [stats, setStats] = useState({
     total: 0,
     available: 0,
-    unavailable: 0,
-    occupied: 0
+    unavailable: 0
   })
 
   // 动态职级选项
@@ -133,7 +132,7 @@ const StaffManagement: React.FC = () => {
 
       const response = await axios.get(`${API_BASE_URL}/api/staffs`, { params })
       if (response.data.status === 'ok') {
-        const { list, total, availableCount, unavailableCount, occupiedCount, current, pageSize } = response.data.data
+        const { list, total, availableCount, unavailableCount, current, pageSize } = response.data.data
         setStaffs(list)
         setPagination({
           current,
@@ -143,8 +142,7 @@ const StaffManagement: React.FC = () => {
         setStats({
           total,
           available: availableCount || 0,
-          unavailable: unavailableCount || 0,
-          occupied: occupiedCount || 0
+          unavailable: unavailableCount || 0
         })
         
         // 更新选中的人员
@@ -279,15 +277,6 @@ const StaffManagement: React.FC = () => {
               title={<span className="text-gray-500 font-medium">可上岗</span>}
               value={stats.available}
               valueStyle={{ color: '#52c41a', fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
-            <Statistic
-              title={<span className="text-gray-500 font-medium">已上岗</span>}
-              value={stats.occupied}
-              valueStyle={{ color: '#faad14', fontWeight: 700 }}
             />
           </Card>
         </Col>

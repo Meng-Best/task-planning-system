@@ -9,23 +9,36 @@ html, body, #root {
   padding: 0;
 }
 
-/* 自定义滚动条样式 */
+/* 全局滚动条样式 - 现代化设计 */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
+  background: linear-gradient(180deg, #d0d0d0 0%, #b0b0b0 100%);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: linear-gradient(180deg, #a0a0a0 0%, #888888 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #1890ff 0%, #096dd9 100%);
+}
+
+/* Firefox 滚动条样式 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b0b0b0 rgba(0, 0, 0, 0.02);
 }
 

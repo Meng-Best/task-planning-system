@@ -23,60 +23,40 @@ export interface StatusOption {
 /**
  * 全局基础数据状态 (唯一真理源)
  * 适用于：工厂、产线等所有基础资源
- * 
- * 0 = 可占用 (Available) - 资源空闲，可以被分配使用
+ *
+ * 0 = 可用 (Available) - 资源可以被使用
  * 1 = 不可用 (Unavailable) - 资源维护/故障，暂时不能使用
- * 2 = 已占用 (Occupied) - 资源已被占用，正在使用中
  */
 export const BASIC_DATA_STATUS: StatusOption[] = [
-  { 
-    value: 0, 
-    label: '可占用', 
+  {
+    value: 0,
+    label: '可用',
     color: 'success',
     badgeStatus: 'processing',
     themeColor: '#52c41a',
     bgColor: '#f6ffed',
     textColor: '#389e0d'
   },
-  { 
-    value: 1, 
-    label: '不可用', 
+  {
+    value: 1,
+    label: '不可用',
     color: 'error',
     badgeStatus: 'default',
     themeColor: '#ff4d4f',
     bgColor: '#fff1f0',
     textColor: '#cf1322'
-  },
-  { 
-    value: 2, 
-    label: '已占用', 
-    color: 'warning',
-    badgeStatus: 'warning',
-    themeColor: '#faad14',
-    bgColor: '#fffbe6',
-    textColor: '#d46b08'
   }
 ];
 
 /**
  * 辅助函数：根据状态值获取状态配置
- * @param value 状态值 (0/1/2)
+ * @param value 状态值 (0/1)
  * @returns 状态配置对象
  */
 export const getStatusConfig = (value: number): StatusOption => {
-  const config = BASIC_DATA_STATUS.find(item => item.value === value);
-  
-  if (!config) {
-    // 容错处理：未知状态
-    return { 
-      value, 
-      label: '未知状态', 
-      color: 'default',
-      badgeStatus: 'default'
-    };
-  }
-  
-  return config;
+  const numeric = Number.isFinite(value) ? value : Number(value);
+  const normalized = numeric === 1 ? 1 : 0; // 仅支持 0/1，其余一律按可用处理
+  return BASIC_DATA_STATUS.find(item => item.value === normalized)!;
 };
 
 /**
@@ -104,9 +84,8 @@ export const getStatusColor = (value: number): string => {
  * 便于在代码中进行比较和判断
  */
 export const STATUS_VALUE = {
-  AVAILABLE: 0,    // 可占用
-  UNAVAILABLE: 1,  // 不可用
-  OCCUPIED: 2      // 已占用
+  AVAILABLE: 0,    // 可用
+  UNAVAILABLE: 1   // 不可用
 } as const;
 
 export type StatusValue = typeof STATUS_VALUE[keyof typeof STATUS_VALUE];

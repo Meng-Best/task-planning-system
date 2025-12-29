@@ -295,7 +295,7 @@ const DeviceManagement: React.FC = () => {
         Modal.confirm({
           title: '解绑确认',
           icon: <AlertOutlined style={{ color: '#faad14' }} />,
-          content: `该设备当前绑定在工位 [${stationName}] 上。将其状态改为“可占用”将自动解除该绑定，是否继续？`,
+          content: `该设备当前绑定在工位 [${stationName}] 上。将其状态改为"可用"将自动解除该绑定，是否继续？`,
           okText: '确认解绑并保存',
           cancelText: '取消',
           onOk: () => handleSave(true)
@@ -313,8 +313,7 @@ const DeviceManagement: React.FC = () => {
   const stats = {
     total: pagination.total,
     available: devices.filter(d => d.status === 0).length,
-    unavailable: devices.filter(d => d.status === 1).length,
-    occupied: devices.filter(d => d.status === 2).length
+    unavailable: devices.filter(d => d.status === 1).length
   }
 
   const tabItems = [
@@ -497,8 +496,8 @@ const DeviceManagement: React.FC = () => {
         </Col>
         <Col span={6}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
-              title={<span className="text-gray-500 font-medium">可占用</span>} 
+            <Statistic
+              title={<span className="text-gray-500 font-medium">可用</span>}
               value={stats.available} 
               valueStyle={{ color: '#52c41a', fontWeight: 700 }} 
             />
@@ -506,16 +505,7 @@ const DeviceManagement: React.FC = () => {
         </Col>
         <Col span={6}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
-              title={<span className="text-gray-500 font-medium">已占用</span>} 
-              value={stats.occupied} 
-              valueStyle={{ color: '#faad14', fontWeight: 700 }} 
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
+            <Statistic
               title={<span className="text-gray-500 font-medium">不可用</span>} 
               value={stats.unavailable} 
               valueStyle={{ color: '#ff4d4f', fontWeight: 700 }} 
