@@ -13,7 +13,8 @@ import {
     Popconfirm,
     Tabs,
     Tag,
-    Select
+    Select,
+    InputNumber
 } from 'antd';
 import {
     ControlOutlined,
@@ -25,6 +26,7 @@ import {
     InfoCircleOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
+import { PROCESS_TYPE_OPTIONS, getProcessTypeLabel } from '../../config/dictionaries';
 
 const API_BASE_URL = 'http://localhost:3001';
 
@@ -32,29 +34,42 @@ interface Process {
     id: number;
     code: string;
     name: string;
-    type: string;
+    type: number;
+    standardTime: number;
     description: string;
 }
 
 const ProcessManagement: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<Process[]>([]);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
     const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
 
     // 筛选状态
     const [filterCode, setFilterCode] = useState('');
     const [filterName, setFilterName] = useState('');
+    const [filterType, setFilterType] = useState<number | undefined>(undefined);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProcess, setEditingProcess] = useState<Process | null>(null);
     const [form] = Form.useForm();
 
-    const fetchProcesses = async () => {
+    const fetchProcesses = async (page?: number, size?: number) => {
         setLoading(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/processes`);
+            const params: any = {
+                current: page || pagination.current,
+                pageSize: size || pagination.pageSize
+            };
+            if (filterCode) params.code = filterCode;
+            if (filterName) params.name = filterName;
+            if (filterType !== undefined) params.type = filterType;
+
+            const response = await axios.get(`${API_BASE_URL}/api/processes`, { params });
             if (response.data.status === 'ok') {
-                setData(response.data.data);
+                const { list, total, current, pageSize } = response.data.data;
+                setData(list);
+                setPagination({ current, pageSize, total });
             }
         } catch (error) {
             message.error('获取工序列表失败');
@@ -70,7 +85,8 @@ const ProcessManagement: React.FC = () => {
     const handleReset = () => {
         setFilterCode('');
         setFilterName('');
-        fetchProcesses();
+        setFilterType(undefined);
+        fetchProcesses(1);
     };
 
     const handleOpenModal = (record?: Process) => {
@@ -113,8 +129,18 @@ const ProcessManagement: React.FC = () => {
             title: '工序类型', 
             dataIndex: 'type', 
             key: 'type', 
-            width: '20%',
-            render: (type: string) => <Tag color="blue">{type || '未分类'}</Tag>
+            width: '15%',
+            render: (type: number) => {
+                const config = PROCESS_TYPE_OPTIONS.find(opt => opt.value === type);
+                return <Tag color={config?.color || 'default'}>{config?.label || '未知'}</Tag>;
+            }
+        },
+        { 
+            title: '标准工时 (h)', 
+            dataIndex: 'standardTime', 
+            key: 'standardTime', 
+            width: '15%',
+            render: (time: number) => <span className="font-mono">{time || 0}</span>
         },
         {
             title: '操作',
@@ -217,7 +243,7 @@ const ProcessManagement: React.FC = () => {
                                     allowClear
                                     value={filterCode}
                                     onChange={e => setFilterCode(e.target.value)}
-                                    onPressEnter={fetchProcesses}
+                                    onPressEnter={() => fetchProcesses(1)}
                                 />
                             </div>
                             <div className="flex items-center gap-2">
@@ -228,14 +254,25 @@ const ProcessManagement: React.FC = () => {
                                     allowClear
                                     value={filterName}
                                     onChange={e => setFilterName(e.target.value)}
-                                    onPressEnter={fetchProcesses}
+                                    onPressEnter={() => fetchProcesses(1)}
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-gray-500 whitespace-nowrap">工序类型:</span>
+                                <Select
+                                    placeholder="全部类型"
+                                    style={{ width: 120 }}
+                                    allowClear
+                                    value={filterType}
+                                    onChange={setFilterType}
+                                    options={PROCESS_TYPE_OPTIONS}
                                 />
                             </div>
                         </Space>
                     </Col>
                     <Col flex="auto" className="flex justify-end">
                         <Space size="middle">
-                            <Button type="primary" icon={<SearchOutlined />} onClick={fetchProcesses}>查询</Button>
+                            <Button type="primary" icon={<SearchOutlined />} onClick={() => fetchProcesses(1)}>查询</Button>
                             <Button icon={<ReloadOutlined />} onClick={handleReset}>重置</Button>
                         </Space>
                     </Col>
@@ -266,10 +303,12 @@ const ProcessManagement: React.FC = () => {
                     loading={loading}
                     size="middle"
                     pagination={{
+                        ...pagination,
                         position: ['bottomLeft'],
                         showSizeChanger: true,
                         showTotal: (total) => `共 ${total} 条记录`,
-                        style: { marginLeft: '8px' }
+                        style: { marginLeft: '8px' },
+                        onChange: (page, size) => fetchProcesses(page, size)
                     }}
                     onRow={(record) => ({
                         onClick: () => setSelectedProcess(record),
@@ -314,15 +353,18 @@ const ProcessManagement: React.FC = () => {
                             </Form.Item>
                         </Col>
                     </Row>
-                    <Form.Item name="type" label="工序类型">
-                        <Select placeholder="请选择工序类型">
-                            <Select.Option value="组装">组装</Select.Option>
-                            <Select.Option value="测试">测试</Select.Option>
-                            <Select.Option value="包装">包装</Select.Option>
-                            <Select.Option value="质检">质检</Select.Option>
-                            <Select.Option value="清洗">清洗</Select.Option>
-                        </Select>
-                    </Form.Item>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item name="type" label="工序类型" rules={[{ required: true, message: '请选择工序类型' }]}>
+                                <Select placeholder="请选择工序类型" options={PROCESS_TYPE_OPTIONS} />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item name="standardTime" label="标准工时 (小时)" rules={[{ required: true, message: '请输入标准工时' }]}>
+                                <InputNumber style={{ width: '100%' }} min={0} placeholder="小时" />
+                            </Form.Item>
+                        </Col>
+                    </Row>
                     <Form.Item name="description" label="工序描述">
                         <Input.TextArea rows={3} placeholder="请输入备注信息" />
                     </Form.Item>

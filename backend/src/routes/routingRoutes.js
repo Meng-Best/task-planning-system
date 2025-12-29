@@ -12,7 +12,17 @@ const router = express.Router();
  */
 router.get('/', async (req, res) => {
   try {
+    const { code, name, type } = req.query;
+    const where = {};
+    if (code) where.code = { contains: code };
+    if (name) where.name = { contains: name };
+    if (type !== undefined && type !== '') {
+      const t = parseInt(type);
+      if (!isNaN(t)) where.type = t;
+    }
+
     const routings = await prisma.routing.findMany({
+      where,
       orderBy: { createdAt: 'desc' }
     });
     res.json({ status: 'ok', data: routings });
@@ -32,7 +42,13 @@ router.post('/', async (req, res) => {
   try {
     const { code, name, type, status, description } = req.body;
     const routing = await prisma.routing.create({
-      data: { code, name, type, status: status || 'active', description }
+      data: { 
+        code, 
+        name, 
+        type: type !== undefined ? parseInt(type) : 0, 
+        status: status || 'active', 
+        description 
+      }
     });
     res.json({ status: 'ok', data: routing });
   } catch (error) {
@@ -53,7 +69,13 @@ router.put('/:id', async (req, res) => {
     const { code, name, type, status, description } = req.body;
     const routing = await prisma.routing.update({
       where: { id: parseInt(id) },
-      data: { code, name, type, status, description }
+      data: { 
+        code, 
+        name, 
+        type: type !== undefined ? parseInt(type) : undefined, 
+        status, 
+        description 
+      }
     });
     res.json({ status: 'ok', data: routing });
   } catch (error) {

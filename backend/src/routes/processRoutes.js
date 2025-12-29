@@ -12,17 +12,26 @@ const router = express.Router();
  */
 router.get('/', async (req, res) => {
   try {
-    const { current = 1, pageSize = 10 } = req.query;
+    const { current = 1, pageSize = 10, code, name, type } = req.query;
     const skip = (parseInt(current) - 1) * parseInt(pageSize);
     const take = parseInt(pageSize);
 
+    const where = {};
+    if (code) where.code = { contains: code };
+    if (name) where.name = { contains: name };
+    if (type !== undefined && type !== '') {
+      const t = parseInt(type);
+      if (!isNaN(t)) where.type = t;
+    }
+
     const [processes, total] = await Promise.all([
       prisma.process.findMany({
+        where,
         skip,
         take,
         orderBy: { createdAt: 'desc' }
       }),
-      prisma.process.count()
+      prisma.process.count({ where })
     ]);
 
     res.json({ 
@@ -48,9 +57,15 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const { code, name, type, description } = req.body;
+    const { code, name, type, standardTime, description } = req.body;
     const process = await prisma.process.create({
-      data: { code, name, type, description }
+      data: { 
+        code, 
+        name, 
+        type: type !== undefined ? parseInt(type) : 0, 
+        standardTime: standardTime !== undefined ? parseInt(standardTime) : 0,
+        description 
+      }
     });
     res.json({ status: 'ok', data: process });
   } catch (error) {
@@ -68,10 +83,16 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { code, name, type, description } = req.body;
+    const { code, name, type, standardTime, description } = req.body;
     const process = await prisma.process.update({
       where: { id: parseInt(id) },
-      data: { code, name, type, description }
+      data: { 
+        code, 
+        name, 
+        type: type !== undefined ? parseInt(type) : undefined, 
+        standardTime: standardTime !== undefined ? parseInt(standardTime) : undefined,
+        description 
+      }
     });
     res.json({ status: 'ok', data: process });
   } catch (error) {

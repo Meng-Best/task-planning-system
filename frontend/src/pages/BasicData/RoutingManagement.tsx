@@ -26,6 +26,7 @@ import {
     InfoCircleOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
+import { ROUTING_TYPE_OPTIONS, getRoutingTypeLabel } from '../../config/dictionaries';
 
 const API_BASE_URL = 'http://localhost:3001';
 
@@ -33,7 +34,7 @@ interface Routing {
     id: number;
     code: string;
     name: string;
-    type: string;
+    type: number;
     status: string;
     description: string;
 }
@@ -74,6 +75,7 @@ const RoutingManagement: React.FC = () => {
     // 筛选状态
     const [filterCode, setFilterCode] = useState('');
     const [filterName, setFilterName] = useState('');
+    const [filterType, setFilterType] = useState<number | undefined>(undefined);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRouting, setEditingRouting] = useState<Routing | null>(null);
@@ -82,7 +84,12 @@ const RoutingManagement: React.FC = () => {
     const fetchRoutings = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/routings`);
+            const params: any = {};
+            if (filterCode) params.code = filterCode;
+            if (filterName) params.name = filterName;
+            if (filterType !== undefined) params.type = filterType;
+
+            const response = await axios.get(`${API_BASE_URL}/api/routings`, { params });
             if (response.data.status === 'ok') {
                 setData(response.data.data);
             }
@@ -135,6 +142,7 @@ const RoutingManagement: React.FC = () => {
     const handleReset = () => {
         setFilterCode('');
         setFilterName('');
+        setFilterType(undefined);
         fetchRoutings();
     };
 
@@ -244,7 +252,16 @@ const RoutingManagement: React.FC = () => {
     const columns = [
         { title: '工艺路线编号', dataIndex: 'code', key: 'code', width: '15%' },
         { title: '工艺路线名称', dataIndex: 'name', key: 'name', width: '20%' },
-        { title: '工艺路线类型', dataIndex: 'type', key: 'type', width: '15%' },
+        { 
+            title: '工艺路线类型', 
+            dataIndex: 'type', 
+            key: 'type', 
+            width: '15%',
+            render: (type: number) => {
+                const config = ROUTING_TYPE_OPTIONS.find(opt => opt.value === type);
+                return <Tag color={config?.color || 'default'}>{config?.label || '未知'}</Tag>;
+            }
+        },
         { 
             title: '状态', 
             dataIndex: 'status', 
@@ -393,6 +410,17 @@ const RoutingManagement: React.FC = () => {
                                     onPressEnter={fetchRoutings}
                                 />
                             </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-gray-500 whitespace-nowrap">路线类型:</span>
+                                <Select
+                                    placeholder="全部类型"
+                                    style={{ width: 120 }}
+                                    allowClear
+                                    value={filterType}
+                                    onChange={setFilterType}
+                                    options={ROUTING_TYPE_OPTIONS}
+                                />
+                            </div>
                         </Space>
                     </Col>
                     <Col flex="auto" className="flex justify-end">
@@ -479,8 +507,8 @@ const RoutingManagement: React.FC = () => {
                     </Row>
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item name="type" label="工艺路线类型">
-                                <Input placeholder="如: 组装" />
+                            <Form.Item name="type" label="工艺路线类型" rules={[{ required: true, message: '请选择工艺路线类型' }]}>
+                                <Select placeholder="请选择类型" options={ROUTING_TYPE_OPTIONS} />
                             </Form.Item>
                         </Col>
                         <Col span={12}>

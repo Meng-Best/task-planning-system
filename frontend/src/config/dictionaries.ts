@@ -196,3 +196,38 @@ export const getStationTypeLabel = (value: number): string => {
   return STATION_TYPE_OPTIONS.find(opt => opt.value === value)?.label || '未知类型';
 };
 
+/**
+ * 工艺路线类型字典 (0=部装, 1=总装)
+ */
+export const ROUTING_TYPE_OPTIONS = [
+  { value: 0, label: '部装', color: 'cyan' },
+  { value: 1, label: '总装', color: 'blue' },
+];
+
+/**
+ * 获取工艺路线类型标签
+ * @param value 类型 ID
+ * @returns 类型名称
+ */
+export const getRoutingTypeLabel = (value: number): string => {
+  return ROUTING_TYPE_OPTIONS.find(opt => opt.value === value)?.label || '未知类型';
+};
+
+/**
+ * 工序类型字典 (0=装配, 1=检验, 2=测试)
+ */
+export const PROCESS_TYPE_OPTIONS = [
+  { value: 0, label: '装配', color: 'blue' },
+  { value: 1, label: '检验', color: 'orange' },
+  { value: 2, label: '测试', color: 'purple' },
+];
+
+/**
+ * 获取工序类型标签
+ * @param value 类型 ID
+ * @returns 类型名称
+ */
+export const getProcessTypeLabel = (value: number): string => {
+  return PROCESS_TYPE_OPTIONS.find(opt => opt.value === value)?.label || '未知类型';
+};
+
