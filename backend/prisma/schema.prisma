@@ -212,10 +212,28 @@ model Product {
   model       String?          // 产品型号
   description String?          // 产品描述
   routings    ProductRouting[] // 关联的工艺路线
+  orders      Order[]          // 关联的订单
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
   @@map("products")
+}
+
+// 订单管理
+model Order {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // 订单编号
+  name        String   // 订单名称
+  type        Int      @default(0) // 订单类型: 0=试制, 1=销售预测, 2=销售下单
+  productId   Int      // 关联产品ID
+  product     Product  @relation(fields: [productId], references: [id])
+  quantity    Int      @default(1) // 订单数量
+  deadline    DateTime // 截止时间
+  status      Int      @default(0) // 0: 待排程, 1: 排程中, 2: 生产中, 3: 已完成, 4: 已推迟
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("orders")
 }
 
 // 产品工艺路线关联表

@@ -71,6 +71,7 @@ interface ProductRouting {
 const ProductManagement: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<Product[]>([]);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
     // 工艺路线相关状态
@@ -88,12 +89,21 @@ const ProductManagement: React.FC = () => {
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [form] = Form.useForm();
 
-    const fetchProducts = async () => {
+    const fetchProducts = async (page?: number, size?: number) => {
         setLoading(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/products`);
+            const params: any = {
+                current: page || pagination.current,
+                pageSize: size || pagination.pageSize
+            };
+            if (filterCode) params.code = filterCode;
+            if (filterName) params.name = filterName;
+
+            const response = await axios.get(`${API_BASE_URL}/api/products`, { params });
             if (response.data.status === 'ok') {
-                setData(response.data.data);
+                const { list, total, current, pageSize } = response.data.data;
+                setData(list);
+                setPagination({ current, pageSize, total });
             }
         } catch (error) {
             message.error('获取产品列表失败');
@@ -121,10 +131,11 @@ const ProductManagement: React.FC = () => {
     // 获取可用的工艺路线列表
     const fetchAvailableRoutings = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/routings`);
+            // 获取所有可用的工艺路线用于选择，所以 pageSize 设置大一些
+            const response = await axios.get(`${API_BASE_URL}/api/routings`, { params: { pageSize: 1000 } });
             if (response.data.status === 'ok') {
                 // 只显示启用状态的工艺路线
-                const activeRoutings = response.data.data.filter((r: Routing) => r.status === 'active');
+                const activeRoutings = response.data.data.list.filter((r: Routing) => r.status === 'active');
                 setAvailableRoutings(activeRoutings);
             }
         } catch (error) {
@@ -133,7 +144,7 @@ const ProductManagement: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchProducts();
+        fetchProducts(1);
     }, []);
 
     useEffect(() => {
@@ -147,7 +158,7 @@ const ProductManagement: React.FC = () => {
     const handleReset = () => {
         setFilterCode('');
         setFilterName('');
-        fetchProducts();
+        fetchProducts(1);
     };
 
     const handleOpenModal = (record?: Product) => {
@@ -224,12 +235,6 @@ const ProductManagement: React.FC = () => {
             message.error('解绑失败');
         }
     };
-
-    const filteredData = data.filter(item => {
-        const matchCode = (item.code || '').toLowerCase().includes(filterCode.toLowerCase());
-        const matchName = (item.name || '').toLowerCase().includes(filterName.toLowerCase());
-        return matchCode && matchName;
-    });
 
     const columns = [
         { 
@@ -610,15 +615,17 @@ const ProductManagement: React.FC = () => {
             >
                 <Table
                     columns={columns}
-                    dataSource={filteredData}
+                    dataSource={data}
                     rowKey="id"
                     loading={loading}
                     size="middle"
                     pagination={{
+                        ...pagination,
                         position: ['bottomLeft'],
                         showSizeChanger: true,
                         showTotal: (total) => `共 ${total} 条记录`,
-                        style: { marginLeft: '8px' }
+                        style: { marginLeft: '8px' },
+                        onChange: (page, size) => fetchProducts(page, size)
                     }}
                     onRow={(record) => ({
                         onClick: () => setSelectedProduct(record),

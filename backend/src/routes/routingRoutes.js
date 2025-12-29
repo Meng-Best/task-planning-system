@@ -12,7 +12,10 @@ const router = express.Router();
  */
 router.get('/', async (req, res) => {
   try {
-    const { code, name, type } = req.query;
+    const { current = 1, pageSize = 10, code, name, type } = req.query;
+    const skip = (parseInt(current) - 1) * parseInt(pageSize);
+    const take = parseInt(pageSize);
+
     const where = {};
     if (code) where.code = { contains: code };
     if (name) where.name = { contains: name };
@@ -21,11 +24,25 @@ router.get('/', async (req, res) => {
       if (!isNaN(t)) where.type = t;
     }
 
-    const routings = await prisma.routing.findMany({
-      where,
-      orderBy: { createdAt: 'desc' }
+    const [routings, total] = await Promise.all([
+      prisma.routing.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.routing.count({ where })
+    ]);
+
+    res.json({ 
+      status: 'ok', 
+      data: {
+        list: routings,
+        total,
+        current: parseInt(current),
+        pageSize: parseInt(pageSize)
+      } 
     });
-    res.json({ status: 'ok', data: routings });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }

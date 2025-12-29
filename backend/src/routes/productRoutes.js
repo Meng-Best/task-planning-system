@@ -12,10 +12,33 @@ const router = express.Router();
  */
 router.get('/', async (req, res) => {
   try {
-    const products = await prisma.product.findMany({
-      orderBy: { createdAt: 'desc' }
+    const { current = 1, pageSize = 10, code, name } = req.query;
+    const skip = (parseInt(current) - 1) * parseInt(pageSize);
+    const take = parseInt(pageSize);
+
+    const where = {};
+    if (code) where.code = { contains: code };
+    if (name) where.name = { contains: name };
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.product.count({ where })
+    ]);
+
+    res.json({ 
+      status: 'ok', 
+      data: {
+        list: products,
+        total,
+        current: parseInt(current),
+        pageSize: parseInt(pageSize)
+      } 
     });
-    res.json({ status: 'ok', data: products });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }

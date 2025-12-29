@@ -59,6 +59,7 @@ interface Process {
 const RoutingManagement: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<Routing[]>([]);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
     const [selectedRouting, setSelectedRouting] = useState<Routing | null>(null);
 
     // 工序状态
@@ -81,17 +82,22 @@ const RoutingManagement: React.FC = () => {
     const [editingRouting, setEditingRouting] = useState<Routing | null>(null);
     const [form] = Form.useForm();
 
-    const fetchRoutings = async () => {
+    const fetchRoutings = async (page?: number, size?: number) => {
         setLoading(true);
         try {
-            const params: any = {};
+            const params: any = {
+                current: page || pagination.current,
+                pageSize: size || pagination.pageSize
+            };
             if (filterCode) params.code = filterCode;
             if (filterName) params.name = filterName;
             if (filterType !== undefined) params.type = filterType;
 
             const response = await axios.get(`${API_BASE_URL}/api/routings`, { params });
             if (response.data.status === 'ok') {
-                setData(response.data.data);
+                const { list, total, current, pageSize } = response.data.data;
+                setData(list);
+                setPagination({ current, pageSize, total });
             }
         } catch (error) {
             message.error('获取工艺路线列表失败');
@@ -118,9 +124,9 @@ const RoutingManagement: React.FC = () => {
 
     const fetchStandardProcesses = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/processes`);
+            const response = await axios.get(`${API_BASE_URL}/api/processes`, { params: { pageSize: 1000 } });
             if (response.data.status === 'ok') {
-                setStandardProcesses(response.data.data);
+                setStandardProcesses(response.data.data.list);
             }
         } catch (error) {
             message.error('获取标准工序库失败');
@@ -128,7 +134,7 @@ const RoutingManagement: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchRoutings();
+        fetchRoutings(1);
     }, []);
 
     useEffect(() => {
@@ -143,7 +149,7 @@ const RoutingManagement: React.FC = () => {
         setFilterCode('');
         setFilterName('');
         setFilterType(undefined);
-        fetchRoutings();
+        fetchRoutings(1);
     };
 
     const handleOpenModal = (record?: Routing) => {
@@ -242,12 +248,6 @@ const RoutingManagement: React.FC = () => {
             message.error('删除工序失败');
         }
     };
-
-    const filteredData = data.filter(item => {
-        const matchCode = (item.code || '').toLowerCase().includes(filterCode.toLowerCase());
-        const matchName = (item.name || '').toLowerCase().includes(filterName.toLowerCase());
-        return matchCode && matchName;
-    });
 
     const columns = [
         { 
@@ -463,21 +463,23 @@ const RoutingManagement: React.FC = () => {
             >
                 <Table
                     columns={columns}
-                    dataSource={filteredData}
+                    dataSource={data}
                     rowKey="id"
                     loading={loading}
                     size="middle"
                     pagination={{
+                        ...pagination,
                         position: ['bottomLeft'],
                         showSizeChanger: true,
                         showTotal: (total) => `共 ${total} 条记录`,
-                        style: { marginLeft: '8px' }
+                        style: { marginLeft: '8px' },
+                        onChange: (page, size) => fetchRoutings(page, size)
                     }}
                     onRow={(record) => ({
                         onClick: () => setSelectedRouting(record),
                         className: `cursor-pointer transition-all ${selectedRouting?.id === record.id ? 'selected-row' : ''}`,
                         style: {
-                            borderLeft: `4px solid #1890ff`,
+                            borderLeft: selectedRouting?.id === record.id ? `4px solid #1890ff` : 'none',
                             marginBottom: '4px'
                         }
                     })}

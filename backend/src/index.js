@@ -37,6 +37,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const productRoutes = require('./routes/productRoutes');
 const routingRoutes = require('./routes/routingRoutes');
 const processRoutes = require('./routes/processRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 // 挂载路由
 app.use('/api/tasks', taskRoutes);
@@ -52,6 +53,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/routings', routingRoutes);
 app.use('/api/processes', processRoutes);
+app.use('/api/orders', orderRoutes);
 
 /**
  * @swagger

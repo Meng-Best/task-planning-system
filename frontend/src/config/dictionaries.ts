@@ -231,3 +231,39 @@ export const getProcessTypeLabel = (value: number): string => {
   return PROCESS_TYPE_OPTIONS.find(opt => opt.value === value)?.label || '未知类型';
 };
 
+/**
+ * 订单类型字典 (0=试制, 1=销售预测, 2=销售下单)
+ */
+export const ORDER_TYPE_OPTIONS = [
+  { value: 0, label: '试制', color: 'orange' },
+  { value: 1, label: '销售预测', color: 'blue' },
+  { value: 2, label: '销售下单', color: 'green' },
+];
+
+/**
+ * 获取订单类型标签
+ * @param value 类型 ID
+ * @returns 类型名称
+ */
+export const getOrderTypeLabel = (value: number): string => {
+  return ORDER_TYPE_OPTIONS.find(opt => opt.value === value)?.label || '未知类型';
+};
+
+/**
+ * 订单状态字典
+ */
+export const ORDER_STATUS_OPTIONS = [
+  { value: 0, label: '待排程', color: 'default' },
+  { value: 1, label: '排程中', color: 'processing' },
+  { value: 2, label: '生产中', color: 'warning' },
+  { value: 3, label: '已完成', color: 'success' },
+  { value: 4, label: '已推迟', color: 'error' },
+];
+
+/**
+ * 获取订单状态标签
+ */
+export const getOrderStatusLabel = (value: number): string => {
+  return ORDER_STATUS_OPTIONS.find(opt => opt.value === value)?.label || '未知状态';
+};
+
