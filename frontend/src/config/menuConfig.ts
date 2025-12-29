@@ -85,28 +85,6 @@ export const menuItems: MenuItem[] = [
     ]
   },
   {
-    key: 'inventory-mgmt',
-    label: '库存管理',
-    icon: React.createElement(AppstoreOutlined),
-    children: [
-      {
-        key: 'rocket-mgmt',
-        label: '火箭管理',
-        icon: React.createElement(RocketOutlined)
-      },
-      {
-        key: 'section-mgmt',
-        label: '舱段管理',
-        icon: React.createElement(BuildOutlined)
-      },
-      {
-        key: 'engine-mgmt',
-        label: '发动机管理',
-        icon: React.createElement(ThunderboltOutlined)
-      }
-    ]
-  },
-  {
     key: 'product-process-mgmt',
     label: '产品工艺管理',
     icon: React.createElement(ReadOutlined),

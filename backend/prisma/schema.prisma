@@ -203,51 +203,6 @@ model Staff {
   @@map("staffs")
 }
 
-// 火箭表 - 库存管理
-model Rocket {
-  id          Int             @id @default(autoincrement())
-  code        String          @unique // 火箭编号 (如: CZ-5-01)
-  name        String          // 火箭名称
-  model       String?         // 型号
-  quantity    Int             @default(0) // 库存数量
-  sections    RocketSection[] // 关联的舱段
-  engines     Engine[]        // 关联的发动机
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  @@map("rockets")
-}
-
-// 舱段表 - 库存管理
-model RocketSection {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique // 舱段编号
-  name        String   // 舱段名称
-  type        String   // 舱段类型 (整流罩, 助推器, 一级, 二级等)
-  quantity    Int      @default(0) // 库存数量
-  rocketId    Int?     // 关联火箭ID
-  rocket      Rocket?  @relation(fields: [rocketId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("rocket_sections")
-}
-
-// 发动机表 - 库存管理
-model Engine {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique // 发动机编号
-  name        String   // 发动机名称
-  model       String?  // 型号
-  quantity    Int      @default(0) // 库存数量
-  rocketId    Int?     // 关联火箭ID
-  rocket      Rocket?  @relation(fields: [rocketId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("engines")
-}
-
 // 产品管理 (路由产品)
 model Product {
   id          Int              @id @default(autoincrement())

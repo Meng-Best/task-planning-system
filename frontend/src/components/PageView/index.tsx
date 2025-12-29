@@ -11,9 +11,6 @@ import ProductManagement from '../../pages/BasicData/ProductManagement'
 import RoutingManagement from '../../pages/BasicData/RoutingManagement'
 import ProcessManagement from '../../pages/BasicData/ProcessManagement'
 import Dashboard from '../../pages/Workbench/Dashboard'
-import RocketManagement from '../../pages/InventoryManagement/RocketManagement'
-import SectionManagement from '../../pages/InventoryManagement/SectionManagement'
-import EngineManagement from '../../pages/InventoryManagement/EngineManagement'
 import OrderManagement from '../../pages/SchedulingManagement/OrderManagement'
 import TaskManagement from '../../pages/SchedulingManagement/TaskManagement'
 import ScheduleManagement from '../../pages/SchedulingManagement/ScheduleManagement'
@@ -73,12 +70,6 @@ const PageView: React.FC<PageViewProps> = ({ tabKey }) => {
       return <RoutingManagement />
     case 'process-mgmt':
       return <ProcessManagement />
-    case 'rocket-mgmt':
-      return <RocketManagement />
-    case 'section-mgmt':
-      return <SectionManagement />
-    case 'engine-mgmt':
-      return <EngineManagement />
     case 'order-mgmt':
       return <OrderManagement />
     case 'task-mgmt':

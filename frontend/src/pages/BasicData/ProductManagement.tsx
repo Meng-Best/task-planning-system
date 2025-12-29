@@ -29,6 +29,7 @@ import {
     DisconnectOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
+import { getRoutingTypeLabel } from '../../config/dictionaries';
 
 const API_BASE_URL = 'http://localhost:3001';
 
@@ -231,7 +232,13 @@ const ProductManagement: React.FC = () => {
     });
 
     const columns = [
-        { title: '产品编号', dataIndex: 'code', key: 'code', width: '15%' },
+        { 
+            title: '产品编号', 
+            dataIndex: 'code', 
+            key: 'code', 
+            width: '15%',
+            render: (code: string) => <span className="business-code">{code}</span>
+        },
         { title: '产品名称', dataIndex: 'name', key: 'name', width: '20%' },
         { title: '产品类型', dataIndex: 'type', key: 'type', width: '15%' },
         { title: '产品型号', dataIndex: 'model', key: 'model', width: '15%' },
@@ -474,7 +481,8 @@ const ProductManagement: React.FC = () => {
                                 title: '工艺路线编号',
                                 dataIndex: ['routing', 'code'],
                                 key: 'code',
-                                width: '20%'
+                                width: '20%',
+                                render: (code: string) => <span className="business-code">{code}</span>
                             },
                             {
                                 title: '工艺路线名称',
@@ -487,7 +495,7 @@ const ProductManagement: React.FC = () => {
                                 dataIndex: ['routing', 'type'],
                                 key: 'type',
                                 width: '12%',
-                                render: (type: string) => type || '-'
+                                render: (type: number) => getRoutingTypeLabel(type)
                             },
                             {
                                 title: '工序数量',

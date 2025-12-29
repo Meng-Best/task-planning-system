@@ -130,7 +130,7 @@ const DeviceManagement: React.FC = () => {
       dataIndex: 'code',
       key: 'code',
       width: '15%',
-      render: (text: string) => <Text strong className="font-mono">{text}</Text>
+      render: (code: string) => <span className="business-code">{code}</span>
     },
     {
       title: '设备名称',

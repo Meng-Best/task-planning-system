@@ -143,7 +143,7 @@ const ProductionLineManagement: React.FC = () => {
       dataIndex: 'code', 
       key: 'code', 
       width: '18%',
-      render: (val: string) => <span className="text-gray-700" style={{ fontWeight: 500 }}>{val}</span>
+      render: (val: string) => <span className="business-code">{val}</span>
     },
     { 
       title: '产线名称', 
@@ -372,7 +372,13 @@ const ProductionLineManagement: React.FC = () => {
             pagination={false}
             columns={[
               { title: '状态', dataIndex: 'status', key: 'status', width: '10%', render: (s: number) => renderStatusTag(s) },
-              { title: '工位编号', dataIndex: 'code', key: 'code', width: '15%' },
+              { 
+                title: '工位编号', 
+                dataIndex: 'code', 
+                key: 'code', 
+                width: '15%',
+                render: (code: string) => <span className="business-code">{code}</span>
+              },
               { title: '工位名称', dataIndex: 'name', key: 'name', width: '25%' },
               { 
                 title: '类型', 

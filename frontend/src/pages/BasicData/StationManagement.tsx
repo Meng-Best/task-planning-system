@@ -164,7 +164,13 @@ const StationManagement: React.FC = () => {
         return <Tag color={config?.color || 'default'} style={{ fontWeight: 600 }}>{config?.label || '未知'}</Tag>
       }
     },
-    { title: '工位编号', dataIndex: 'code', key: 'code', width: 140 },
+    { 
+      title: '工位编号', 
+      dataIndex: 'code', 
+      key: 'code', 
+      width: 140,
+      render: (code: string) => <span className="business-code">{code}</span>
+    },
     { title: '工位名称', dataIndex: 'name', key: 'name', width: 180 },
     { 
       title: '所属产线', 
@@ -439,7 +445,13 @@ const StationManagement: React.FC = () => {
             size="middle"
             pagination={false}
             columns={[
-              { title: '编号', dataIndex: 'code', key: 'code', width: '20%' },
+              { 
+                title: '编号', 
+                dataIndex: 'code', 
+                key: 'code', 
+                width: '20%',
+                render: (code: string) => <span className="business-code">{code}</span>
+              },
               { title: '名称', dataIndex: 'name', key: 'name', width: '30%' },
               { title: '类型', dataIndex: 'type', key: 'type', width: '30%', render: (t: number) => getDeviceTypeLabel(t) },
               {
@@ -472,7 +484,13 @@ const StationManagement: React.FC = () => {
             size="middle"
             pagination={false}
             columns={[
-              { title: '班组编号', dataIndex: 'code', key: 'code', width: '20%' },
+              { 
+                title: '班组编号', 
+                dataIndex: 'code', 
+                key: 'code', 
+                width: '20%',
+                render: (code: string) => <span className="business-code">{code}</span>
+              },
               { title: '班组名', dataIndex: 'name', key: 'name', width: '30%' },
               { title: '班组长', dataIndex: ['leader', 'name'], key: 'leader', width: '20%', render: (val: string) => val || '-' },
               { title: '人数', key: 'memberCount', width: '15%', render: (_: any, record: Team) => record.staffs?.length || 0 },
@@ -506,7 +524,13 @@ const StationManagement: React.FC = () => {
             size="middle"
             pagination={false}
             columns={[
-              { title: '工序编号', dataIndex: 'code', key: 'code', width: '20%' },
+              { 
+                title: '工序编号', 
+                dataIndex: 'code', 
+                key: 'code', 
+                width: '20%',
+                render: (code: string) => <span className="business-code">{code}</span>
+              },
               { title: '工序名称', dataIndex: 'name', key: 'name', width: '30%' },
               { title: '工序类型', dataIndex: 'type', key: 'type', width: '30%', render: (val: string) => val || '-' },
               {

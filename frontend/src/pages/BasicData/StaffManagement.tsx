@@ -214,7 +214,7 @@ const StaffManagement: React.FC = () => {
       dataIndex: 'staffId',
       key: 'staffId',
       width: '15%',
-      render: (text: string) => <span className="font-mono font-bold text-blue-600">{text}</span>
+      render: (text: string) => <span className="business-code">{text}</span>
     },
     {
       title: '姓名',

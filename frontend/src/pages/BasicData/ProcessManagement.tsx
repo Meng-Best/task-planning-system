@@ -123,7 +123,13 @@ const ProcessManagement: React.FC = () => {
     });
 
     const columns = [
-        { title: '工序编号', dataIndex: 'code', key: 'code', width: '20%' },
+        { 
+            title: '工序编号', 
+            dataIndex: 'code', 
+            key: 'code', 
+            width: '20%',
+            render: (code: string) => <span className="business-code">{code}</span>
+        },
         { title: '工序名称', dataIndex: 'name', key: 'name', width: '25%' },
         { 
             title: '工序类型', 

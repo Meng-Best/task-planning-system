@@ -125,7 +125,7 @@ const TeamManagement: React.FC = () => {
       dataIndex: 'code',
       key: 'code',
       width: '12%',
-      render: (text: string) => <Text strong className="font-mono">{text}</Text>
+      render: (text: string) => <span className="business-code">{text}</span>
     },
     {
       title: '名称',
@@ -142,9 +142,6 @@ const TeamManagement: React.FC = () => {
         <Space direction="vertical" size={0}>
           <Text>{station.name}</Text>
           <Text type="secondary" style={{ fontSize: '12px' }}>{station.code}</Text>
-          {station.productionLine && (
-            <Text type="secondary" style={{ fontSize: '12px' }}>({station.productionLine.name})</Text>
-          )}
         </Space>
       ) : <Text type="secondary">未分配</Text>
     },
@@ -446,7 +443,13 @@ const TeamManagement: React.FC = () => {
             pagination={false}
             columns={[
               { title: '姓名', dataIndex: 'name', key: 'name', width: '20%' },
-              { title: '工号', dataIndex: 'staffId', key: 'staffId', width: '25%' },
+              { 
+                title: '工号', 
+                dataIndex: 'staffId', 
+                key: 'staffId', 
+                width: '25%',
+                render: (text: string) => <span className="business-code">{text}</span>
+              },
               { 
                 title: '专业', 
                 dataIndex: 'major', 
@@ -499,7 +502,13 @@ const TeamManagement: React.FC = () => {
             size="middle"
             pagination={false}
             columns={[
-              { title: '工序编号', dataIndex: 'code', key: 'code', width: '20%' },
+              { 
+                title: '工序编号', 
+                dataIndex: 'code', 
+                key: 'code', 
+                width: '20%',
+                render: (code: string) => <span className="business-code">{code}</span>
+              },
               { title: '工序名称', dataIndex: 'name', key: 'name', width: '30%' },
               { title: '工序类型', dataIndex: 'type', key: 'type', width: '30%', render: (val: string) => val || '-' },
               {

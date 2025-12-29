@@ -631,7 +631,7 @@ const FactoryManagement: React.FC = () => {
       dataIndex: 'code',
       key: 'code',
       width: 150,
-      render: (code: string) => code || '-'
+      render: (code: string) => code ? <span className="business-code">{code}</span> : '-'
     },
     {
       title: '产线名称',
@@ -887,9 +887,11 @@ const FactoryManagement: React.FC = () => {
                           {renderStatusTag(factory.status)}
                         </div>
                         {factory.code ? (
-                          <span className="text-xs font-mono font-normal text-black-600 mt-1">
-                            {factory.code}
-                          </span>
+                          <div className="mt-1">
+                            <span className="business-code" style={{ fontSize: '11px', padding: '1px 4px' }}>
+                              {factory.code}
+                            </span>
+                          </div>
                         ) : (
                           <span className="text-xs text-orange-500 mt-1">
                             未设置代码

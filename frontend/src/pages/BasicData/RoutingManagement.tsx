@@ -250,7 +250,13 @@ const RoutingManagement: React.FC = () => {
     });
 
     const columns = [
-        { title: '工艺路线编号', dataIndex: 'code', key: 'code', width: '15%' },
+        { 
+            title: '工艺路线编号', 
+            dataIndex: 'code', 
+            key: 'code', 
+            width: '15%',
+            render: (code: string) => <span className="business-code">{code}</span>
+        },
         { title: '工艺路线名称', dataIndex: 'name', key: 'name', width: '20%' },
         { 
             title: '工艺路线类型', 
@@ -312,7 +318,13 @@ const RoutingManagement: React.FC = () => {
                 </Tag>
             )
         },
-        { title: '工序编号', dataIndex: 'code', key: 'code', width: '18%' },
+        { 
+            title: '工序编号', 
+            dataIndex: 'code', 
+            key: 'code', 
+            width: '18%',
+            render: (code: string) => <span className="business-code">{code}</span>
+        },
         { title: '工序名称', dataIndex: 'name', key: 'name', width: '22%' },
         { title: '描述', dataIndex: 'description', key: 'description' },
         {
