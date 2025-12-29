@@ -12,10 +12,28 @@ const router = express.Router();
  */
 router.get('/', async (req, res) => {
   try {
-    const processes = await prisma.process.findMany({
-      orderBy: { createdAt: 'desc' }
+    const { current = 1, pageSize = 10 } = req.query;
+    const skip = (parseInt(current) - 1) * parseInt(pageSize);
+    const take = parseInt(pageSize);
+
+    const [processes, total] = await Promise.all([
+      prisma.process.findMany({
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.process.count()
+    ]);
+
+    res.json({ 
+      status: 'ok', 
+      data: {
+        list: processes,
+        total,
+        current: parseInt(current),
+        pageSize: parseInt(pageSize)
+      } 
     });
-    res.json({ status: 'ok', data: processes });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }

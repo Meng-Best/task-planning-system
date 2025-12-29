@@ -87,6 +87,7 @@ const StationManagement: React.FC = () => {
   // 详情数据
   const [associatedDevices, setAssociatedDevices] = useState<Device[]>([])
   const [associatedTeams, setAssociatedTeams] = useState<Team[]>([])
+  const [associatedCapabilities, setAssociatedCapabilities] = useState<any[]>([])
   
   // 分页
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 })
@@ -110,12 +111,14 @@ const StationManagement: React.FC = () => {
   const [editingStation, setEditingStation] = useState<Station | null>(null)
   const [bindDeviceModalOpen, setBindDeviceModalOpen] = useState(false)
   const [bindTeamModalOpen, setBindTeamModalOpen] = useState(false)
+  const [bindCapabilityModalOpen, setBindCapabilityModalOpen] = useState(false)
   const [form] = Form.useForm()
   const [productionLines, setProductionLines] = useState<any[]>([])
   
   // 未绑定资源
   const [unboundDevices, setUnboundDevices] = useState<Device[]>([])
   const [unboundTeams, setUnboundTeams] = useState<Team[]>([])
+  const [unboundProcesses, setUnboundProcesses] = useState<any[]>([])
   const [selectedResourceIds, setSelectedResourceIds] = useState<number[]>([])
 
   // 1. 优先定义状态渲染函数
@@ -228,6 +231,7 @@ const StationManagement: React.FC = () => {
       if (response.data.status === 'ok') {
         setAssociatedDevices(response.data.data.devices || [])
         setAssociatedTeams(response.data.data.teams || [])
+        setAssociatedCapabilities(response.data.data.capabilities || [])
       }
     } catch (error) {
       message.error('加载工位资源失败')
@@ -330,6 +334,16 @@ const StationManagement: React.FC = () => {
     }
   }
 
+  const handleUnbindCapability = async (processId: number) => {
+    try {
+      await axios.post(`${API_BASE_URL}/api/stations/${selectedStation?.id}/unbind-capability`, { processId })
+      message.success('能力标签已移除')
+      if (selectedStation) fetchResources(selectedStation.id)
+    } catch (error) {
+      message.error('移除失败')
+    }
+  }
+
   const handleOpenBindDeviceModal = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/devices`, { params: { pageSize: 1000 } })
@@ -354,6 +368,23 @@ const StationManagement: React.FC = () => {
     }
   }
 
+  const handleOpenBindCapabilityModal = async () => {
+    try {
+      // 获取所有标准工序
+      const response = await axios.get(`${API_BASE_URL}/api/processes`, { params: { pageSize: 1000 } })
+      const allProcesses = response.data.data.list
+      
+      // 过滤掉已经绑定的工序
+      const associatedIds = associatedCapabilities.map(c => c.id)
+      setUnboundProcesses(allProcesses.filter((p: any) => !associatedIds.includes(p.id)))
+      
+      setSelectedResourceIds([])
+      setBindCapabilityModalOpen(true)
+    } catch (error) {
+      message.error('加载工序列表失败')
+    }
+  }
+
   const handleBindDevices = async () => {
     if (selectedResourceIds.length === 0) return
     try {
@@ -375,6 +406,18 @@ const StationManagement: React.FC = () => {
       setBindTeamModalOpen(false)
       if (selectedStation) fetchResources(selectedStation.id)
       fetchStations()
+    } catch (error) {
+      message.error('绑定失败')
+    }
+  }
+
+  const handleBindCapabilities = async () => {
+    if (selectedResourceIds.length === 0) return
+    try {
+      await axios.post(`${API_BASE_URL}/api/stations/${selectedStation?.id}/bind-capabilities`, { processIds: selectedResourceIds })
+      message.success('工位能力绑定成功')
+      setBindCapabilityModalOpen(false)
+      if (selectedStation) fetchResources(selectedStation.id)
     } catch (error) {
       message.error('绑定失败')
     }
@@ -440,6 +483,39 @@ const StationManagement: React.FC = () => {
                 render: (_: any, record: Team) => (
                   <Popconfirm title="确定解绑此班组？" onConfirm={() => handleUnbindTeam(record.id)}>
                     <Button type="link" danger size="small" icon={<DisconnectOutlined />}>解绑</Button>
+                  </Popconfirm>
+                )
+              }
+            ]}
+          />
+        </div>
+      )
+    },
+    {
+      key: 'capabilities',
+      label: <span style={{ fontSize: '15px', fontWeight: 500 }}><ApartmentOutlined /> 工位能力 ({associatedCapabilities.length})</span>,
+      children: (
+        <div style={{ padding: '16px 0' }}>
+          <div className="mb-4 flex justify-end">
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenBindCapabilityModal}>添加工序能力</Button>
+          </div>
+          <Table
+            dataSource={associatedCapabilities}
+            rowKey="id"
+            loading={resourcesLoading}
+            size="middle"
+            pagination={false}
+            columns={[
+              { title: '工序编号', dataIndex: 'code', key: 'code', width: '20%' },
+              { title: '工序名称', dataIndex: 'name', key: 'name', width: '30%' },
+              { title: '工序类型', dataIndex: 'type', key: 'type', width: '30%', render: (val: string) => val || '-' },
+              {
+                title: '操作',
+                key: 'action',
+                width: '20%',
+                render: (_: any, record: any) => (
+                  <Popconfirm title="确定移除此工序能力？" onConfirm={() => handleUnbindCapability(record.id)}>
+                    <Button type="link" danger size="small" icon={<DeleteOutlined />}>移除</Button>
                   </Popconfirm>
                 )
               }
@@ -735,6 +811,37 @@ const StationManagement: React.FC = () => {
               <div className="flex justify-between items-center">
                 <span>{team.name}</span>
                 <span className="text-gray-400 text-xs font-mono">[{team.code}]</span>
+              </div>
+            </Select.Option>
+          ))}
+        </Select>
+      </Modal>
+
+      {/* 绑定能力/工序 Modal */}
+      <Modal
+        title="为工位添加能力标签"
+        open={bindCapabilityModalOpen}
+        onOk={handleBindCapabilities}
+        onCancel={() => setBindCapabilityModalOpen(false)}
+        width={600}
+      >
+        <div className="mb-4 text-gray-500 italic flex items-center gap-2">
+          <InfoCircleOutlined />
+          <span>请从标准工序库中选择该工位具备处理能力的工序</span>
+        </div>
+        <Select
+          mode="multiple"
+          style={{ width: '100%' }}
+          placeholder="请选择工序能力"
+          value={selectedResourceIds}
+          onChange={setSelectedResourceIds}
+          optionLabelProp="label"
+        >
+          {unboundProcesses.map(process => (
+            <Select.Option key={process.id} value={process.id} label={process.name}>
+              <div className="flex justify-between items-center">
+                <span>{process.name}</span>
+                <span className="text-gray-400 text-xs font-mono">[{process.code}]</span>
               </div>
             </Select.Option>
           ))}

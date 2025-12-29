@@ -87,37 +87,67 @@ model ProductionLine {
 
 // 工位表 - 产线下的最小生产单元
 model Station {
-  id               Int            @id @default(autoincrement())
-  code             String         @unique // 工位编号
-  name             String         // 工位名称
-  type             Int            @default(0) // 工位类型: 0=部装, 1=总装, 2=测试
-  description      String?        // 工位描述
-  status           Int            @default(0) /// 0: 可占用, 1: 不可用, 2: 已占用
-  productionLineId Int?           // 关联产线ID
-  productionLine   ProductionLine? @relation(fields: [productionLineId], references: [id])
-  teams            Team[]         // 关联的班组
-  devices          Device[]       // 关联的设备
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  id               Int                 @id @default(autoincrement())
+  code             String              @unique // 工位编号
+  name             String              // 工位名称
+  type             Int                 @default(0) // 工位类型: 0=部装, 1=总装, 2=测试
+  description      String?             // 工位描述
+  status           Int                 @default(0) /// 0: 可占用, 1: 不可用, 2: 已占用
+  productionLineId Int?                // 关联产线ID
+  productionLine   ProductionLine?     @relation(fields: [productionLineId], references: [id])
+  teams            Team[]              // 关联的班组
+  devices          Device[]            // 关联的设备
+  capabilities     StationCapability[] // 工位能力（可处理的工序）
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   @@map("stations")
 }
 
+// 工位能力关联表 - 定义工位可以处理哪些标准工序
+model StationCapability {
+  id        Int      @id @default(autoincrement())
+  stationId Int
+  processId Int
+  station   Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  process   Process  @relation(fields: [processId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([stationId, processId])
+  @@map("station_capabilities")
+}
+
 // 班组表 - 人员的组织单元
 model Team {
-  id               Int             @id @default(autoincrement())
-  code             String          @unique // 班组编号
-  name             String          // 班组名称
-  leaderId         Int?            @unique // 班组长ID（一名人员只能担任一个班组的组长）
-  leader           Staff?          @relation("TeamLeader", fields: [leaderId], references: [id])
-  stationId        Int?            // 关联工位ID
-  station          Station?        @relation(fields: [stationId], references: [id])
-  shiftType        Int             @default(0) /// 0: 一班(08-16), 1: 二班(16-24)
-  staffs           Staff[]         @relation("TeamMembers")
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  id               Int              @id @default(autoincrement())
+  code             String           @unique // 班组编号
+  name             String           // 班组名称
+  leaderId         Int?             @unique // 班组长ID（一名人员只能担任一个班组的组长）
+  leader           Staff?           @relation("TeamLeader", fields: [leaderId], references: [id])
+  stationId        Int?             // 关联工位ID
+  station          Station?         @relation(fields: [stationId], references: [id])
+  shiftType        Int              @default(0) /// 0: 一班(08-16), 1: 二班(16-24)
+  staffs           Staff[]          @relation("TeamMembers")
+  capabilities     TeamCapability[] // 班组能力（可处理的工序）
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   @@map("teams")
+}
+
+// 班组能力关联表 - 定义班组可以处理哪些标准工序
+model TeamCapability {
+  id        Int      @id @default(autoincrement())
+  teamId    Int
+  processId Int
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  process   Process  @relation(fields: [processId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, processId])
+  @@map("team_capabilities")
 }
 
 // 设备表 - 设备资源管理
@@ -280,13 +310,15 @@ model RoutingProcess {
 
 // 标准工序管理 (工序库)
 model Process {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique // 工序编号
-  name        String   // 工序名称
-  type        String?  // 工序类型 (如: 组装、测试、包装)
-  description String?  // 工序描述
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               Int                 @id @default(autoincrement())
+  code             String              @unique // 工序编号
+  name             String              // 工序名称
+  type             String?             // 工序类型 (如: 组装、测试、包装)
+  description      String?             // 工序描述
+  capabilities     StationCapability[] // 拥有该能力的工位
+  teamCapabilities TeamCapability[]    // 拥有该能力的班组
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   @@map("processes")
 }

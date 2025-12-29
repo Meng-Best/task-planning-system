@@ -69,7 +69,12 @@ const TeamManagement: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [resourcesLoading, setResourcesLoading] = useState(false);
+  const [associatedCapabilities, setAssociatedCapabilities] = useState<any[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [bindCapabilityModalOpen, setBindCapabilityModalOpen] = useState(false);
+  const [unboundProcesses, setUnboundProcesses] = useState<any[]>([]);
+  const [selectedResourceIds, setSelectedResourceIds] = useState<number[]>([]);
   const [form] = Form.useForm();
   
   // 分页状态
@@ -202,12 +207,9 @@ const TeamManagement: React.FC = () => {
           total
         });
 
-        // 如果当前有选中的班组，刷新其详情数据
+        // 如果当前有选中的班组，刷新其资源数据
         if (selectedTeam) {
-          const updated = list.find((t: Team) => t.id === selectedTeam.id);
-          if (updated) {
-            setSelectedTeam(updated);
-          }
+          fetchResources(selectedTeam.id);
         }
       }
     } catch (error) {
@@ -217,6 +219,24 @@ const TeamManagement: React.FC = () => {
       setLoading(false);
     }
   }, [pagination.current, pagination.pageSize, filterCode, filterName, filterShiftType, selectedTeam]);
+
+  const fetchResources = useCallback(async (id: number) => {
+    setResourcesLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/teams/${id}/resources`);
+      if (response.data.status === 'ok') {
+        setAssociatedCapabilities(response.data.data.capabilities || []);
+        // 同步更新 selectedTeam 的 staffs，确保成员列表是最新的
+        if (selectedTeam && selectedTeam.id === id) {
+          setSelectedTeam(prev => prev ? { ...prev, staffs: response.data.data.staffs } : null);
+        }
+      }
+    } catch (error) {
+      message.error('加载班组资源失败');
+    } finally {
+      setResourcesLoading(false);
+    }
+  }, [selectedTeam]);
 
   useEffect(() => {
     fetchTeams(1);
@@ -364,6 +384,43 @@ const TeamManagement: React.FC = () => {
     }
   };
 
+  const handleUnbindCapability = async (processId: number) => {
+    if (!selectedTeam) return;
+    try {
+      await axios.post(`${API_BASE_URL}/api/teams/${selectedTeam.id}/unbind-capability`, { processId });
+      message.success('能力标签已移除');
+      fetchResources(selectedTeam.id);
+    } catch (error) {
+      message.error('移除失败');
+    }
+  };
+
+  const handleOpenBindCapabilityModal = async () => {
+    if (!selectedTeam) return;
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/processes`, { params: { pageSize: 1000 } });
+      const allProcesses = response.data.data.list;
+      const associatedIds = associatedCapabilities.map(c => c.id);
+      setUnboundProcesses(allProcesses.filter((p: any) => !associatedIds.includes(p.id)));
+      setSelectedResourceIds([]);
+      setBindCapabilityModalOpen(true);
+    } catch (error) {
+      message.error('加载工序列表失败');
+    }
+  };
+
+  const handleBindCapabilities = async () => {
+    if (!selectedTeam || selectedResourceIds.length === 0) return;
+    try {
+      await axios.post(`${API_BASE_URL}/api/teams/${selectedTeam.id}/bind-capabilities`, { processIds: selectedResourceIds });
+      message.success('班组能力绑定成功');
+      setBindCapabilityModalOpen(false);
+      fetchResources(selectedTeam.id);
+    } catch (error) {
+      message.error('绑定失败');
+    }
+  };
+
   const handleTransferChange = (nextTargetKeys: any[]) => {
     const ids = nextTargetKeys.map(k => parseInt(k.toString()));
     setSelectedMemberIds(ids);
@@ -379,7 +436,7 @@ const TeamManagement: React.FC = () => {
   const tabItems = [
     {
       key: 'members',
-      label: <span style={{ fontSize: '15px', fontWeight: 500 }}><UserOutlined /> 组员列表</span>,
+      label: <span style={{ fontSize: '15px', fontWeight: 500 }}><UserOutlined /> 组员列表 ({selectedTeam?.staffs?.length || 0})</span>,
       children: (
         <div className="py-4">
           <Table
@@ -423,6 +480,39 @@ const TeamManagement: React.FC = () => {
               }
             ]}
             locale={{ emptyText: <Empty description="该班组暂无成员" /> }}
+          />
+        </div>
+      )
+    },
+    {
+      key: 'capabilities',
+      label: <span style={{ fontSize: '15px', fontWeight: 500 }}><ApartmentOutlined /> 班组能力 ({associatedCapabilities.length})</span>,
+      children: (
+        <div style={{ padding: '16px 0' }}>
+          <div className="mb-4 flex justify-end">
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenBindCapabilityModal}>添加工序能力</Button>
+          </div>
+          <Table
+            dataSource={associatedCapabilities}
+            rowKey="id"
+            loading={resourcesLoading}
+            size="middle"
+            pagination={false}
+            columns={[
+              { title: '工序编号', dataIndex: 'code', key: 'code', width: '20%' },
+              { title: '工序名称', dataIndex: 'name', key: 'name', width: '30%' },
+              { title: '工序类型', dataIndex: 'type', key: 'type', width: '30%', render: (val: string) => val || '-' },
+              {
+                title: '操作',
+                key: 'action',
+                width: '20%',
+                render: (_: any, record: any) => (
+                  <Popconfirm title="确定移除此工序能力？" onConfirm={() => handleUnbindCapability(record.id)}>
+                    <Button type="link" danger size="small" icon={<DeleteOutlined />}>移除</Button>
+                  </Popconfirm>
+                )
+              }
+            ]}
           />
         </div>
       )
@@ -560,7 +650,10 @@ const TeamManagement: React.FC = () => {
             onChange: (page, size) => fetchTeams(page, size)
           }}
           onRow={(record) => ({
-            onClick: () => setSelectedTeam(record),
+            onClick: () => {
+              setSelectedTeam(record);
+              fetchResources(record.id);
+            },
             className: `cursor-pointer transition-all ${selectedTeam?.id === record.id ? 'selected-row' : ''}`,
             style: {
               borderLeft: `4px solid #1890ff`,
@@ -647,6 +740,37 @@ const TeamManagement: React.FC = () => {
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 绑定能力/工序 Modal */}
+      <Modal
+        title="为班组添加能力标签"
+        open={bindCapabilityModalOpen}
+        onOk={handleBindCapabilities}
+        onCancel={() => setBindCapabilityModalOpen(false)}
+        width={600}
+      >
+        <div className="mb-4 text-gray-500 italic flex items-center gap-2">
+          <InfoCircleOutlined />
+          <span>请从标准工序库中选择该班组具备处理能力的工序</span>
+        </div>
+        <Select
+          mode="multiple"
+          style={{ width: '100%' }}
+          placeholder="请选择工序能力"
+          value={selectedResourceIds}
+          onChange={setSelectedResourceIds}
+          optionLabelProp="label"
+        >
+          {unboundProcesses.map(process => (
+            <Select.Option key={process.id} value={process.id} label={process.name}>
+              <div className="flex justify-between items-center">
+                <span>{process.name}</span>
+                <span className="text-gray-400 text-xs font-mono">[{process.code}]</span>
+              </div>
+            </Select.Option>
+          ))}
+        </Select>
       </Modal>
 
       <style>{`

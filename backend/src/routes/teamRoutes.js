@@ -17,5 +17,12 @@ router.put('/:id', teamController.updateTeam);
 // 删除班组
 router.delete('/:id', teamController.deleteTeam);
 
+// 班组资源管理
+router.get('/:id/resources', teamController.getTeamResources);
+
+// 班组能力管理
+router.post('/:id/bind-capabilities', teamController.bindCapabilities);
+router.post('/:id/unbind-capability', teamController.unbindCapability);
+
 module.exports = router;
 

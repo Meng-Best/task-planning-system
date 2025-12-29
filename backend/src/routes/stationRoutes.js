@@ -16,5 +16,9 @@ router.post('/:id/unbind-device', stationController.unbindDevice);
 router.post('/:id/bind-teams', stationController.bindTeams);
 router.post('/:id/unbind-team', stationController.unbindTeam);
 
+// 工位能力管理
+router.post('/:id/bind-capabilities', stationController.bindCapabilities);
+router.post('/:id/unbind-capability', stationController.unbindCapability);
+
 module.exports = router;
 

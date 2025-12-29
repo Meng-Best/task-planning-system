@@ -266,3 +266,141 @@ exports.deleteTeam = async (req, res) => {
   }
 };
 
+/**
+ * 获取班组关联资源 (成员和能力/工序)
+ */
+exports.getTeamResources = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const team = await prisma.team.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        staffs: true,
+        capabilities: {
+          include: {
+            process: true
+          }
+        }
+      }
+    });
+
+    if (!team) {
+      return res.status(404).json({
+        status: 'error',
+        message: '班组未找到',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    res.json({
+      status: 'ok',
+      message: 'Team resources fetched successfully',
+      data: {
+        staffs: team.staffs,
+        capabilities: team.capabilities.map(c => c.process)
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(`[getTeamResources] Error:`, error);
+    res.status(500).json({
+      status: 'error',
+      message: '获取班组资源失败',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+};
+
+/**
+ * 绑定工序能力到班组
+ */
+exports.bindCapabilities = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { processIds } = req.body;
+
+    if (!processIds || !Array.isArray(processIds)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'processIds 必须是数组',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    await prisma.$transaction(
+      processIds.map(processId =>
+        prisma.teamCapability.upsert({
+          where: {
+            teamId_processId: {
+              teamId: parseInt(id),
+              processId: parseInt(processId)
+            }
+          },
+          update: {},
+          create: {
+            teamId: parseInt(id),
+            processId: parseInt(processId)
+          }
+        })
+      )
+    );
+
+    res.json({
+      status: 'ok',
+      message: '班组能力已成功绑定',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(`[bindCapabilities] Error:`, error);
+    res.status(500).json({
+      status: 'error',
+      message: '绑定班组能力失败',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+};
+
+/**
+ * 从班组移除工序能力
+ */
+exports.unbindCapability = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { processId } = req.body;
+
+    if (!processId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'processId 必填',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    await prisma.teamCapability.delete({
+      where: {
+        teamId_processId: {
+          teamId: parseInt(id),
+          processId: parseInt(processId)
+        }
+      }
+    });
+
+    res.json({
+      status: 'ok',
+      message: '班组能力已移除',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(`[unbindCapability] Error:`, error);
+    res.status(500).json({
+      status: 'error',
+      message: '移除班组能力失败',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+};
+

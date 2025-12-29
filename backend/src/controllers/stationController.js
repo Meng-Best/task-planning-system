@@ -71,7 +71,7 @@ exports.getStations = async (req, res) => {
   }
 };
 
-// 获取工位关联资源 (设备和班组)
+// 获取工位关联资源 (设备、班组和能力/工序)
 exports.getStationResources = async (req, res) => {
   try {
     const { id } = req.params;
@@ -84,6 +84,11 @@ exports.getStationResources = async (req, res) => {
           include: { 
             leader: true,
             staffs: true
+          }
+        },
+        capabilities: {
+          include: {
+            process: true
           }
         }
       }
@@ -102,7 +107,8 @@ exports.getStationResources = async (req, res) => {
       message: 'Station resources fetched successfully',
       data: {
         devices: station.devices,
-        teams: station.teams
+        teams: station.teams,
+        capabilities: station.capabilities.map(c => c.process)
       },
       timestamp: new Date().toISOString()
     });
@@ -111,6 +117,93 @@ exports.getStationResources = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: '获取工位资源失败',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+};
+
+// 绑定工序能力到工位
+exports.bindCapabilities = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { processIds } = req.body;
+
+    if (!processIds || !Array.isArray(processIds)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'processIds 必须是数组',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    await prisma.$transaction(
+      processIds.map(processId =>
+        prisma.stationCapability.upsert({
+          where: {
+            stationId_processId: {
+              stationId: parseInt(id),
+              processId: parseInt(processId)
+            }
+          },
+          update: {},
+          create: {
+            stationId: parseInt(id),
+            processId: parseInt(processId)
+          }
+        })
+      )
+    );
+
+    res.json({
+      status: 'ok',
+      message: '工位能力已成功绑定',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(`[bindCapabilities] Error:`, error);
+    res.status(500).json({
+      status: 'error',
+      message: '绑定工位能力失败',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+};
+
+// 从工位移除工序能力
+exports.unbindCapability = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { processId } = req.body;
+
+    if (!processId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'processId 必填',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    await prisma.stationCapability.delete({
+      where: {
+        stationId_processId: {
+          stationId: parseInt(id),
+          processId: parseInt(processId)
+        }
+      }
+    });
+
+    res.json({
+      status: 'ok',
+      message: '工位能力已移除',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(`[unbindCapability] Error:`, error);
+    res.status(500).json({
+      status: 'error',
+      message: '移除工位能力失败',
       error: error.message,
       timestamp: new Date().toISOString()
     });
