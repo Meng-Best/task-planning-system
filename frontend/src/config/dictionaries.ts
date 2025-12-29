@@ -178,3 +178,21 @@ export const getDeviceTypeLabel = (value: number): string => {
   return DEVICE_TYPE_OPTIONS.find(opt => opt.value === value)?.label || '未知类型';
 };
 
+/**
+ * 工位类型字典 (0=部装, 1=总装, 2=测试)
+ */
+export const STATION_TYPE_OPTIONS = [
+  { value: 0, label: '部装', color: 'cyan' },
+  { value: 1, label: '总装', color: 'blue' },
+  { value: 2, label: '测试', color: 'purple' },
+];
+
+/**
+ * 获取工位类型标签
+ * @param value 类型 ID
+ * @returns 类型名称
+ */
+export const getStationTypeLabel = (value: number): string => {
+  return STATION_TYPE_OPTIONS.find(opt => opt.value === value)?.label || '未知类型';
+};
+

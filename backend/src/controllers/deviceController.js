@@ -11,8 +11,16 @@ exports.getDevices = async (req, res) => {
     const whereClause = {};
     if (code) whereClause.code = { contains: code };
     if (name) whereClause.name = { contains: name };
-    if (type !== undefined) whereClause.type = parseInt(type);
-    if (status !== undefined) whereClause.status = parseInt(status);
+    
+    if (type !== undefined && type !== '') {
+      const t = parseInt(type);
+      if (!isNaN(t)) whereClause.type = t;
+    }
+    
+    if (status !== undefined && status !== '') {
+      const s = parseInt(status);
+      if (!isNaN(s)) whereClause.status = s;
+    }
 
     // 分页参数
     const currentPage = parseInt(current);

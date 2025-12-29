@@ -421,7 +421,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
               </div>
               <div className="flex items-center gap-1 text-xs text-gray-500 ml-auto">
                 <ClockCircleOutlined />
-                <span>工作日：{FACTORY_WORK_HOURS.totalLabel}8：00-12：00；14：00-18：00，最多8小时产能</span>
+                <span>工作日：{FACTORY_WORK_HOURS.totalLabel}8:00-12:00;14:00-18:00，最多8小时产能</span>
               </div>
             </>
           )}

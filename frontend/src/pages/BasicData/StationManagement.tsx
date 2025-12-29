@@ -31,7 +31,13 @@ import {
 } from '@ant-design/icons'
 
 import axios from 'axios'
-import { getStatusConfig, getDeviceTypeLabel, BASIC_DATA_STATUS } from '../../config/dictionaries'
+import { 
+  getStatusConfig, 
+  getDeviceTypeLabel, 
+  BASIC_DATA_STATUS,
+  STATION_TYPE_OPTIONS,
+  getStationTypeLabel
+} from '../../config/dictionaries'
 
 const API_BASE_URL = 'http://localhost:3001'
 
@@ -57,7 +63,7 @@ interface Station {
   id: number
   code: string
   name: string
-  type: string
+  type: number
   description: string | null
   status: number
   productionLineId: number | null
@@ -96,10 +102,12 @@ const StationManagement: React.FC = () => {
   const [filterQuery, setFilterQuery] = useState('')
   const [filterCode, setFilterCode] = useState('')
   const [filterStatus, setFilterStatus] = useState<number | undefined>(undefined)
+  const [filterType, setFilterType] = useState<number | undefined>(undefined)
   const [filterLineId, setFilterLineId] = useState<number | undefined>(undefined)
 
   // 弹窗
   const [modalOpen, setModalOpen] = useState(false)
+  const [editingStation, setEditingStation] = useState<Station | null>(null)
   const [bindDeviceModalOpen, setBindDeviceModalOpen] = useState(false)
   const [bindTeamModalOpen, setBindTeamModalOpen] = useState(false)
   const [form] = Form.useForm()
@@ -143,13 +151,23 @@ const StationManagement: React.FC = () => {
       width: '10%', 
       render: (s: number) => renderStatusTag(s) 
     },
-    { title: '工位编号', dataIndex: 'code', key: 'code', width: '15%' },
-    { title: '工位名称', dataIndex: 'name', key: 'name', width: '20%' },
+    { 
+      title: '工位类型', 
+      dataIndex: 'type', 
+      key: 'type', 
+      width: 120,
+      render: (type: number) => {
+        const config = STATION_TYPE_OPTIONS.find(opt => opt.value === type)
+        return <Tag color={config?.color || 'default'} style={{ fontWeight: 600 }}>{config?.label || '未知'}</Tag>
+      }
+    },
+    { title: '工位编号', dataIndex: 'code', key: 'code', width: 140 },
+    { title: '工位名称', dataIndex: 'name', key: 'name', width: 180 },
     { 
       title: '所属产线', 
       dataIndex: ['productionLine', 'name'], 
       key: 'line', 
-      width: '18%',
+      width: 180,
       render: (val: string) => val || <span className="text-gray-400">未关联</span>
     },
     { title: '关联设备', key: 'devices', width: '12%', render: (_: any, record: Station) => record._count?.devices || 0 },
@@ -181,6 +199,7 @@ const StationManagement: React.FC = () => {
         name: hasOverride('query') ? overrides.query : filterQuery,
         code: hasOverride('code') ? overrides.code : filterCode,
         status: hasOverride('status') ? overrides.status : filterStatus,
+        type: hasOverride('type') ? overrides.type : filterType,
         productionLineId: hasOverride('lineId') ? overrides.lineId : filterLineId
       }
       
@@ -234,13 +253,13 @@ const StationManagement: React.FC = () => {
     fetchProductionLines(); 
   }, []);
 
-  // 2. 联动筛选（状态和产线变化时自动触发）
+  // 2. 联动筛选（状态、类型和产线变化时自动触发）
   useEffect(() => {
     // 只有当已经加载过数据后，才在筛选条件变化时触发
-    if (stations.length > 0 || filterStatus !== undefined || filterLineId !== undefined) {
+    if (stations.length > 0 || filterStatus !== undefined || filterType !== undefined || filterLineId !== undefined) {
       fetchStations(1);
     }
-  }, [filterStatus, filterLineId]);
+  }, [filterStatus, filterType, filterLineId]);
 
   const handleRowClick = (record: Station) => {
     setSelectedStation(record)
@@ -248,12 +267,14 @@ const StationManagement: React.FC = () => {
   }
 
   const handleAdd = () => {
+    setEditingStation(null)
     form.resetFields()
     fetchProductionLines()
     setModalOpen(true)
   }
 
   const handleEdit = (record: Station) => {
+    setEditingStation(record)
     fetchProductionLines()
     form.setFieldsValue(record)
     setModalOpen(true)
@@ -264,6 +285,7 @@ const StationManagement: React.FC = () => {
       await axios.delete(`${API_BASE_URL}/api/stations/${id}`)
       message.success('删除成功')
       if (selectedStation?.id === id) setSelectedStation(null)
+      if (editingStation?.id === id) setEditingStation(null)
       fetchStations()
     } catch (error) {
       message.error('删除失败')
@@ -273,8 +295,8 @@ const StationManagement: React.FC = () => {
   const handleSave = async () => {
     try {
       const values = await form.validateFields()
-      if (values.id) {
-        await axios.put(`${API_BASE_URL}/api/stations/${values.id}`, values)
+      if (editingStation) {
+        await axios.put(`${API_BASE_URL}/api/stations/${editingStation.id}`, values)
       } else {
         await axios.post(`${API_BASE_URL}/api/stations`, values)
       }
@@ -489,6 +511,17 @@ const StationManagement: React.FC = () => {
                 />
               </div>
               <div className="flex items-center gap-2">
+                <span className="text-gray-500 whitespace-nowrap">工位类型:</span>
+                <Select 
+                  placeholder="全部类型" 
+                  style={{ width: 120 }} 
+                  allowClear
+                  value={filterType}
+                  onChange={setFilterType}
+                  options={STATION_TYPE_OPTIONS}
+                />
+              </div>
+              <div className="flex items-center gap-2">
                 <span className="text-gray-500 whitespace-nowrap">所属产线:</span>
                 <Select 
                   placeholder="全部产线" 
@@ -540,8 +573,9 @@ const StationManagement: React.FC = () => {
                 setFilterQuery('')
                 setFilterCode('')
                 setFilterStatus(undefined)
+                setFilterType(undefined)
                 setFilterLineId(undefined)
-                fetchStations(1, pagination.pageSize, { query: '', code: '', status: undefined, lineId: undefined })
+                fetchStations(1, pagination.pageSize, { query: '', code: '', status: undefined, type: undefined, lineId: undefined })
               }}>重置</Button>
             </Space>
           </Col>
@@ -571,6 +605,7 @@ const StationManagement: React.FC = () => {
           rowKey="id"
           loading={loading}
           size="middle"
+          scroll={{ x: 1000 }}
           pagination={{ 
             ...pagination,
             showSizeChanger: true,
@@ -603,10 +638,13 @@ const StationManagement: React.FC = () => {
 
       {/* 新增/编辑 Modal */}
       <Modal
-        title={form.getFieldValue('id') ? '编辑工位' : '新增工位'}
+        title={editingStation ? '编辑工位' : '新增工位'}
         open={modalOpen}
         onOk={handleSave}
-        onCancel={() => setModalOpen(false)}
+        onCancel={() => {
+          setModalOpen(false)
+          setEditingStation(null)
+        }}
         destroyOnHidden
       >
         <Form form={form} layout="vertical" initialValues={{ status: 0 }}>
@@ -617,8 +655,8 @@ const StationManagement: React.FC = () => {
           <Form.Item name="name" label="工位名称" rules={[{ required: true }]}>
             <Input placeholder="请输入工位名称" />
           </Form.Item>
-          <Form.Item name="type" label="工位类型">
-            <Input placeholder="请输入工位类型" />
+          <Form.Item name="type" label="工位类型" rules={[{ required: true, message: '请选择工位类型' }]}>
+            <Select placeholder="请选择类型" options={STATION_TYPE_OPTIONS} />
           </Form.Item>
           <Form.Item name="productionLineId" label="关联产线">
             <Select placeholder="请选择产线" allowClear>

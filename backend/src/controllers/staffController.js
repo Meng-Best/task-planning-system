@@ -15,9 +15,21 @@ exports.getStaffs = async (req, res) => {
     const whereClause = {};
     if (staffId) whereClause.staffId = { contains: staffId };
     if (name) whereClause.name = { contains: name };
-    if (major !== undefined) whereClause.major = parseInt(major);
-    if (level !== undefined) whereClause.level = parseInt(level);
-    if (status !== undefined) whereClause.status = parseInt(status);
+    
+    if (major !== undefined && major !== '') {
+      const m = parseInt(major);
+      if (!isNaN(m)) whereClause.major = m;
+    }
+    
+    if (level !== undefined && level !== '') {
+      const l = parseInt(level);
+      if (!isNaN(l)) whereClause.level = l;
+    }
+    
+    if (status !== undefined && status !== '') {
+      const s = parseInt(status);
+      if (!isNaN(s)) whereClause.status = s;
+    }
 
     // 并行查询数据和总数
     const [staffs, total, availableCount, unavailableCount] = await Promise.all([

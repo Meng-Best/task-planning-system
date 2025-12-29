@@ -7,26 +7,29 @@ const prisma = require('../prismaClient');
 exports.getDashboardStats = async (req, res) => {
   try {
     const [
-      deviceTotal, deviceAssignable, deviceUnavailable,
-      lineTotal, lineAssignable, lineUnavailable,
-      staffTotal, staffAssignable, staffUnavailable,
+      deviceTotal, deviceAssignable, deviceUnavailable, deviceOccupied,
+      lineTotal, lineAssignable, lineUnavailable, lineOccupied,
+      staffTotal, staffAssignable, staffUnavailable, staffOccupied,
       teamTotal,
-      factoryTotal, factoryAssignable, factoryUnavailable
+      factoryTotal, factoryAssignable, factoryUnavailable, factoryOccupied
     ] = await Promise.all([
       // 设备统计
       prisma.device.count(),
       prisma.device.count({ where: { status: 0 } }),
       prisma.device.count({ where: { status: 1 } }),
+      prisma.device.count({ where: { status: 2 } }),
 
       // 产线统计
       prisma.productionLine.count(),
       prisma.productionLine.count({ where: { status: 0 } }),
       prisma.productionLine.count({ where: { status: 1 } }),
+      prisma.productionLine.count({ where: { status: 2 } }),
 
       // 人员统计
       prisma.staff.count(),
       prisma.staff.count({ where: { status: 0 } }),
       prisma.staff.count({ where: { status: 1 } }),
+      prisma.staff.count({ where: { status: 2 } }),
 
       // 班组统计
       prisma.team.count(),
@@ -34,24 +37,25 @@ exports.getDashboardStats = async (req, res) => {
       // 工厂统计
       prisma.factory.count(),
       prisma.factory.count({ where: { status: 0 } }),
-      prisma.factory.count({ where: { status: 1 } })
+      prisma.factory.count({ where: { status: 1 } }),
+      prisma.factory.count({ where: { status: 2 } })
     ]);
 
     // 如果总数为0，说明是空库，我们提供一组演示用的演示数据
     const isDataEmpty = deviceTotal === 0 && lineTotal === 0 && factoryTotal === 0;
     
     const responseData = isDataEmpty ? {
-      device: { total: 42, assignable: 37, unavailable: 5 },
-      line: { total: 12, assignable: 11, unavailable: 1 },
-      staff: { total: 85, assignable: 75, unavailable: 10 },
+      device: { total: 42, assignable: 37, occupied: 5, unavailable: 5 },
+      line: { total: 12, assignable: 11, occupied: 1, unavailable: 1 },
+      staff: { total: 85, assignable: 75, occupied: 10, unavailable: 10 },
       team: { total: 8 },
-      factory: { total: 3, assignable: 3, unavailable: 0 }
+      factory: { total: 3, assignable: 3, occupied: 0, unavailable: 0 }
     } : {
-      device: { total: deviceTotal, assignable: deviceAssignable, unavailable: deviceUnavailable },
-      line: { total: lineTotal, assignable: lineAssignable, unavailable: lineUnavailable },
-      staff: { total: staffTotal, assignable: staffAssignable, unavailable: staffUnavailable },
+      device: { total: deviceTotal, assignable: deviceAssignable, occupied: deviceOccupied, unavailable: deviceUnavailable },
+      line: { total: lineTotal, assignable: lineAssignable, occupied: lineOccupied, unavailable: lineUnavailable },
+      staff: { total: staffTotal, assignable: staffAssignable, occupied: staffOccupied, unavailable: staffUnavailable },
       team: { total: teamTotal },
-      factory: { total: factoryTotal, assignable: factoryAssignable, unavailable: factoryUnavailable }
+      factory: { total: factoryTotal, assignable: factoryAssignable, occupied: factoryOccupied, unavailable: factoryUnavailable }
     };
 
     res.json({

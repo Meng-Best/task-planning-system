@@ -45,7 +45,7 @@ interface ProductionLine {
   id: number
   code?: string
   name: string
-  type?: string
+  type: number
   capacity: number
   status: number  // 改为整数类型: 0=可用, 1=不可用
   factoryId: number
@@ -66,6 +66,10 @@ interface Factory {
 }
 
 const API_BASE_URL = 'http://localhost:3001'
+const LINE_TYPE_OPTIONS = [
+  { value: 0, label: '部装' },
+  { value: 1, label: '整装' }
+]
 
 const FactoryManagement: React.FC = () => {
   const [factories, setFactories] = useState<Factory[]>([])
@@ -81,7 +85,7 @@ const FactoryManagement: React.FC = () => {
   const [lineForm] = Form.useForm()
   
   // 筛选器状态
-  const [filterType, setFilterType] = useState<string | undefined>(undefined)
+  const [filterType, setFilterType] = useState<number | undefined>(undefined)
   const [filterStatus, setFilterStatus] = useState<number | undefined>(undefined)
 
   // 加载工厂数据
@@ -340,7 +344,7 @@ const FactoryManagement: React.FC = () => {
       lineForm.setFieldsValue({
         code: line.code, // 编辑时显示原代码（只读）
         name: line.name,
-        type: line.type,
+        type: normalizeLineType(line.type) ?? LINE_TYPE_OPTIONS[0].value,
         capacity: line.capacity,
         status: line.status
       })
@@ -352,6 +356,7 @@ const FactoryManagement: React.FC = () => {
         const autoCode = generateLineCode(selectedFactory)
         lineForm.setFieldsValue({
           code: autoCode,
+          type: LINE_TYPE_OPTIONS[0].value,
           capacity: 100,
           status: STATUS_VALUE.AVAILABLE  // 默认为可用(0)
         })
@@ -364,16 +369,20 @@ const FactoryManagement: React.FC = () => {
   const handleSaveLine = async () => {
     try {
       const values = await lineForm.validateFields()
+      const payload = {
+        ...values,
+        type: normalizeLineType(values.type) ?? LINE_TYPE_OPTIONS[0].value
+      }
       setLoading(true)
 
       if (editingLine) {
         // 更新
-        await axios.put(`${API_BASE_URL}/api/factories/line/${editingLine.id}`, values)
+        await axios.put(`${API_BASE_URL}/api/factories/line/${editingLine.id}`, payload)
         message.success('产线信息已更新')
       } else {
         // 新建
         await axios.post(`${API_BASE_URL}/api/factories/line`, {
-          ...values,
+          ...payload,
           factoryId: selectedFactory!.id
         })
         message.success('产线创建成功')
@@ -630,13 +639,17 @@ const FactoryManagement: React.FC = () => {
       key: 'name',
       width: 180
     },
-    {
-      title: '类型',
-      dataIndex: 'type',
-      key: 'type',
-      width: 130,
-      render: (type: string) => type || '-'
-    },
+  {
+    title: '类型',
+    dataIndex: 'type',
+    key: 'type',
+    width: 130,
+    render: (type: any) => {
+      const value = normalizeLineType(type)
+      const option = LINE_TYPE_OPTIONS.find(o => o.value === value)
+      return option ? option.label : '-'
+    }
+  },
     {
       title: '标准产能(件/日)',
       dataIndex: 'capacity',
@@ -689,12 +702,17 @@ const FactoryManagement: React.FC = () => {
     }
   ]
 
+  const normalizeLineType = (value: any): number | undefined => {
+    const num = typeof value === 'number' ? value : parseInt(value ?? '', 10)
+    return [0, 1].includes(num) ? num : undefined
+  }
+
   // 获取所有唯一的产线类型
   const getUniqueTypes = () => {
     if (!selectedFactory) return []
     const types = selectedFactory.productionLines
-      .map(line => line.type)
-      .filter((type): type is string => !!type)
+      .map(line => normalizeLineType(line.type))
+      .filter((type): type is number => type !== undefined)
     return Array.from(new Set(types))
   }
 
@@ -706,7 +724,7 @@ const FactoryManagement: React.FC = () => {
     
     // 按类型筛选
     if (filterType !== undefined) {
-      filtered = filtered.filter(line => line.type === filterType)
+      filtered = filtered.filter(line => normalizeLineType(line.type) === filterType)
     }
     
     // 按状态筛选
@@ -729,7 +747,6 @@ const FactoryManagement: React.FC = () => {
 
   const stats = getStatistics()
   const filteredLines = getFilteredLines()
-  const uniqueTypes = getUniqueTypes()
   
   // 清空筛选器
   const handleResetFilters = () => {
@@ -988,9 +1005,7 @@ const FactoryManagement: React.FC = () => {
                         allowClear
                         value={filterType}
                         onChange={setFilterType}
-                        options={[
-                          ...uniqueTypes.map(type => ({ label: type, value: type }))
-                        ]}
+                        options={LINE_TYPE_OPTIONS}
                       />
                     </Space>
 
@@ -1189,8 +1204,8 @@ const FactoryManagement: React.FC = () => {
           >
             <Input placeholder="例如：组装线A" />
           </Form.Item>
-          <Form.Item name="type" label="产线类型">
-            <Input placeholder="例如：组装线、包装线、测试线等" />
+          <Form.Item name="type" label="产线类型" rules={[{ required: true, message: '请选择产线类型' }]}>
+            <Select placeholder="请选择产线类型" options={LINE_TYPE_OPTIONS} />
           </Form.Item>
           <Form.Item
             name="capacity"
@@ -1273,4 +1288,3 @@ const FactoryManagement: React.FC = () => {
 }
 
 export default FactoryManagement
-

@@ -15,7 +15,9 @@ import {
   Input,
   Select,
   Popconfirm,
-  Modal
+  Modal,
+  Form,
+  InputNumber
 } from 'antd'
 import {
   InfoCircleOutlined,
@@ -30,7 +32,12 @@ import {
 } from '@ant-design/icons'
 
 import axios from 'axios'
-import { getStatusConfig, BASIC_DATA_STATUS } from '../../config/dictionaries'
+import { 
+  getStatusConfig, 
+  BASIC_DATA_STATUS,
+  STATION_TYPE_OPTIONS,
+  getStationTypeLabel
+} from '../../config/dictionaries'
 
 const API_BASE_URL = 'http://localhost:3001'
 
@@ -38,7 +45,7 @@ interface ProductionLine {
   id: number
   code: string
   name: string
-  type: string
+  type: number
   status: number
   factoryId: number
   factory?: {
@@ -50,7 +57,7 @@ interface Station {
   id: number
   code: string
   name: string
-  type: string
+  type: number
   status: number
   _count?: {
     devices: number
@@ -61,9 +68,12 @@ interface Station {
 const ProductionLineManagement: React.FC = () => {
   const [lines, setLines] = useState<ProductionLine[]>([])
   const [selectedLineId, setSelectedLineId] = useState<number | null>(null)
+  const [editingLine, setEditingLine] = useState<ProductionLine | null>(null)
   const [loading, setLoading] = useState(false)
   const [resourcesLoading, setResourcesLoading] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editForm] = Form.useForm()
   
   // 分页状态
   const [pagination, setPagination] = useState({
@@ -84,6 +94,16 @@ const ProductionLineManagement: React.FC = () => {
   const [filterQuery, setFilterQuery] = useState<string>('')
   const [filterCode, setFilterCode] = useState<string>('')
   const [filterStatus, setFilterStatus] = useState<number | undefined>(undefined)
+
+  const LINE_TYPE_OPTIONS = [
+    { value: 0, label: '部装' },
+    { value: 1, label: '整装' }
+  ]
+
+  const normalizeType = (val: any): number => {
+    const num = typeof val === 'number' ? val : parseInt(val ?? 0, 10)
+    return [0, 1].includes(num) ? num : 0
+  }
 
   // 1. 优先定义工具函数
   const renderStatusTag = (status: number) => {
@@ -144,7 +164,10 @@ const ProductionLineManagement: React.FC = () => {
       dataIndex: 'type', 
       key: 'type',
       width: '10%',
-      render: (val: string) => <span className="text-gray-600">{val}</span>
+      render: (val: number) => {
+        const option = LINE_TYPE_OPTIONS.find(o => o.value === normalizeType(val))
+        return <span className="text-gray-600">{option?.label || '-'}</span>
+      }
     },
     {
       title: '操作',
@@ -221,9 +244,16 @@ const ProductionLineManagement: React.FC = () => {
 
   const handleRowClick = (record: ProductionLine) => { setSelectedLineId(record.id) }
 
-  // 处理编辑和删除的占位逻辑（实际逻辑通常在工厂管理或补充到此页面）
   const handleEdit = (record: ProductionLine) => {
-    message.info(`正在编辑产线: ${record.name} (请前往工厂管理模块进行完整编辑)`)
+    setEditingLine(record)
+    editForm.setFieldsValue({
+      code: record.code,
+      name: record.name,
+      type: normalizeType(record.type),
+      status: record.status,
+      capacity: record.capacity
+    })
+    setEditModalOpen(true)
   }
 
   const handleDelete = async (id: number) => {
@@ -250,6 +280,29 @@ const ProductionLineManagement: React.FC = () => {
       }
     } catch (error) {
       message.error('获取未绑定工位失败')
+    }
+  }
+
+  const handleSaveLineEdit = async () => {
+    try {
+      if (!editingLine) return
+      const values = await editForm.validateFields()
+      const payload = {
+        ...values,
+        type: normalizeType(values.type),
+        // 如果未填写产能，则沿用原值，避免后端 undefined 解析错误
+        capacity: values.capacity !== undefined && values.capacity !== null
+          ? values.capacity
+          : editingLine.capacity
+      }
+      await axios.put(`${API_BASE_URL}/api/factories/line/${editingLine.id}`, payload)
+      message.success('产线信息已更新')
+      setEditModalOpen(false)
+      setEditingLine(null)
+      fetchLines()
+    } catch (error: any) {
+      if (error?.errorFields) return
+      message.error('保存失败')
     }
   }
 
@@ -321,7 +374,16 @@ const ProductionLineManagement: React.FC = () => {
               { title: '状态', dataIndex: 'status', key: 'status', width: '10%', render: (s: number) => renderStatusTag(s) },
               { title: '工位编号', dataIndex: 'code', key: 'code', width: '15%' },
               { title: '工位名称', dataIndex: 'name', key: 'name', width: '25%' },
-              { title: '类型', dataIndex: 'type', key: 'type', width: '12%' },
+              { 
+                title: '类型', 
+                dataIndex: 'type', 
+                key: 'type', 
+                width: '12%',
+                render: (type: number) => {
+                  const config = STATION_TYPE_OPTIONS.find(opt => opt.value === type)
+                  return <Tag color={config?.color || 'default'}>{config?.label || '未知'}</Tag>
+                }
+              },
               { title: '关联设备', key: 'deviceCount', width: '13%', render: (_: any, record: Station) => record._count?.devices || 0 },
               { title: '关联班组', key: 'teamCount', width: '13%', render: (_: any, record: Station) => record._count?.teams || 0 },
               { 
@@ -554,6 +616,44 @@ const ProductionLineManagement: React.FC = () => {
             </Select.Option>
           ))}
         </Select>
+      </Modal>
+
+      {/* 编辑产线 Modal */}
+      <Modal
+        title="编辑产线"
+        open={editModalOpen}
+        onOk={handleSaveLineEdit}
+        onCancel={() => {
+          setEditModalOpen(false)
+          setEditingLine(null)
+          editForm.resetFields()
+        }}
+        destroyOnHidden
+        width={520}
+      >
+        <Form form={editForm} layout="vertical">
+          <Form.Item label="产线代码" name="code">
+            <Input disabled />
+          </Form.Item>
+          <Form.Item label="产线名称" name="name" rules={[{ required: true, message: '请输入产线名称' }]}>
+            <Input placeholder="请输入产线名称" />
+          </Form.Item>
+          <Form.Item label="产线类型" name="type" rules={[{ required: true, message: '请选择产线类型' }]}>
+            <Select placeholder="请选择产线类型" options={LINE_TYPE_OPTIONS} />
+          </Form.Item>
+          <Form.Item label="标准产能(件/天)" name="capacity">
+            <InputNumber min={1} max={10000} style={{ width: '100%' }} placeholder="可选，默认保持不变" />
+          </Form.Item>
+          <Form.Item label="产线状态" name="status" rules={[{ required: true, message: '请选择产线状态' }]}>
+            <Select placeholder="请选择产线状态">
+              {BASIC_DATA_STATUS.map(option => (
+                <Select.Option key={option.value} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
       </Modal>
 
       <style>{`

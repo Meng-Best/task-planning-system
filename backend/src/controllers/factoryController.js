@@ -25,6 +25,7 @@ exports.getFactories = async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    console.error('SERVER ERROR [getFactories]:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch factories',
@@ -310,11 +311,37 @@ exports.updateProductionLine = async (req, res) => {
       }
     }
 
+    // 读取现有数据用于默认值
+    const existing = await prisma.productionLine.findUnique({ where: { id: parseInt(id) } });
+    if (!existing) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Production line not found',
+        timestamp: new Date().toISOString()
+      });
+    }
+
     const updateData = {};
     if (code !== undefined) updateData.code = code;
     if (name !== undefined) updateData.name = name;
-    if (type !== undefined) updateData.type = type;
-    if (capacity !== undefined) updateData.capacity = parseInt(capacity);
+
+    if (type !== undefined) {
+      const typeInt = parseInt(type);
+      if (![0, 1].includes(typeInt)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid line type. Must be 0(部装) or 1(整装)',
+          timestamp: new Date().toISOString()
+        });
+      }
+      updateData.type = typeInt;
+    }
+
+    if (capacity !== undefined) {
+      const cap = parseInt(capacity);
+      updateData.capacity = isNaN(cap) ? existing.capacity : cap;
+    }
+
     if (status !== undefined) updateData.status = parseInt(status);
 
     const productionLine = await prisma.productionLine.update({

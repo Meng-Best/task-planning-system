@@ -3,15 +3,28 @@ const prisma = require('../prismaClient');
 // 获取所有工位（带分页和过滤）
 exports.getStations = async (req, res) => {
   try {
-    const { page = 1, limit = 10, name, code, status, productionLineId } = req.query;
+    const { page = 1, limit = 10, name, code, status, type, productionLineId } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const take = parseInt(limit);
 
     const where = {};
     if (name) where.name = { contains: name };
     if (code) where.code = { contains: code };
-    if (status !== undefined && status !== '') where.status = parseInt(status);
-    if (productionLineId) where.productionLineId = parseInt(productionLineId);
+    
+    if (status !== undefined && status !== '') {
+      const s = parseInt(status);
+      if (!isNaN(s)) where.status = s;
+    }
+
+    if (type !== undefined && type !== '') {
+      const t = parseInt(type);
+      if (!isNaN(t)) where.type = t;
+    }
+    
+    if (productionLineId !== undefined && productionLineId !== '') {
+      const lid = parseInt(productionLineId);
+      if (!isNaN(lid)) where.productionLineId = lid;
+    }
 
     const [list, total, availableCount, unavailableCount] = await Promise.all([
       prisma.station.findMany({
@@ -299,7 +312,7 @@ exports.createStation = async (req, res) => {
       data: {
         code,
         name,
-        type,
+        type: type !== undefined ? parseInt(type) : 0,
         description,
         status: status !== undefined ? parseInt(status) : 0,
         productionLineId: productionLineId ? parseInt(productionLineId) : null
@@ -338,7 +351,7 @@ exports.updateStation = async (req, res) => {
       data: {
         code,
         name,
-        type,
+        type: type !== undefined ? parseInt(type) : existingStation.type,
         description,
         status: status !== undefined ? parseInt(status) : existingStation.status,
         productionLineId: productionLineId !== undefined ? (productionLineId ? parseInt(productionLineId) : null) : existingStation.productionLineId

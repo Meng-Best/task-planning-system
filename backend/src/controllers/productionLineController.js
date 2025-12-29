@@ -13,8 +13,16 @@ exports.getAllLines = async (req, res) => {
     const whereClause = {};
     if (code) whereClause.code = { contains: code };
     if (name) whereClause.name = { contains: name };
-    if (status !== undefined) whereClause.status = parseInt(status);
-    if (type) whereClause.type = { contains: type };
+    
+    if (status !== undefined && status !== '') {
+      const s = parseInt(status);
+      if (!isNaN(s)) whereClause.status = s;
+    }
+    
+    if (type !== undefined && type !== '') {
+      const t = parseInt(type);
+      if (!isNaN(t)) whereClause.type = t;
+    }
 
     const [lines, total] = await Promise.all([
       prisma.productionLine.findMany({
