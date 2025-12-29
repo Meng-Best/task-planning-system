@@ -5,3 +5,4 @@ dist/
 backend/backup-production-lines.json
 .claude/
 claude.md
+backend/nul
