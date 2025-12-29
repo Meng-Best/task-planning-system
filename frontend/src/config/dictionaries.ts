@@ -267,3 +267,18 @@ export const getOrderStatusLabel = (value: number): string => {
   return ORDER_STATUS_OPTIONS.find(opt => opt.value === value)?.label || '未知状态';
 };
 
+/**
+ * 生产任务状态字典
+ */
+export const PRODUCTION_TASK_STATUS_OPTIONS = [
+  { value: 0, label: '待拆分', color: 'default' },
+  { value: 1, label: '已拆分', color: 'processing' },
+];
+
+/**
+ * 获取生产任务状态标签
+ */
+export const getProductionTaskStatusLabel = (value: number): string => {
+  return PRODUCTION_TASK_STATUS_OPTIONS.find(opt => opt.value === value)?.label || '未知状态';
+};
+

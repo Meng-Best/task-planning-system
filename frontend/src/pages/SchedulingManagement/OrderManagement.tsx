@@ -14,7 +14,8 @@ import {
     Tag,
     Select,
     InputNumber,
-    DatePicker
+    DatePicker,
+    Statistic
 } from 'antd';
 import {
     ProfileOutlined,
@@ -53,7 +54,15 @@ const OrderManagement: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<Order[]>([]);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
-    
+
+    // 统计数据
+    const [stats, setStats] = useState({
+        total: 0,
+        trial: 0,
+        forecast: 0,
+        sales: 0
+    });
+
     // 基础数据
     const [products, setProducts] = useState<Product[]>([]);
 
@@ -67,23 +76,38 @@ const OrderManagement: React.FC = () => {
     const [editingOrder, setEditingOrder] = useState<Order | null>(null);
     const [form] = Form.useForm();
 
-    const fetchOrders = async (page?: number, size?: number) => {
+    const fetchOrders = async (page?: number, size?: number, overrides?: any) => {
         setLoading(true);
         try {
+            // 核心修复：显式判断 overrides 中是否存在该键，以支持 undefined (重置)
+            const hasOverride = (key: string) => overrides && Object.prototype.hasOwnProperty.call(overrides, key);
+
             const params: any = {
                 current: page || pagination.current,
                 pageSize: size || pagination.pageSize
             };
-            if (filterCode) params.code = filterCode;
-            if (filterName) params.name = filterName;
-            if (filterType !== undefined) params.type = filterType;
-            if (filterProductCode) params.productCode = filterProductCode;
+
+            const code = hasOverride('code') ? overrides.code : filterCode;
+            const name = hasOverride('name') ? overrides.name : filterName;
+            const type = hasOverride('type') ? overrides.type : filterType;
+            const productCode = hasOverride('productCode') ? overrides.productCode : filterProductCode;
+
+            if (code) params.code = code;
+            if (name) params.name = name;
+            if (type !== undefined) params.type = type;
+            if (productCode) params.productCode = productCode;
 
             const response = await axios.get(`${API_BASE_URL}/api/orders`, { params });
             if (response.data.status === 'ok') {
-                const { list, total, current, pageSize } = response.data.data;
+                const { list, total, current, pageSize, allTotal, trialCount, forecastCount, salesCount } = response.data.data;
                 setData(list);
                 setPagination({ current, pageSize, total });
+                setStats({
+                    total: allTotal,
+                    trial: trialCount,
+                    forecast: forecastCount,
+                    sales: salesCount
+                });
             }
         } catch (error) {
             message.error('获取订单列表失败');
@@ -114,7 +138,8 @@ const OrderManagement: React.FC = () => {
         setFilterName('');
         setFilterType(undefined);
         setFilterProductCode('');
-        fetchOrders(1);
+        // 传递空的覆盖参数，确保立即使用空筛选条件而不是等待状态更新
+        fetchOrders(1, pagination.pageSize, { code: '', name: '', type: undefined, productCode: '' });
     };
 
     const handleOpenModal = (record?: Order) => {
@@ -162,6 +187,7 @@ const OrderManagement: React.FC = () => {
             setIsModalOpen(false);
             fetchOrders();
         } catch (error: any) {
+            console.error('保存订单失败:', error);
             message.error(error.response?.data?.message || '保存失败');
         }
     };
@@ -256,6 +282,46 @@ const OrderManagement: React.FC = () => {
 
     return (
         <div className="flex flex-col gap-4 p-2">
+            {/* 统计看板 */}
+            <Row gutter={16}>
+                <Col span={6}>
+                    <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
+                        <Statistic
+                            title={<span className="text-gray-500 font-medium">订单总数</span>}
+                            value={stats.total}
+                            valueStyle={{ color: '#1890ff', fontWeight: 700 }}
+                        />
+                    </Card>
+                </Col>
+                <Col span={6}>
+                    <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
+                        <Statistic
+                            title={<span className="text-gray-500 font-medium">试制订单</span>}
+                            value={stats.trial}
+                            valueStyle={{ color: '#fa8c16', fontWeight: 700 }}
+                        />
+                    </Card>
+                </Col>
+                <Col span={6}>
+                    <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
+                        <Statistic
+                            title={<span className="text-gray-500 font-medium">销售预测</span>}
+                            value={stats.forecast}
+                            valueStyle={{ color: '#1890ff', fontWeight: 700 }}
+                        />
+                    </Card>
+                </Col>
+                <Col span={6}>
+                    <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
+                        <Statistic
+                            title={<span className="text-gray-500 font-medium">销售下单</span>}
+                            value={stats.sales}
+                            valueStyle={{ color: '#52c41a', fontWeight: 700 }}
+                        />
+                    </Card>
+                </Col>
+            </Row>
+
             {/* 筛选区域 */}
             <Card className="shadow-sm border-none" styles={{ body: { padding: '16px' } }}>
                 <Row gutter={[16, 16]} align="middle">
@@ -356,10 +422,10 @@ const OrderManagement: React.FC = () => {
                 open={isModalOpen}
                 onOk={() => form.submit()}
                 onCancel={() => setIsModalOpen(false)}
-                destroyOnHidden
+                destroyOnClose
                 width={700}
             >
-                <Form form={form} layout="vertical" onFinish={handleSave}>
+                <Form form={form} layout="vertical" onFinish={handleSave} preserve={false}>
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item name="code" label="订单编号" rules={[{ required: true, message: '请输入订单编号' }]}>

@@ -12,32 +12,33 @@ const router = express.Router();
  */
 router.get('/', async (req, res) => {
   try {
-    const { current = 1, pageSize = 10, code, name } = req.query;
+    const { current = 1, pageSize = 10, code, name, type } = req.query;
     const skip = (parseInt(current) - 1) * parseInt(pageSize);
     const take = parseInt(pageSize);
 
     const where = {};
     if (code) where.code = { contains: code };
     if (name) where.name = { contains: name };
+    if (type) where.type = { contains: type };
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
         skip,
         take,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'asc' }
       }),
       prisma.product.count({ where })
     ]);
 
-    res.json({ 
-      status: 'ok', 
+    res.json({
+      status: 'ok',
       data: {
         list: products,
         total,
         current: parseInt(current),
         pageSize: parseInt(pageSize)
-      } 
+      }
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
@@ -54,11 +55,25 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { code, name, type, model, description } = req.body;
+
+    // 检查产品编号是否已存在
+    const existing = await prisma.product.findUnique({ where: { code } });
+    if (existing) {
+      return res.status(400).json({ status: 'error', message: '产品编号已存在，请使用不同的编号' });
+    }
+
     const product = await prisma.product.create({
       data: { code, name, type, model, description }
     });
     res.json({ status: 'ok', data: product });
   } catch (error) {
+    console.error('创建产品失败:', error);
+
+    // 处理 Prisma 唯一性约束错误
+    if (error.code === 'P2002') {
+      return res.status(400).json({ status: 'error', message: '产品编号已存在，请使用不同的编号' });
+    }
+
     res.status(500).json({ status: 'error', message: error.message });
   }
 });

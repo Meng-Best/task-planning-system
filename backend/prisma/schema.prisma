@@ -205,35 +205,78 @@ model Staff {
 
 // 产品管理 (路由产品)
 model Product {
-  id          Int              @id @default(autoincrement())
-  code        String           @unique // 产品编号
-  name        String           // 产品名称
-  type        String?          // 产品类型
-  model       String?          // 产品型号
-  description String?          // 产品描述
-  routings    ProductRouting[] // 关联的工艺路线
-  orders      Order[]          // 关联的订单
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id              Int              @id @default(autoincrement())
+  code            String           @unique // 产品编号
+  name            String           // 产品名称
+  type            String?          // 产品类型
+  model           String?          // 产品型号
+  description     String?          // 产品描述
+  routings        ProductRouting[] // 关联的工艺路线
+  orders          Order[]          // 关联的订单
+  productionTasks ProductionTask[] // 关联的生产任务
+  scheduleSteps   ScheduleStep[]   // 关联的排程步骤（作为舱段）
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   @@map("products")
 }
 
 // 订单管理
 model Order {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique // 订单编号
-  name        String   // 订单名称
-  type        Int      @default(0) // 订单类型: 0=试制, 1=销售预测, 2=销售下单
-  productId   Int      // 关联产品ID
-  product     Product  @relation(fields: [productId], references: [id])
-  quantity    Int      @default(1) // 订单数量
-  deadline    DateTime // 截止时间
-  status      Int      @default(0) // 0: 待排程, 1: 排程中, 2: 生产中, 3: 已完成, 4: 已推迟
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                Int              @id @default(autoincrement())
+  code              String           @unique // 订单编号
+  name              String           // 订单名称
+  type              Int              @default(0) // 订单类型: 0=试制, 1=销售预测, 2=销售下单
+  productId         Int              // 关联产品ID
+  product           Product          @relation(fields: [productId], references: [id])
+  quantity          Int              @default(1) // 订单数量
+  scheduledQuantity Int              @default(0) // 已排程数量（已创建任务数）
+  deadline          DateTime         // 截止时间
+  status            Int              @default(0) // 0: 待排程, 1: 排程中, 2: 生产中, 3: 已完成, 4: 已推迟
+  tasks             ProductionTask[] // 关联的生产任务
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   @@map("orders")
+}
+
+// 生产任务管理
+model ProductionTask {
+  id          Int            @id @default(autoincrement())
+  code        String         @unique // 任务编号（自动生成，如: TASK-20250101-001）
+  orderId     Int            // 关联订单ID
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   Int            // 关联产品ID
+  product     Product        @relation(fields: [productId], references: [id])
+  quantity    Int            @default(1) // 任务数量（通常为1，表示生产1个产品）
+  status      Int            @default(0) // 0: 待排程, 1: 排程中
+  priority    Int            @default(0) // 优先级（0-9，数字越大优先级越高）
+  deadline    DateTime       // 截止时间（继承自订单）
+  startTime   DateTime?      // 实际开始时间
+  endTime     DateTime?      // 实际结束时间
+  description String?        // 任务描述/备注
+  steps       ScheduleStep[] // 关联的排程步骤
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("production_tasks")
+}
+
+// 排程步骤管理（任务拆分为舱段生产步骤）
+model ScheduleStep {
+  id          Int            @id @default(autoincrement())
+  taskId      Int            // 关联的生产任务ID
+  task        ProductionTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  seq         Int            // 步骤序号（用于排序，从1开始）
+  type        Int            @default(0) // 步骤类型：0=舱段生产, 1=总装
+  productId   Int?           // 舱段产品ID（type=0时必填，type=1时可选）
+  product     Product?       @relation(fields: [productId], references: [id])
+  name        String?        // 步骤名称（如：一级舱段生产、火箭总装）
+  status      Int            @default(0) // 0=待执行, 1=执行中, 2=已完成
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("schedule_steps")
 }
 
 // 产品工艺路线关联表

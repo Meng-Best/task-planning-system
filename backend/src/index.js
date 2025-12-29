@@ -38,6 +38,8 @@ const productRoutes = require('./routes/productRoutes');
 const routingRoutes = require('./routes/routingRoutes');
 const processRoutes = require('./routes/processRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const productionTaskRoutes = require('./routes/productionTaskRoutes');
+const scheduleRoutes = require('./routes/scheduleRoutes');
 
 // 挂载路由
 app.use('/api/tasks', taskRoutes);
@@ -54,6 +56,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/routings', routingRoutes);
 app.use('/api/processes', processRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/production-tasks', productionTaskRoutes);
+app.use('/api/schedules', scheduleRoutes);
 
 /**
  * @swagger

@@ -18,12 +18,16 @@ import {
 import {
     PlusOutlined,
     DeleteOutlined,
+    ArrowUpOutlined,
+    ArrowDownOutlined,
     SaveOutlined,
-    DeploymentUnitOutlined,
-    BuildOutlined
+    RocketOutlined,
+    BuildOutlined,
+    CloseOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import dayjs from 'dayjs';
+import { PRODUCTION_TASK_STATUS_OPTIONS } from '../../config/dictionaries';
 
 const { Text, Title } = Typography;
 const API_BASE_URL = 'http://localhost:3001';
@@ -62,15 +66,13 @@ interface ScheduleStep {
     name?: string;
 }
 
-const ScheduleManagement: React.FC = () => {
+const SchedulingPlanner: React.FC = () => {
     const [tasks, setTasks] = useState<ProductionTask[]>([]);
     const [selectedTask, setSelectedTask] = useState<ProductionTask | null>(null);
     const [steps, setSteps] = useState<ScheduleStep[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [isAddSegmentModalOpen, setIsAddSegmentModalOpen] = useState(false);
-    const [selectedProductId, setSelectedProductId] = useState<number | undefined>(undefined);
 
     useEffect(() => {
         fetchPendingTasks();
@@ -120,13 +122,11 @@ const ScheduleManagement: React.FC = () => {
             if (response.data.status === 'ok' && response.data.data.length > 0) {
                 setSteps(response.data.data);
             } else {
-                // 初始化：第一步固定为总装，使用任务的产品
+                // 初始化：默认包含一个总装步骤
                 setSteps([{
                     seq: 1,
                     type: 1,
-                    productId: task.productId,
-                    product: task.product,
-                    name: `${task.product.name}总装`
+                    name: '火箭总装'
                 }]);
             }
         } catch (error) {
@@ -134,54 +134,69 @@ const ScheduleManagement: React.FC = () => {
             setSteps([{
                 seq: 1,
                 type: 1,
-                productId: task.productId,
-                product: task.product,
-                name: `${task.product.name}总装`
+                name: '火箭总装'
             }]);
         }
     };
 
     // 添加舱段步骤
     const handleAddSegment = () => {
-        setSelectedProductId(undefined);
-        setIsAddSegmentModalOpen(true);
-    };
-
-    // 确认添加舱段
-    const handleConfirmAddSegment = () => {
-        if (!selectedProductId) {
-            message.warning('请选择舱段产品');
-            return;
-        }
-
-        const product = products.find(p => p.id === selectedProductId);
-        if (!product) {
-            message.error('未找到选中的产品');
-            return;
-        }
-
         const newStep: ScheduleStep = {
             seq: steps.length + 1,
-            type: 0,
-            productId: product.id,
-            product,
-            name: `${product.name}生产`
+            type: 0, // 舱段生产
+            productId: undefined,
+            name: ''
         };
-
-        setSteps([...steps, newStep]);
-        setIsAddSegmentModalOpen(false);
-        setSelectedProductId(undefined);
+        // 插入到总装步骤之前
+        const assemblyIndex = steps.findIndex(s => s.type === 1);
+        if (assemblyIndex >= 0) {
+            const newSteps = [...steps];
+            newSteps.splice(assemblyIndex, 0, newStep);
+            setSteps(newSteps.map((s, idx) => ({ ...s, seq: idx + 1 })));
+        } else {
+            setSteps([...steps, newStep]);
+        }
     };
 
     // 删除步骤
     const handleDeleteStep = (index: number) => {
-        // 第一个步骤（总装）不能删除
-        if (index === 0) {
-            message.warning('总装步骤不能删除');
+        const step = steps[index];
+        // 不允许删除总装步骤（至少保留一个）
+        if (step.type === 1 && steps.filter(s => s.type === 1).length === 1) {
+            message.warning('至少需要保留一个总装步骤');
             return;
         }
         const newSteps = steps.filter((_, i) => i !== index);
         setSteps(newSteps.map((s, idx) => ({ ...s, seq: idx + 1 })));
+    };
+
+    // 上移步骤
+    const handleMoveUp = (index: number) => {
+        if (index === 0) return;
+        const newSteps = [...steps];
+        [newSteps[index - 1], newSteps[index]] = [newSteps[index], newSteps[index - 1]];
+        setSteps(newSteps.map((s, idx) => ({ ...s, seq: idx + 1 })));
+    };
+
+    // 下移步骤
+    const handleMoveDown = (index: number) => {
+        if (index === steps.length - 1) return;
+        const newSteps = [...steps];
+        [newSteps[index], newSteps[index + 1]] = [newSteps[index + 1], newSteps[index]];
+        setSteps(newSteps.map((s, idx) => ({ ...s, seq: idx + 1 })));
+    };
+
+    // 更新步骤的产品选择
+    const handleProductChange = (index: number, productId: number) => {
+        const product = products.find(p => p.id === productId);
+        const newSteps = [...steps];
+        newSteps[index] = {
+            ...newSteps[index],
+            productId,
+            product,
+            name: product ? `${product.name}生产` : ''
+        };
+        setSteps(newSteps);
     };
 
     // 保存拆分
@@ -219,95 +234,121 @@ const ScheduleManagement: React.FC = () => {
         }
     };
 
+    // 清除拆分
+    const handleClearSchedule = () => {
+        Modal.confirm({
+            title: '确认清除拆分？',
+            content: '清除后，任务将回到待拆分状态',
+            onOk: () => {
+                setSteps([{
+                    seq: 1,
+                    type: 1,
+                    name: '火箭总装'
+                }]);
+            }
+        });
+    };
+
     return (
         <div className="flex flex-col gap-4 p-2">
             <Card className="shadow-sm border-none">
                 <div className="flex items-center justify-between">
                     <Space>
-                        <DeploymentUnitOutlined className="text-blue-500" style={{ fontSize: '20px' }} />
-                        <Title level={4} style={{ margin: 0 }}>生产订单拆分</Title>
+                        <RocketOutlined className="text-blue-500" style={{ fontSize: '20px' }} />
+                        <Title level={4} style={{ margin: 0 }}>拆分管理 - 任务拆分配置</Title>
                     </Space>
                     <Text type="secondary">选择待拆分任务，手动拆分为舱段生产步骤</Text>
                 </div>
             </Card>
 
             <Row gutter={16}>
-                                {/* 左侧：待拆分任务列表 */}
-                                <Col span={6}>
-                                    <Card
-                                        title={
-                                            <Space>
-                                                <Text strong>任务清单 ({tasks.length})</Text>
-                                            </Space>
-                                        }
-                                        className="shadow-sm"
-                                        styles={{ body: { padding: '12px', maxHeight: '70vh', overflowY: 'auto' } }}
+                {/* 左侧：待拆分任务列表 */}
+                <Col span={6}>
+                    <Card
+                        title={
+                            <Space>
+                                <Badge count={tasks.length} showZero>
+                                    <Text strong>待拆分任务</Text>
+                                </Badge>
+                            </Space>
+                        }
+                        className="shadow-sm"
+                        styles={{ body: { padding: '12px', maxHeight: '70vh', overflowY: 'auto' } }}
+                    >
+                        {tasks.length === 0 ? (
+                            <Empty description="暂无待拆分任务" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                        ) : (
+                            <List
+                                dataSource={tasks}
+                                renderItem={(task) => (
+                                    <List.Item
+                                        key={task.id}
+                                        onClick={() => handleSelectTask(task)}
+                                        style={{
+                                            cursor: 'pointer',
+                                            padding: '12px',
+                                            marginBottom: '8px',
+                                            borderRadius: '4px',
+                                            border: selectedTask?.id === task.id ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                                            backgroundColor: selectedTask?.id === task.id ? '#e6f7ff' : '#fff',
+                                            transition: 'all 0.3s'
+                                        }}
+                                        className="hover:shadow-sm"
                                     >
-                                        {tasks.length === 0 ? (
-                                            <Empty description="暂无待拆分任务" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                                        ) : (
-                                            <List
-                                                dataSource={tasks}
-                                                renderItem={(task) => (
-                                                    <List.Item
-                                                        key={task.id}
-                                                        onClick={() => handleSelectTask(task)}
-                                                        style={{
-                                                            cursor: 'pointer',
-                                                            padding: '12px',
-                                                            marginBottom: '8px',
-                                                            borderRadius: '4px',
-                                                            border: selectedTask?.id === task.id ? '2px solid #1890ff' : '1px solid #f0f0f0',
-                                                            backgroundColor: selectedTask?.id === task.id ? '#e6f7ff' : '#fff',
-                                                            transition: 'all 0.3s'
-                                                        }}
-                                                        className="hover:shadow-sm"
-                                                    >
-                                                        <Space direction="vertical" style={{ width: '100%' }} size={4}>
-                                                            <Text strong className="business-code">{task.code}</Text>
-                                                            <Text type="secondary" style={{ fontSize: '12px' }}>
-                                                                产品: {task.product.name}
-                                                            </Text>
-                                                            <Text type="secondary" style={{ fontSize: '12px' }}>
-                                                                截止: {dayjs(task.deadline).format('YYYY-MM-DD')}
-                                                            </Text>
-                                                            <Tag color="default" style={{ fontSize: '11px' }}>待拆分</Tag>
-                                                        </Space>
-                                                    </List.Item>
-                                                )}
-                                            />
-                                        )}
-                                    </Card>
-                                </Col>
+                                        <Space direction="vertical" style={{ width: '100%' }} size={4}>
+                                            <Text strong className="business-code">{task.code}</Text>
+                                            <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                产品: {task.product.name}
+                                            </Text>
+                                            <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                截止: {dayjs(task.deadline).format('YYYY-MM-DD')}
+                                            </Text>
+                                            <Tag color="default" style={{ fontSize: '11px' }}>待拆分</Tag>
+                                        </Space>
+                                    </List.Item>
+                                )}
+                            />
+                        )}
+                    </Card>
+                </Col>
 
-                                {/* 中间：拆分配置区域 */}
-                                <Col span={12}>
-                                    <Card
-                                        title={
-                                            selectedTask ? (
-                                                <Space>
-                                                    <BuildOutlined />
-                                                    <Text strong>任务拆分: {selectedTask.code}</Text>
-                                                </Space>
-                                            ) : (
-                                                <Text type="secondary">请从左侧选择任务</Text>
-                                            )
-                                        }
-                                        className="shadow-sm"
-                                        styles={{ body: { padding: '16px', minHeight: '70vh' } }}
-                                        extra={
-                                            selectedTask && (
-                                                <Button
-                                                    type="primary"
-                                                    icon={<PlusOutlined />}
-                                                    onClick={handleAddSegment}
-                                                    size="small"
-                                                >
-                                                    添加舱段
-                                                </Button>
-                                            )
-                                        }
+                {/* 中间：拆分配置区域 */}
+                <Col span={12}>
+                    <Card
+                        title={
+                            selectedTask ? (
+                                <Space>
+                                    <BuildOutlined />
+                                    <Text strong>任务拆分: {selectedTask.code}</Text>
+                                </Space>
+                            ) : (
+                                <Text type="secondary">请从左侧选择任务</Text>
+                            )
+                        }
+                        className="shadow-sm"
+                        styles={{ body: { padding: '16px', minHeight: '70vh' } }}
+                        extra={
+                            selectedTask && (
+                                <Space>
+                                    <Button
+                                        type="primary"
+                                        icon={<PlusOutlined />}
+                                        onClick={handleAddSegment}
+                                        size="small"
                                     >
+                                        添加舱段
+                                    </Button>
+                                    <Button
+                                        icon={<CloseOutlined />}
+                                        onClick={handleClearSchedule}
+                                        size="small"
+                                    >
+                                        清除
+                                    </Button>
+                                </Space>
+                            )
+                        }
+                    >
                         {selectedTask ? (
                             <div>
                                 {/* 任务信息 */}
@@ -322,7 +363,7 @@ const ScheduleManagement: React.FC = () => {
                                     </Row>
                                 </Card>
 
-                                <Divider orientation="left">生产步骤（总-分两段式结构）</Divider>
+                                <Divider orientation="left">生产步骤（总——分两段式结构）</Divider>
 
                                 {/* 步骤列表 */}
                                 <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '8px' }}>
@@ -337,42 +378,60 @@ const ScheduleManagement: React.FC = () => {
                                         >
                                             <Space direction="vertical" style={{ width: '100%' }} size={8}>
                                                 <div className="flex justify-between items-center">
-                                                    <Tag color={step.type === 0 ? 'green' : 'blue'}>
-                                                        {step.type === 0 ? '舱段生产' : '火箭总装'}
-                                                    </Tag>
                                                     <Space>
-                                                        {/* 只有舱段步骤可以删除 */}
-                                                        {step.type === 0 && (
-                                                            <Button
-                                                                type="text"
-                                                                size="small"
-                                                                danger
-                                                                icon={<DeleteOutlined />}
-                                                                onClick={() => handleDeleteStep(index)}
-                                                            />
-                                                        )}
+                                                        <Tag color={step.type === 0 ? 'green' : 'blue'}>
+                                                            {step.type === 0 ? '舱段生产' : '火箭总装'}
+                                                        </Tag>
+                                                        <Text strong>步骤 {index + 1}</Text>
+                                                    </Space>
+                                                    <Space>
+                                                        <Button
+                                                            type="text"
+                                                            size="small"
+                                                            icon={<ArrowUpOutlined />}
+                                                            onClick={() => handleMoveUp(index)}
+                                                            disabled={index === 0}
+                                                        />
+                                                        <Button
+                                                            type="text"
+                                                            size="small"
+                                                            icon={<ArrowDownOutlined />}
+                                                            onClick={() => handleMoveDown(index)}
+                                                            disabled={index === steps.length - 1}
+                                                        />
+                                                        <Button
+                                                            type="text"
+                                                            size="small"
+                                                            danger
+                                                            icon={<DeleteOutlined />}
+                                                            onClick={() => handleDeleteStep(index)}
+                                                        />
                                                     </Space>
                                                 </div>
 
-                                                {/* 总装步骤：显示任务产品（只读） */}
-                                                {step.type === 1 && step.product && (
-                                                    <div style={{ padding: '12px', backgroundColor: '#e6f7ff', borderRadius: '4px', border: '1px solid #91d5ff' }}>
-                                                        <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                                                            <Text strong style={{ color: '#1890ff' }}>产品信息</Text>
-                                                            <Text>产品编号: <span className="business-code">{step.product.code}</span></Text>
-                                                            <Text>产品名称: {step.product.name}</Text>
-                                                        </Space>
-                                                    </div>
+                                                {step.type === 0 && (
+                                                    <Select
+                                                        style={{ width: '100%' }}
+                                                        placeholder="选择舱段产品"
+                                                        value={step.productId}
+                                                        onChange={(value) => handleProductChange(index, value)}
+                                                        showSearch
+                                                        filterOption={(input, option) =>
+                                                            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                                                        }
+                                                        options={products.map(p => ({
+                                                            value: p.id,
+                                                            label: `${p.name} (${p.code})${p.type ? ` - ${p.type}` : ''}`
+                                                        }))}
+                                                    />
                                                 )}
 
-                                                {/* 舱段步骤：显示舱段产品（只读） */}
-                                                {step.type === 0 && step.product && (
-                                                    <div style={{ padding: '12px', backgroundColor: '#f6ffed', borderRadius: '4px', border: '1px solid #b7eb8f' }}>
-                                                        <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                                                            <Text strong style={{ color: '#52c41a' }}>产品信息</Text>
-                                                            <Text>产品编号: <span className="business-code">{step.product.code}</span></Text>
-                                                            <Text>产品名称: {step.product.name}</Text>
-                                                        </Space>
+                                                {step.product && (
+                                                    <div style={{ padding: '8px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+                                                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                            {step.product.code} - {step.product.name}
+                                                            {step.product.type && ` (${step.product.type})`}
+                                                        </Text>
                                                     </div>
                                                 )}
                                             </Space>
@@ -442,11 +501,11 @@ const ScheduleManagement: React.FC = () => {
                                 </div>
                                 <Divider style={{ margin: '8px 0' }} />
                                 <div>
-                                    <Text type="secondary">步骤清单:</Text>
+                                    <Text type="secondary">执行顺序:</Text>
                                     <div style={{ marginTop: 8 }}>
                                         {steps.map((s, i) => (
                                             <div key={i} style={{ marginBottom: 4, fontSize: '12px' }}>
-                                                • {s.name || (s.type === 0 ? '未选择舱段' : '总装')}
+                                                {i + 1}. {s.name || (s.type === 0 ? '未选择舱段' : '火箭总装')}
                                             </div>
                                         ))}
                                     </div>
@@ -461,37 +520,8 @@ const ScheduleManagement: React.FC = () => {
                     </Card>
                 </Col>
             </Row>
-
-            {/* 添加舱段产品选择对话框 */}
-            <Modal
-                title="选择舱段产品"
-                open={isAddSegmentModalOpen}
-                onOk={handleConfirmAddSegment}
-                onCancel={() => {
-                    setIsAddSegmentModalOpen(false);
-                    setSelectedProductId(undefined);
-                }}
-                okText="确定"
-                cancelText="取消"
-                width={600}
-            >
-                <Select
-                    style={{ width: '100%', marginTop: 16 }}
-                    placeholder="请选择舱段产品"
-                    showSearch
-                    value={selectedProductId}
-                    onChange={(value) => setSelectedProductId(value)}
-                    filterOption={(input, option) =>
-                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                    }
-                    options={products.map(p => ({
-                        value: p.id,
-                        label: `${p.name} (${p.code})${p.type ? ` - ${p.type}` : ''}`
-                    }))}
-                />
-            </Modal>
         </div>
     );
 };
 
-export default ScheduleManagement;
+export default SchedulingPlanner;

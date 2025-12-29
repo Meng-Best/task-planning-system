@@ -12,7 +12,7 @@ const router = express.Router();
  */
 router.get('/', async (req, res) => {
   try {
-    const { current = 1, pageSize = 10, code, name, type, productId, productCode } = req.query;
+    const { current = 1, pageSize = 10, code, name, type, productId, productCode, status } = req.query;
     const skip = (parseInt(current) - 1) * parseInt(pageSize);
     const take = parseInt(pageSize);
 
@@ -32,8 +32,12 @@ router.get('/', async (req, res) => {
         code: { contains: productCode }
       };
     }
+    if (status !== undefined && status !== '') {
+      const s = parseInt(status);
+      if (!isNaN(s)) where.status = s;
+    }
 
-    const [orders, total] = await Promise.all([
+    const [orders, total, allTotal, trialCount, forecastCount, salesCount] = await Promise.all([
       prisma.order.findMany({
         where,
         skip,
@@ -47,19 +51,31 @@ router.get('/', async (req, res) => {
             }
           }
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'asc' }
       }),
-      prisma.order.count({ where })
+      prisma.order.count({ where }),
+      // 全部订单总数
+      prisma.order.count(),
+      // 试制订单数量 (type=0)
+      prisma.order.count({ where: { type: 0 } }),
+      // 销售预测订单数量 (type=1)
+      prisma.order.count({ where: { type: 1 } }),
+      // 销售下单订单数量 (type=2)
+      prisma.order.count({ where: { type: 2 } })
     ]);
 
-    res.json({ 
-      status: 'ok', 
+    res.json({
+      status: 'ok',
       data: {
         list: orders,
         total,
         current: parseInt(current),
-        pageSize: parseInt(pageSize)
-      } 
+        pageSize: parseInt(pageSize),
+        allTotal,
+        trialCount,
+        forecastCount,
+        salesCount
+      }
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });

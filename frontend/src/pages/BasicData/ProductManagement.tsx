@@ -84,26 +84,43 @@ const ProductManagement: React.FC = () => {
     // 筛选状态
     const [filterCode, setFilterCode] = useState('');
     const [filterName, setFilterName] = useState('');
+    const [filterType, setFilterType] = useState<string | undefined>(undefined);
+
+    // 产品类型选项（从产品列表中提取）
+    const [productTypes, setProductTypes] = useState<string[]>([]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [form] = Form.useForm();
 
-    const fetchProducts = async (page?: number, size?: number) => {
+    const fetchProducts = async (page?: number, size?: number, overrides?: any) => {
         setLoading(true);
         try {
+            // 核心修复：显式判断 overrides 中是否存在该键，以支持 undefined (重置)
+            const hasOverride = (key: string) => overrides && Object.prototype.hasOwnProperty.call(overrides, key);
+
             const params: any = {
                 current: page || pagination.current,
                 pageSize: size || pagination.pageSize
             };
-            if (filterCode) params.code = filterCode;
-            if (filterName) params.name = filterName;
+
+            const code = hasOverride('code') ? overrides.code : filterCode;
+            const name = hasOverride('name') ? overrides.name : filterName;
+            const type = hasOverride('type') ? overrides.type : filterType;
+
+            if (code) params.code = code;
+            if (name) params.name = name;
+            if (type) params.type = type;
 
             const response = await axios.get(`${API_BASE_URL}/api/products`, { params });
             if (response.data.status === 'ok') {
                 const { list, total, current, pageSize } = response.data.data;
                 setData(list);
                 setPagination({ current, pageSize, total });
+
+                // 提取所有不重复的产品类型
+                const types = Array.from(new Set(list.map((p: Product) => p.type).filter(Boolean))) as string[];
+                setProductTypes(types);
             }
         } catch (error) {
             message.error('获取产品列表失败');
@@ -158,7 +175,9 @@ const ProductManagement: React.FC = () => {
     const handleReset = () => {
         setFilterCode('');
         setFilterName('');
-        fetchProducts(1);
+        setFilterType(undefined);
+        // 传递空的覆盖参数，确保立即使用空筛选条件而不是等待状态更新
+        fetchProducts(1, pagination.pageSize, { code: '', name: '', type: undefined });
     };
 
     const handleOpenModal = (record?: Product) => {
@@ -183,8 +202,9 @@ const ProductManagement: React.FC = () => {
             }
             setIsModalOpen(false);
             fetchProducts();
-        } catch (error) {
-            message.error('保存失败');
+        } catch (error: any) {
+            console.error('保存产品失败:', error);
+            message.error(error.response?.data?.message || '保存失败');
         }
     };
 
@@ -571,7 +591,7 @@ const ProductManagement: React.FC = () => {
                                     allowClear
                                     value={filterCode}
                                     onChange={e => setFilterCode(e.target.value)}
-                                    onPressEnter={fetchProducts}
+                                    onPressEnter={() => fetchProducts(1)}
                                 />
                             </div>
                             <div className="flex items-center gap-2">
@@ -582,14 +602,30 @@ const ProductManagement: React.FC = () => {
                                     allowClear
                                     value={filterName}
                                     onChange={e => setFilterName(e.target.value)}
-                                    onPressEnter={fetchProducts}
+                                    onPressEnter={() => fetchProducts(1)}
                                 />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-gray-500 whitespace-nowrap">产品类型:</span>
+                                <Select
+                                    placeholder="全部类型"
+                                    style={{ width: 160 }}
+                                    allowClear
+                                    value={filterType}
+                                    onChange={setFilterType}
+                                >
+                                    {productTypes.map(type => (
+                                        <Select.Option key={type} value={type}>
+                                            {type}
+                                        </Select.Option>
+                                    ))}
+                                </Select>
                             </div>
                         </Space>
                     </Col>
                     <Col flex="auto" className="flex justify-end">
                         <Space size="middle">
-                            <Button type="primary" icon={<SearchOutlined />} onClick={fetchProducts}>查询</Button>
+                            <Button type="primary" icon={<SearchOutlined />} onClick={() => fetchProducts(1)}>查询</Button>
                             <Button icon={<ReloadOutlined />} onClick={handleReset}>重置</Button>
                         </Space>
                     </Col>
@@ -658,9 +694,9 @@ const ProductManagement: React.FC = () => {
                 open={isModalOpen}
                 onOk={() => form.submit()}
                 onCancel={() => setIsModalOpen(false)}
-                destroyOnHidden
+                destroyOnClose
             >
-                <Form form={form} layout="vertical" onFinish={handleSave}>
+                <Form form={form} layout="vertical" onFinish={handleSave} preserve={false}>
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item name="code" label="产品编号" rules={[{ required: true, message: '请输入产品编号' }]}>
@@ -698,7 +734,7 @@ const ProductManagement: React.FC = () => {
                 onOk={handleBindRoutings}
                 onCancel={() => setIsRoutingModalOpen(false)}
                 width={700}
-                destroyOnHidden
+                destroyOnClose
             >
                 <div className="mb-4 text-gray-500 italic flex items-center gap-2">
                     <InfoCircleOutlined />

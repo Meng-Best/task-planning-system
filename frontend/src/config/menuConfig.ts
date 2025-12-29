@@ -113,22 +113,22 @@ export const menuItems: MenuItem[] = [
     children: [
       {
         key: 'order-mgmt',
-        label: '订单管理',
+        label: '销售订单',
         icon: React.createElement(ProfileOutlined)
       },
       {
         key: 'task-mgmt',
-        label: '任务管理',
+        label: '生产订单',
         icon: React.createElement(SnippetsOutlined)
       },
       {
         key: 'schedule-mgmt',
-        label: '排程管理',
+        label: '订单拆分',
         icon: React.createElement(DeploymentUnitOutlined)
       },
       {
         key: 'plan-making',
-        label: '生产计划制定',
+        label: '生产计划总览',
         icon: React.createElement(ProjectOutlined)
       },
       {
