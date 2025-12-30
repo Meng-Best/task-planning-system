@@ -5,4 +5,16 @@ dist/
 backend/backup-production-lines.json
 .claude/
 claude.md
+CLAUDE.md
+
+# Windows 保留文件名 - 防止意外创建
+nul
+NUL
 backend/nul
+**/nul
+**/NUL
+CON
+PRN
+AUX
+com[1-9]
+lpt[1-9]
