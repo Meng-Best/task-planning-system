@@ -520,7 +520,7 @@ const PlanMaking: React.FC = () => {
             </div>
           </div>
           <div style={{ flex: 1, marginBottom: 8 }}>
-            <Text strong style={{ fontSize: 14, color: '#1e293b' }}>部装阶段（各舱段间不区分先后顺序）</Text>
+            <Text strong style={{ fontSize: 14, color: '#1e293b' }}>部装阶段（各舱段间不区分先后）</Text>
             {segments.length === 0 && <Tag color="orange" style={{ marginLeft: 12, fontSize: 11 }}>未配置舱段</Tag>}
           </div>
         </div>
