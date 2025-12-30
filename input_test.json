@@ -1,0 +1,476 @@
+{
+  "config": {
+    "work_calendar": {
+      "start_date": "2025-12-31",
+      "start_hour": 8,
+      "schedule": {
+        "upstart_time": 8,
+        "upend_time": 12,
+        "downstart_time": 14,
+        "downend_time": 18
+      },
+      "holidays": [
+        "2026-01-01",
+        "2026-01-02",
+        "2026-01-03",
+        "2026-01-10",
+        "2026-01-11",
+        "2026-01-17",
+        "2026-01-18",
+        "2026-01-24",
+        "2026-01-25",
+        "2026-01-31",
+        "2026-02-01",
+        "2026-02-07",
+        "2026-02-08",
+        "2026-02-15",
+        "2026-02-16",
+        "2026-02-17",
+        "2026-02-18",
+        "2026-02-19",
+        "2026-02-20",
+        "2026-02-21",
+        "2026-02-22",
+        "2026-02-23",
+        "2026-03-01",
+        "2026-03-07",
+        "2026-03-08",
+        "2026-03-14",
+        "2026-03-15",
+        "2026-03-21",
+        "2026-03-22",
+        "2026-03-28",
+        "2026-03-29"
+      ]
+    },
+    "resources": {
+      "crews": [
+        "班组-TM-001",
+        "班组-TM-002",
+        "班组-TM-003",
+        "班组-TM-004",
+        "1"
+      ],
+      "machines": [
+        "数控机床-7",
+        "工业机器人-8",
+        "自动焊接机-9",
+        "激光切割机-10",
+        "液压成型机-11",
+        "三坐标测量仪-12"
+      ],
+      "part_stations": [
+        "精密结构件线-工位02",
+        "精密结构件线-工位01",
+        "发动机组装线-工位02",
+        "一级总装线-工位02",
+        "一级总装线-工位01"
+      ],
+      "final_stations": [
+        "二级总装线-工位02",
+        "发动机组装线-工位01"
+      ]
+    }
+  },
+  "resources": {
+    "teams": [
+      {
+        "id": "1",
+        "code": "TM-001",
+        "name": "班组-TM-001",
+        "capabilities": []
+      },
+      {
+        "id": "2",
+        "code": "TM-002",
+        "name": "班组-TM-002",
+        "capabilities": []
+      },
+      {
+        "id": "3",
+        "code": "TM-003",
+        "name": "班组-TM-003",
+        "capabilities": []
+      },
+      {
+        "id": "4",
+        "code": "TM-004",
+        "name": "班组-TM-004",
+        "capabilities": []
+      },
+      {
+        "id": "5",
+        "code": "1315415",
+        "name": "1",
+        "capabilities": []
+      }
+    ],
+    "stations": [
+      {
+        "id": "5",
+        "code": "01-CX-02-GW-02",
+        "name": "二级总装线-工位02",
+        "type": 1,
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "4",
+        "code": "01-CX-02-GW-01",
+        "name": "二级总装线-工位01",
+        "type": 2,
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "6",
+        "code": "02-CX-01-GW-01",
+        "name": "发动机组装线-工位01",
+        "type": 1,
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "9",
+        "code": "02-CX-02-GW-02",
+        "name": "精密结构件线-工位02",
+        "type": 0,
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "8",
+        "code": "02-CX-02-GW-01",
+        "name": "精密结构件线-工位01",
+        "type": 0,
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "7",
+        "code": "02-CX-01-GW-02",
+        "name": "发动机组装线-工位02",
+        "type": 0,
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "3",
+        "code": "01-CX-01-GW-02",
+        "name": "一级总装线-工位02",
+        "type": 0,
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "2",
+        "code": "01-CX-01-GW-01",
+        "name": "一级总装线-工位01",
+        "type": 0,
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      }
+    ],
+    "machines": [
+      {
+        "id": "7",
+        "code": "SB-0106",
+        "name": "数控机床-7",
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "8",
+        "code": "SB-0107",
+        "name": "工业机器人-8",
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "9",
+        "code": "SB-0108",
+        "name": "自动焊接机-9",
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "10",
+        "code": "SB-0109",
+        "name": "激光切割机-10",
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "11",
+        "code": "SB-0110",
+        "name": "液压成型机-11",
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      },
+      {
+        "id": "12",
+        "code": "SB-0111",
+        "name": "三坐标测量仪-12",
+        "capabilities": [
+          "PROC-002",
+          "PROC-001",
+          "PROC-ZZCS-001"
+        ]
+      }
+    ]
+  },
+  "orders": [
+    {
+      "Order_code": "ORD-2025-3",
+      "Order_name": "8D火箭",
+      "products": [
+        {
+          "product_id": "8",
+          "product_code": "YL07",
+          "quantity": 1
+        },
+        {
+          "product_id": "2",
+          "product_code": "YL02",
+          "quantity": 1
+        },
+        {
+          "product_id": "4",
+          "product_code": "YL04",
+          "quantity": 1
+        },
+        {
+          "product_id": "5",
+          "product_code": "YL05",
+          "quantity": 1
+        },
+        {
+          "product_id": "6",
+          "product_code": "YL06",
+          "quantity": 1
+        }
+      ],
+      "queue": 1,
+      "quantity": 1,
+      "deadline": "2026-01-05T10:26:16.484Z"
+    },
+    {
+      "Order_code": "ORD-2025-3",
+      "Order_name": "8D火箭",
+      "products": [
+        {
+          "product_id": "8",
+          "product_code": "YL07",
+          "quantity": 1
+        },
+        {
+          "product_id": "3",
+          "product_code": "YL03",
+          "quantity": 1
+        },
+        {
+          "product_id": "4",
+          "product_code": "YL04",
+          "quantity": 1
+        },
+        {
+          "product_id": "5",
+          "product_code": "YL05",
+          "quantity": 1
+        },
+        {
+          "product_id": "6",
+          "product_code": "YL06",
+          "quantity": 1
+        }
+      ],
+      "queue": 2,
+      "quantity": 1,
+      "deadline": "2026-01-05T10:26:16.484Z"
+    },
+    {
+      "Order_code": "ORD-2025-2",
+      "Order_name": "3D火箭正式销售",
+      "products": [
+        {
+          "product_id": "8",
+          "product_code": "YL07",
+          "quantity": 1
+        },
+        {
+          "product_id": "2",
+          "product_code": "YL02",
+          "quantity": 1
+        },
+        {
+          "product_id": "4",
+          "product_code": "YL04",
+          "quantity": 1
+        },
+        {
+          "product_id": "5",
+          "product_code": "YL05",
+          "quantity": 1
+        },
+        {
+          "product_id": "6",
+          "product_code": "YL06",
+          "quantity": 1
+        }
+      ],
+      "queue": 3,
+      "quantity": 1,
+      "deadline": "2026-09-29T16:00:00.000Z"
+    }
+  ],
+  "product_library": [
+    {
+      "code": "YL07",
+      "name": "3D火箭",
+      "tasks": [
+        {
+          "id": "6",
+          "code": "PROC-002",
+          "name": "零部件组装",
+          "process_code": "PROC-002",
+          "process_id": "6",
+          "process_name": "零部件组装",
+          "task_code": "PROC-002",
+          "task_id": "6",
+          "queue": 10,
+          "duration": 3600,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 3600,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "8",
+          "code": "PROC-001",
+          "name": "零部件测试",
+          "process_code": "PROC-001",
+          "process_id": "8",
+          "process_name": "零部件测试",
+          "task_code": "PROC-001",
+          "task_id": "8",
+          "queue": 20,
+          "duration": 3600,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 3600,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "10",
+          "code": "PROC-ZZCS-001",
+          "name": "总装测试",
+          "process_code": "PROC-ZZCS-001",
+          "process_id": "10",
+          "process_name": "总装测试",
+          "task_code": "PROC-ZZCS-001",
+          "task_id": "10",
+          "queue": 30,
+          "duration": 3600,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 3600,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "YL02",
+      "name": "一级舱段",
+      "tasks": []
+    },
+    {
+      "code": "YL04",
+      "name": "三级舱段",
+      "tasks": []
+    },
+    {
+      "code": "YL05",
+      "name": "四级舱段",
+      "tasks": []
+    },
+    {
+      "code": "YL06",
+      "name": "五级舱段",
+      "tasks": []
+    },
+    {
+      "code": "YL03",
+      "name": "二级舱段",
+      "tasks": []
+    }
+  ]
+}

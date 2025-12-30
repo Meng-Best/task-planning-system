@@ -69,7 +69,7 @@ const GLOBAL_DATE_TYPE_OPTIONS = [
   { 
     value: 'WORK', 
     label: '🟢 调休上班',
-    description: `工作日规则：${FACTORY_WORK_HOURS.totalLabel}`
+    description: `工作日8小时工作制`
   },
   { 
     value: 'HOLIDAY', 
@@ -407,7 +407,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
                 </div>
                 <div className="flex items-center gap-1">
                   <ClockCircleOutlined />
-                  <span>工作日排班：{FACTORY_WORK_HOURS.totalLabel}</span>
+                  <span>工作日排班</span>
                 </div>
               </div>
             </>
@@ -421,7 +421,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
               </div>
               <div className="flex items-center gap-1 text-xs text-gray-500 ml-auto">
                 <ClockCircleOutlined />
-                <span>工作日：{FACTORY_WORK_HOURS.totalLabel}8:00-12:00;14:00-18:00，最多8小时产能</span>
+                <span>工作日：8:00-12:00;14:00-18:00，最多8小时产能</span>
               </div>
             </>
           )}

@@ -15,18 +15,26 @@ import {
   message,
   Modal,
   Progress,
-  Steps
+  Steps,
+  Alert
 } from 'antd'
 import {
   DeploymentUnitOutlined,
   ApartmentOutlined,
   ClusterOutlined,
   FieldTimeOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  CalendarOutlined
 } from '@ant-design/icons'
 import axios from 'axios'
 import dayjs from 'dayjs'
 import { ORDER_TYPE_OPTIONS, PRODUCTION_TASK_STATUS_OPTIONS } from '../../config/dictionaries'
+import {
+  transformToSchedulingInput,
+  transformWorkCalendar,
+  type CalendarEvent,
+  type BackendResources
+} from '../../utils/schedulingAdapter'
 
 const { Text, Title } = Typography
 const { RangePicker } = DatePicker
@@ -79,33 +87,171 @@ const PlanMaking: React.FC = () => {
   const [pagination, setPagination] = useState({ current: 1, pageSize: 9, total: 0 })
   const [revertingId, setRevertingId] = useState<number | null>(null)
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
-  
+
   // 同步状态
   const [isSyncing, setIsSyncing] = useState(false)
   const [syncProgress, setSyncProgress] = useState(0)
+  const [showConfigModal, setShowConfigModal] = useState(false)
+  const [schedulingRange, setSchedulingRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
+    dayjs(),
+    dayjs().add(60, 'day')  // 默认60天排程范围
+  ])
 
   const handleSync = () => {
+    setShowConfigModal(true)
+  }
+
+  const startSyncProcess = async () => {
+    setShowConfigModal(false)
     setIsSyncing(true)
     setSyncProgress(0)
-    
-    // 模拟同步过程
-    const timer = setInterval(() => {
-      setSyncProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(timer)
-          setTimeout(() => {
-            setIsSyncing(false)
-            message.success({
-              content: '生产计划已成功同步至调度引擎',
-              icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
-              duration: 3
-            })
-          }, 800)
-          return 100
-        }
-        return prev + Math.floor(Math.random() * 10 + 5)
+
+    try {
+      // Step 1: 准备待产数据 (已有 tasks)
+      setSyncProgress(15)
+      await new Promise(resolve => setTimeout(resolve, 300))
+
+      // Step 2: 获取资源数据
+      setSyncProgress(30)
+      const [teamsRes, devicesRes, stationsRes, calendarRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/api/teams`),
+        axios.get(`${API_BASE_URL}/api/devices`),
+        axios.get(`${API_BASE_URL}/api/stations`),
+        axios.get(`${API_BASE_URL}/api/calendar`, {
+          params: {
+            startDate: schedulingRange[0].format('YYYY-MM-DD'),
+            endDate: schedulingRange[1].format('YYYY-MM-DD')
+          }
+        })
+      ])
+
+      // API 返回结构: { status: 'ok', data: { list: [...], total: N } }
+      const backendResources: BackendResources = {
+        teams: teamsRes.data?.data?.list || teamsRes.data?.list || teamsRes.data?.data || [],
+        devices: devicesRes.data?.data?.list || devicesRes.data?.list || devicesRes.data?.data || [],
+        stations: stationsRes.data?.data?.list || stationsRes.data?.list || stationsRes.data?.data || []
+      }
+
+      // Step 3: 处理日历数据
+      setSyncProgress(50)
+      // API 返回结构: { status: 'ok', data: { events: [...], count, ... } }
+      const calendarData = calendarRes.data?.data?.events || calendarRes.data?.events || []
+      const calendarEvents: CalendarEvent[] = Array.isArray(calendarData)
+        ? calendarData.map((e: any) => ({
+          date: e.date,
+          type: e.type
+        }))
+        : []
+
+      const startDate = schedulingRange[0].format('YYYY-MM-DD')
+      const daysToSchedule = schedulingRange[1].diff(schedulingRange[0], 'day') + 1
+
+      // 生成工作日历
+      const workCalendar = transformWorkCalendar(calendarEvents, startDate, daysToSchedule)
+
+      // Step 4: 转换任务数据为后端格式
+      setSyncProgress(70)
+      const backendTasks = tasks.map(task => ({
+        id: String(task.id),
+        code: task.code,
+        orderId: String(task.orderId),
+        productId: String(task.productId),
+        deadline: task.deadline,
+        status: task.status,
+        priority: undefined,
+        order: {
+          code: task.order.code,
+          name: task.order.name,
+          quantity: task.quantity,
+          deadline: task.deadline
+        },
+        product: task.product ? {
+          id: String(task.product.id),
+          code: task.product.code,
+          name: task.product.name,
+          routings: task.product.routings?.map(r => ({
+            id: String(r.routing.id),
+            code: r.routing.code,
+            name: r.routing.name,
+            processes: r.routing.processes?.map(p => ({
+              id: String(p.id),
+              code: p.code,
+              name: p.name,
+              seq: p.seq,
+              duration: 60 // 默认60分钟
+            }))
+          }))
+        } : undefined,
+        steps: task.steps?.map(step => ({
+          id: String(step.id),
+          type: step.type,
+          productId: String(step.productId || ''),
+          seq: step.seq,
+          product: step.product ? {
+            id: String(step.product.id),
+            code: step.product.code,
+            name: step.product.name,
+            routings: step.product.routings?.map(r => ({
+              id: String(r.routing.id),
+              code: r.routing.code,
+              name: r.routing.name,
+              processes: r.routing.processes?.map(p => ({
+                id: String(p.id),
+                code: p.code,
+                name: p.name,
+                seq: p.seq,
+                duration: 60
+              }))
+            }))
+          } : undefined
+        }))
+      }))
+
+      // Step 5: 组装调度输入数据
+      setSyncProgress(85)
+      const schedulingInput = transformToSchedulingInput(
+        backendTasks,
+        backendResources,
+        { holidays: workCalendar.holidays },
+        startDate
+      )
+
+      // 覆盖使用更精确的工作日历
+      schedulingInput.config.work_calendar = workCalendar
+
+      // Step 6: 保存到测试文件 (开发环境)
+      setSyncProgress(95)
+
+      // 保存到项目根目录 input_test.json
+      try {
+        await axios.post(`${API_BASE_URL}/api/scheduling/test-input`, schedulingInput)
+      } catch (saveError) {
+        console.warn('⚠️ 保存测试文件失败:', saveError)
+      }
+
+      // TODO: 正式环境发送到调度引擎
+      // await axios.post(`${API_BASE_URL}/api/scheduling/sync`, schedulingInput)
+
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setSyncProgress(100)
+
+      setTimeout(() => {
+        setIsSyncing(false)
+        message.success({
+          content: `生产计划已成功组装并保存！共 ${tasks.length} 个任务，${daysToSchedule} 天排程范围`,
+          icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
+          duration: 3
+        })
+      }, 500)
+
+    } catch (error: any) {
+      console.error('同步失败:', error)
+      setIsSyncing(false)
+      message.error({
+        content: error?.response?.data?.message || '同步失败，请检查网络连接',
+        duration: 3
       })
-    }, 300)
+    }
   }
 
   // 动态光晕样式
@@ -221,14 +367,14 @@ const PlanMaking: React.FC = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ 
-            width: 24, 
-            height: 24, 
-            borderRadius: 6, 
-            background: '#f5f3ff', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center' 
+          <div style={{
+            width: 24,
+            height: 24,
+            borderRadius: 6,
+            background: '#f5f3ff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
             <ApartmentOutlined style={{ color: '#8b5cf6', fontSize: 12 }} />
           </div>
@@ -240,9 +386,9 @@ const PlanMaking: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {hasRouting ? (
             display.map((r) => (
-              <div key={r.routing.id} style={{ 
-                padding: '10px 12px', 
-                background: '#fcfcfd', 
+              <div key={r.routing.id} style={{
+                padding: '10px 12px',
+                background: '#fcfcfd',
                 border: '1px solid #f1f5f9',
                 borderRadius: 8,
                 transition: 'all 0.2s'
@@ -266,10 +412,10 @@ const PlanMaking: React.FC = () => {
               <Text type="secondary" italic style={{ fontSize: 11 }}>未配置路线</Text>
             </div>
           )}
-          
+
           {hasRouting && routings.length > 2 && (
-            <div style={{ 
-              textAlign: 'center', 
+            <div style={{
+              textAlign: 'center',
               paddingTop: 2,
               borderTop: '1px dashed #f1f5f9'
             }}>
@@ -307,14 +453,14 @@ const PlanMaking: React.FC = () => {
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ 
-              width: 24, 
-              height: 24, 
-              borderRadius: 6, 
-              background: '#eff6ff', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center' 
+            <div style={{
+              width: 24,
+              height: 24,
+              borderRadius: 6,
+              background: '#eff6ff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}>
               <ClusterOutlined style={{ color: '#3b82f6', fontSize: 12 }} />
             </div>
@@ -328,22 +474,22 @@ const PlanMaking: React.FC = () => {
             </Text>
           )}
         </div>
-        
-        <div 
-          style={{ 
-            overflowX: 'auto', 
+
+        <div
+          style={{
+            overflowX: 'auto',
             padding: '4px 0 8px 0',
-            display: 'flex', 
+            display: 'flex',
             alignItems: 'flex-start'
           }}
         >
           {processes.length > 0 ? (
             processes.map((proc, index) => (
               <div key={proc.id} style={{ display: 'flex', alignItems: 'flex-start' }}>
-                <div style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center', 
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
                   width: 130,
                   position: 'relative'
                 }}>
@@ -370,7 +516,7 @@ const PlanMaking: React.FC = () => {
                       }} />
                     </div>
                   )}
-                  
+
                   {/* Node */}
                   <div style={{
                     width: 30,
@@ -390,15 +536,15 @@ const PlanMaking: React.FC = () => {
                   }}>
                     {proc.seq}
                   </div>
-                  
+
                   {/* Labels */}
                   <div style={{ marginTop: 8, textAlign: 'center', width: '100%', padding: '0 4px' }}>
                     <div className="business-code" style={{ fontSize: 11, fontWeight: 700, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', padding: '1px 6px' }} title={proc.code}>
                       {proc.code}
                     </div>
-                    <div style={{ 
-                      color: '#475569', 
-                      fontSize: 10, 
+                    <div style={{
+                      color: '#475569',
+                      fontSize: 10,
                       marginTop: 4,
                       lineHeight: 1.4,
                       display: '-webkit-box',
@@ -440,14 +586,14 @@ const PlanMaking: React.FC = () => {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ 
-            width: 24, 
-            height: 24, 
-            borderRadius: 6, 
+          <div style={{
+            width: 24,
+            height: 24,
+            borderRadius: 6,
             background: typeColor === 'blue' ? '#eff6ff' : '#ecfdf5',
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center' 
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
             {typeColor === 'blue' ? (
               <DeploymentUnitOutlined style={{ color: '#3b82f6', fontSize: 12 }} />
@@ -467,9 +613,9 @@ const PlanMaking: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div style={{ 
-          padding: '10px 12px', 
-          background: '#fcfcfd', 
+        <div style={{
+          padding: '10px 12px',
+          background: '#fcfcfd',
           border: '1px solid #f1f5f9',
           borderRadius: 8
         }}>
@@ -500,19 +646,19 @@ const PlanMaking: React.FC = () => {
 
     return (
       <div style={{ display: 'flex', gap: 20, position: 'relative', paddingBottom: 0 }}>
-        <div style={{ 
-          width: 32, 
-          display: 'flex', 
-          flexDirection: 'column', 
+        <div style={{
+          width: 32,
+          display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center'
         }}>
-          <div style={{ 
-            width: 28, 
-            height: 28, 
-            borderRadius: '50%', 
-            background: '#3b82f6', 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            background: '#3b82f6',
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
             color: '#fff',
             zIndex: 2,
@@ -521,14 +667,14 @@ const PlanMaking: React.FC = () => {
           }}>
             <DeploymentUnitOutlined />
           </div>
-          <div style={{ 
-            flex: 1, 
-            width: 2, 
-            background: 'linear-gradient(to bottom, #3b82f6 0%, #e2e8f0 100%)', 
-            margin: '2px 0' 
+          <div style={{
+            flex: 1,
+            width: 2,
+            background: 'linear-gradient(to bottom, #3b82f6 0%, #e2e8f0 100%)',
+            margin: '2px 0'
           }} />
         </div>
-        
+
         <div style={{ flex: 1 }}>
           <div style={{ marginBottom: 8 }}>
             <Text strong style={{ fontSize: 14, color: '#1e293b' }}>总装阶段（需等待部装阶段完成）</Text>
@@ -545,23 +691,23 @@ const PlanMaking: React.FC = () => {
 
   const renderSegmentNodes = (task: ProductionTask) => {
     const segments = task.steps.filter(step => step.type === 0)
-    
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
         <div style={{ display: 'flex', gap: 20 }}>
-          <div style={{ 
-            width: 32, 
-            display: 'flex', 
-            flexDirection: 'column', 
+          <div style={{
+            width: 32,
+            display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center'
           }}>
-            <div style={{ 
-              width: 28, 
-              height: 28, 
-              borderRadius: '50%', 
-              background: '#10b981', 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: '#10b981',
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               color: '#fff',
               zIndex: 2,
@@ -580,13 +726,13 @@ const PlanMaking: React.FC = () => {
         <div style={{ marginLeft: 15, borderLeft: '2px solid #e2e8f0', paddingLeft: 37, display: 'flex', flexDirection: 'column', gap: 16 }}>
           {segments.map((segment, idx) => (
             <div key={segment.id || idx} style={{ position: 'relative' }}>
-              <div style={{ 
-                position: 'absolute', 
-                left: -37, 
-                top: 20, 
-                width: 37, 
-                height: 2, 
-                background: '#e2e8f0' 
+              <div style={{
+                position: 'absolute',
+                left: -37,
+                top: 20,
+                width: 37,
+                height: 2,
+                background: '#e2e8f0'
               }} />
               <div style={{ display: 'flex', alignItems: 'stretch', gap: 12, flexWrap: 'wrap' }}>
                 {renderProductCard(segment.product, '部装产品', 'green', '未配置编码', '未配置名称')}
@@ -686,9 +832,9 @@ const PlanMaking: React.FC = () => {
               {/* Content of the card header if needed, but it's already in title/extra */}
             </div>
             {isExpanded && (
-              <div style={{ 
-                padding: '16px 24px', 
-                background: '#fcfcfd', 
+              <div style={{
+                padding: '16px 24px',
+                background: '#fcfcfd',
                 borderTop: '1px solid #f1f5f9',
                 display: 'flex',
                 flexDirection: 'column',
@@ -764,21 +910,21 @@ const PlanMaking: React.FC = () => {
 
       <Spin spinning={loading}>
         <Row gutter={[16, 16]}>{taskCards}</Row>
-        
+
         {/* 同步按钮 - 放置在列表右下角（随页面滚动） */}
         {!loading && tasks.length > 0 && (
-          <div style={{ 
+          <div style={{
             marginTop: 32,
             marginBottom: 20,
             display: 'flex',
             justifyContent: 'flex-end'
           }}>
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               size="large"
               // icon={isSyncing ? <LoadingOutlined /> : <RocketOutlined />}
               className={!isSyncing ? "sync-float-btn" : ""}
-              style={{ 
+              style={{
                 height: 42,
                 padding: '0 22px',
                 borderRadius: 12,
@@ -800,6 +946,43 @@ const PlanMaking: React.FC = () => {
         )}
       </Spin>
 
+      {/* 调度参数配置 Modal */}
+      <Modal
+        title={
+          <Space>
+            <CalendarOutlined style={{ color: '#1890ff' }} />
+            <span>调度排产配置</span>
+          </Space>
+        }
+        open={showConfigModal}
+        onOk={startSyncProcess}
+        onCancel={() => setShowConfigModal(false)}
+        okText="开始同步"
+        cancelText="取消"
+        width={400}
+        centered
+      >
+        <div style={{ padding: '12px 0' }}>
+          <div style={{ marginBottom: 16 }}>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+              请选择本次调度的起止时间范围(默认60天)：
+            </Text>
+            <RangePicker
+              style={{ width: '100%' }}
+              value={schedulingRange}
+              onChange={(dates) => dates && setSchedulingRange(dates as [dayjs.Dayjs, dayjs.Dayjs])}
+              allowClear={false}
+            />
+          </div>
+          <Alert
+            message="系统将根据选定范围内的资源空闲情况进行智能排产。"
+            type="info"
+            showIcon
+            style={{ fontSize: 12 }}
+          />
+        </div>
+      </Modal>
+
       {/* 同步过程动态演示 Modal */}
       <Modal
         title={null}
@@ -811,9 +994,9 @@ const PlanMaking: React.FC = () => {
         styles={{ body: { padding: '32px 24px' } }}
       >
         <div style={{ textAlign: 'center' }}>
-          <Progress 
-            type="dashboard" 
-            percent={syncProgress} 
+          <Progress
+            type="dashboard"
+            percent={syncProgress}
             strokeColor={{ '0%': '#1890ff', '100%': '#52c41a' }}
             status="active"
             strokeWidth={10}
@@ -824,18 +1007,18 @@ const PlanMaking: React.FC = () => {
               size="small"
               current={syncProgress < 30 ? 0 : syncProgress < 65 ? 1 : syncProgress < 90 ? 2 : 3}
               items={[
-                { 
-                  title: '准备待产数据', 
+                {
+                  title: '准备待产数据',
                   description: syncProgress > 30 ? '已提取 15 条拆分订单' : '正在扫描已拆分订单...',
                   icon: syncProgress > 30 ? <CheckCircleOutlined style={{ color: '#52c41a' }} /> : undefined
                 },
-                { 
-                  title: '校验工艺拓扑', 
+                {
+                  title: '校验工艺拓扑',
                   description: syncProgress > 65 ? '工艺路径校验通过' : syncProgress > 30 ? '正在校验工序逻辑...' : '等待中',
                   icon: syncProgress > 65 ? <CheckCircleOutlined style={{ color: '#52c41a' }} /> : undefined
                 },
-                { 
-                  title: '推送调度引擎', 
+                {
+                  title: '推送调度引擎',
                   description: syncProgress >= 100 ? '数据同步完成' : syncProgress > 65 ? '正在注入算法模型...' : '等待中',
                   icon: syncProgress >= 100 ? <CheckCircleOutlined style={{ color: '#52c41a' }} /> : undefined
                 }
