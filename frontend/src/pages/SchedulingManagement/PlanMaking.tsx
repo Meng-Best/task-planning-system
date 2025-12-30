@@ -82,15 +82,8 @@ const PlanMaking: React.FC = () => {
   const [filters, setFilters] = useState<{
     orderCode?: string
     productCode?: string
-    status?: number
     deadline?: [dayjs.Dayjs, dayjs.Dayjs] | null
-  }>({ status: 1, deadline: null })
-
-  const statusOptions = [
-    { value: undefined, label: '全部状态' },
-    { value: 1, label: '已拆分' },
-    { value: 0, label: '待拆分' }
-  ]
+  }>({ deadline: null })
 
   const fetchData = async (page = pagination.current, pageSize = pagination.pageSize) => {
     setLoading(true)
@@ -100,7 +93,7 @@ const PlanMaking: React.FC = () => {
         pageSize
       }
 
-      if (filters.status !== undefined) params.status = filters.status
+      params.status = 1 // 只显示已拆分
       if (filters.orderCode) params.orderCode = filters.orderCode
       if (filters.productCode) params.productCode = filters.productCode
       if (filters.deadline && filters.deadline.length === 2) {
@@ -130,7 +123,7 @@ const PlanMaking: React.FC = () => {
 
   const handleSearch = () => fetchData(1)
   const handleReset = () => {
-    setFilters({ status: 1, orderCode: undefined, productCode: undefined, deadline: null })
+    setFilters({ orderCode: undefined, productCode: undefined, deadline: null })
     fetchData(1)
   }
 
@@ -486,7 +479,7 @@ const PlanMaking: React.FC = () => {
         
         <div style={{ flex: 1 }}>
           <div style={{ marginBottom: 8 }}>
-            <Text strong style={{ fontSize: 14, color: '#1e293b' }}>总装阶段</Text>
+            <Text strong style={{ fontSize: 14, color: '#1e293b' }}>总装阶段（需等待部装阶段完成）</Text>
           </div>
           <div style={{ display: 'flex', alignItems: 'stretch', gap: 12, flexWrap: 'wrap' }}>
             {renderProductCard(assemblyStep.product, '总装产品', 'blue', task.product.code, task.product.name)}
@@ -527,7 +520,7 @@ const PlanMaking: React.FC = () => {
             </div>
           </div>
           <div style={{ flex: 1, marginBottom: 8 }}>
-            <Text strong style={{ fontSize: 14, color: '#1e293b' }}>部装阶段</Text>
+            <Text strong style={{ fontSize: 14, color: '#1e293b' }}>部装阶段（各舱段间不区分先后顺序）</Text>
             {segments.length === 0 && <Tag color="orange" style={{ marginLeft: 12, fontSize: 11 }}>未配置舱段</Tag>}
           </div>
         </div>
@@ -603,7 +596,7 @@ const PlanMaking: React.FC = () => {
                 <Space size={8}>
                   <FieldTimeOutlined style={{ color: '#999' }} />
                   <Text style={{ color: dayjs(task.deadline).isBefore(dayjs()) ? '#ff4d4f' : '#666' }}>
-                    {dayjs(task.deadline).format('YYYY-MM-DD')}
+                    订单截至日期：{dayjs(task.deadline).format('YYYY-MM-DD')}
                   </Text>
                 </Space>
                 <Button
@@ -669,50 +662,42 @@ const PlanMaking: React.FC = () => {
               生产计划总览
             </Title>
           </Space>
-          <Space size={16}>
-            <div className="flex items-center gap-8 text-sm text-gray-500">
-              <span>待拆分: </span>
-              <span style={{ color: '#8c8c8c', fontWeight: 600 }}>{stats.pending}</span>
-              <span style={{ marginLeft: 12 }}>已拆分: </span>
-              <span style={{ color: '#1890ff', fontWeight: 700 }}>{stats.scheduling}</span>
-            </div>
-            <Button icon={<ReloadOutlined />} onClick={() => fetchData()} />
-          </Space>
         </div>
       </Card>
 
       <Card className="shadow-sm border-none" styles={{ body: { padding: 12 } }}>
         <Row gutter={[12, 12]} align="middle">
-          <Col flex="240px">
-            <Input
-              allowClear
-              placeholder="订单编号"
-              value={filters.orderCode}
-              onChange={e => setFilters(prev => ({ ...prev, orderCode: e.target.value }))}
-            />
+          <Col flex="300px">
+            <Space style={{ width: '100%' }} align="center">
+              <span style={{ color: '#595959', minWidth: 80, textAlign: 'right' }}>订单编号：</span>
+              <Input
+                allowClear
+                placeholder="请输入订单编号"
+                value={filters.orderCode}
+                onChange={e => setFilters(prev => ({ ...prev, orderCode: e.target.value }))}
+              />
+            </Space>
           </Col>
-          <Col flex="240px">
-            <Input
-              allowClear
-              placeholder="产品编号"
-              value={filters.productCode}
-              onChange={e => setFilters(prev => ({ ...prev, productCode: e.target.value }))}
-            />
+          <Col flex="300px">
+            <Space style={{ width: '100%' }} align="center">
+              <span style={{ color: '#595959', minWidth: 80, textAlign: 'right' }}>产品编号：</span>
+              <Input
+                allowClear
+                placeholder="请输入产品编号"
+                value={filters.productCode}
+                onChange={e => setFilters(prev => ({ ...prev, productCode: e.target.value }))}
+              />
+            </Space>
           </Col>
-          <Col flex="200px">
-            <Select
-              style={{ width: '100%' }}
-              value={filters.status}
-              onChange={value => setFilters(prev => ({ ...prev, status: value }))}
-              options={statusOptions}
-            />
-          </Col>
-          <Col flex="360px">
-            <RangePicker
-              style={{ width: '100%' }}
-              value={filters.deadline || undefined}
-              onChange={value => setFilters(prev => ({ ...prev, deadline: value as any }))}
-            />
+          <Col flex="420px">
+            <Space style={{ width: '100%' }} align="center">
+              <span style={{ color: '#595959', minWidth: 80, textAlign: 'right' }}>截止日期：</span>
+              <RangePicker
+                style={{ width: '100%' }}
+                value={filters.deadline || undefined}
+                onChange={value => setFilters(prev => ({ ...prev, deadline: value as any }))}
+              />
+            </Space>
           </Col>
           <Col flex="auto" className="flex justify-end">
             <Space>

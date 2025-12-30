@@ -170,6 +170,16 @@ const OrderManagement: React.FC = () => {
         }
     };
 
+    const formatOrderTypeLabel = (type: number) => {
+        if (type === 0) return '试制订单';
+        const config = ORDER_TYPE_OPTIONS.find(opt => opt.value === type);
+        return config?.label || '未知';
+    };
+
+    const orderTypeOptionsDisplay = ORDER_TYPE_OPTIONS.map(opt =>
+        opt.value === 0 ? { ...opt, label: '试制订单' } : opt
+    );
+
     const handleSave = async (values: any) => {
         try {
             const payload = {
@@ -219,7 +229,8 @@ const OrderManagement: React.FC = () => {
             width: 120,
             render: (type: number) => {
                 const config = ORDER_TYPE_OPTIONS.find(opt => opt.value === type);
-                return <Tag color={config?.color || 'default'}>{config?.label || '未知'}</Tag>;
+                const label = formatOrderTypeLabel(type);
+                return <Tag color={config?.color || 'default'}>{label}</Tag>;
             }
         },
         { 
@@ -368,7 +379,7 @@ const OrderManagement: React.FC = () => {
                                     allowClear
                                     value={filterType}
                                     onChange={setFilterType}
-                                    options={ORDER_TYPE_OPTIONS}
+                                    options={orderTypeOptionsDisplay}
                                 />
                             </div>
                         </Space>
