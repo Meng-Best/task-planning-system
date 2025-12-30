@@ -31,9 +31,10 @@ import {
 } from '@ant-design/icons'
 
 import axios from 'axios'
-import { 
-  getStatusConfig, 
-  getDeviceTypeLabel, 
+import {
+  getStatusConfig,
+  getDeviceTypeLabel,
+  getProcessTypeLabel,
   BASIC_DATA_STATUS,
   STATION_TYPE_OPTIONS,
   getStationTypeLabel
@@ -532,7 +533,7 @@ const StationManagement: React.FC = () => {
                 render: (code: string) => <span className="business-code">{code}</span>
               },
               { title: '工序名称', dataIndex: 'name', key: 'name', width: '30%' },
-              { title: '工序类型', dataIndex: 'type', key: 'type', width: '30%', render: (val: string) => val || '-' },
+              { title: '工序类型', dataIndex: 'type', key: 'type', width: '30%', render: (type: number) => getProcessTypeLabel(type) },
               {
                 title: '操作',
                 key: 'action',
