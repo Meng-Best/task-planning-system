@@ -4,6 +4,140 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 /**
+ * 获取带拆分步骤的生产任务（含过滤与分页）
+ */
+router.get('/with-schedule', async (req, res) => {
+    try {
+        const {
+            status = 1,
+            current = 1,
+            pageSize = 10,
+            orderCode,
+            productCode,
+            deadlineStart,
+            deadlineEnd
+        } = req.query;
+
+        const where = {};
+
+        if (status !== undefined && status !== '') {
+            const parsedStatus = parseInt(status);
+            if (!Number.isNaN(parsedStatus)) {
+                where.status = parsedStatus;
+            }
+        }
+
+        if (orderCode) {
+            where.order = {
+                code: {
+                    contains: orderCode,
+                    mode: 'insensitive'
+                }
+            };
+        }
+
+        if (productCode) {
+            where.product = {
+                code: {
+                    contains: productCode,
+                    mode: 'insensitive'
+                }
+            };
+        }
+
+        if (deadlineStart || deadlineEnd) {
+            where.deadline = {};
+            if (deadlineStart) {
+                where.deadline.gte = new Date(deadlineStart);
+            }
+            if (deadlineEnd) {
+                where.deadline.lte = new Date(deadlineEnd);
+            }
+        }
+
+        const skip = (parseInt(current) - 1) * parseInt(pageSize);
+        const take = parseInt(pageSize);
+
+        const [list, total, pendingCount, schedulingCount] = await Promise.all([
+            prisma.productionTask.findMany({
+                where,
+                include: {
+                    order: {
+                        select: {
+                            id: true,
+                            code: true,
+                            name: true,
+                            type: true
+                        }
+                    },
+                    product: {
+                        include: {
+                            routings: {
+                                include: {
+                                    routing: {
+                                        include: {
+                                            processes: {
+                                                orderBy: { seq: 'asc' }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    steps: {
+                        include: {
+                            product: {
+                                include: {
+                                    routings: {
+                                        include: {
+                                            routing: {
+                                                include: {
+                                                    processes: {
+                                                        orderBy: { seq: 'asc' }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        orderBy: {
+                            seq: 'asc'
+                        }
+                    }
+                },
+                skip,
+                take,
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.productionTask.count({ where }),
+            prisma.productionTask.count({ where: { status: 0 } }),
+            prisma.productionTask.count({ where: { status: 1 } })
+        ]);
+
+        res.json({
+            status: 'ok',
+            data: {
+                list,
+                total,
+                current: parseInt(current),
+                pageSize: parseInt(pageSize),
+                pendingCount,
+                schedulingCount
+            }
+        });
+    } catch (error) {
+        console.error('获取包含拆分步骤的生产任务失败:', error);
+        res.status(500).json({
+            status: 'error',
+            message: '获取包含拆分步骤的生产任务失败'
+        });
+    }
+});
+
+/**
  * @swagger
  * /api/production-tasks:
  *   get:
