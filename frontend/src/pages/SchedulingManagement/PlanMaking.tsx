@@ -6,7 +6,6 @@ import {
   Row,
   Col,
   Input,
-  Select,
   DatePicker,
   Space,
   Tag,
@@ -14,14 +13,16 @@ import {
   Spin,
   Button,
   message,
-  Modal
+  Modal,
+  Progress,
+  Steps
 } from 'antd'
 import {
   DeploymentUnitOutlined,
   ApartmentOutlined,
   ClusterOutlined,
-  ReloadOutlined,
-  FieldTimeOutlined
+  FieldTimeOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons'
 import axios from 'axios'
 import dayjs from 'dayjs'
@@ -76,9 +77,61 @@ const PlanMaking: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [tasks, setTasks] = useState<ProductionTask[]>([])
   const [pagination, setPagination] = useState({ current: 1, pageSize: 9, total: 0 })
-  const [stats, setStats] = useState({ pending: 0, scheduling: 0 })
   const [revertingId, setRevertingId] = useState<number | null>(null)
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
+  
+  // 同步状态
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [syncProgress, setSyncProgress] = useState(0)
+
+  const handleSync = () => {
+    setIsSyncing(true)
+    setSyncProgress(0)
+    
+    // 模拟同步过程
+    const timer = setInterval(() => {
+      setSyncProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(timer)
+          setTimeout(() => {
+            setIsSyncing(false)
+            message.success({
+              content: '生产计划已成功同步至调度引擎',
+              icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
+              duration: 3
+            })
+          }, 800)
+          return 100
+        }
+        return prev + Math.floor(Math.random() * 10 + 5)
+      })
+    }, 300)
+  }
+
+  // 动态光晕样式
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.id = 'sync-button-animation'
+    style.innerHTML = `
+      @keyframes sync-pulse {
+        0% { box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.6); }
+        70% { box-shadow: 0 0 0 15px rgba(24, 144, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(24, 144, 255, 0); }
+      }
+      .sync-float-btn {
+        animation: sync-pulse 2s infinite;
+      }
+      .sync-float-btn:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 16px rgba(24, 144, 255, 0.3);
+      }
+    `
+    document.head.appendChild(style)
+    return () => {
+      const el = document.getElementById('sync-button-animation')
+      if (el) document.head.removeChild(el)
+    }
+  }, [])
   const [filters, setFilters] = useState<{
     orderCode?: string
     productCode?: string
@@ -103,10 +156,9 @@ const PlanMaking: React.FC = () => {
 
       const response = await axios.get(`${API_BASE_URL}/api/production-tasks/with-schedule`, { params })
       if (response.data.status === 'ok') {
-        const { list, total, current, pageSize: size, pendingCount, schedulingCount } = response.data.data
+        const { list, total, current, pageSize: size } = response.data.data
         setTasks(list)
         setPagination({ current, pageSize: size, total })
-        setStats({ pending: pendingCount, scheduling: schedulingCount })
       }
     } catch (error) {
       // 静默失败，页面内展示 Empty/卡片
@@ -712,7 +764,86 @@ const PlanMaking: React.FC = () => {
 
       <Spin spinning={loading}>
         <Row gutter={[16, 16]}>{taskCards}</Row>
+        
+        {/* 同步按钮 - 放置在列表右下角（随页面滚动） */}
+        {!loading && tasks.length > 0 && (
+          <div style={{ 
+            marginTop: 32,
+            marginBottom: 20,
+            display: 'flex',
+            justifyContent: 'flex-end'
+          }}>
+            <Button 
+              type="primary" 
+              size="large"
+              // icon={isSyncing ? <LoadingOutlined /> : <RocketOutlined />}
+              className={!isSyncing ? "sync-float-btn" : ""}
+              style={{ 
+                height: 42,
+                padding: '0 22px',
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 600,
+                background: 'linear-gradient(135deg, #1890ff 0%, #0050b3 100%)',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                boxShadow: '0 4px 12px rgba(24, 144, 255, 0.25)',
+                transition: 'all 0.3s'
+              }}
+              onClick={handleSync}
+              loading={isSyncing}
+            >
+              {isSyncing ? '正在同步数据...' : '同步至调度引擎'}
+            </Button>
+          </div>
+        )}
       </Spin>
+
+      {/* 同步过程动态演示 Modal */}
+      <Modal
+        title={null}
+        open={isSyncing}
+        footer={null}
+        closable={false}
+        centered
+        width={420}
+        styles={{ body: { padding: '32px 24px' } }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <Progress 
+            type="dashboard" 
+            percent={syncProgress} 
+            strokeColor={{ '0%': '#1890ff', '100%': '#52c41a' }}
+            status="active"
+            strokeWidth={10}
+          />
+          <div style={{ marginTop: 24, textAlign: 'left' }}>
+            <Steps
+              direction="vertical"
+              size="small"
+              current={syncProgress < 30 ? 0 : syncProgress < 65 ? 1 : syncProgress < 90 ? 2 : 3}
+              items={[
+                { 
+                  title: '准备待产数据', 
+                  description: syncProgress > 30 ? '已提取 15 条拆分订单' : '正在扫描已拆分订单...',
+                  icon: syncProgress > 30 ? <CheckCircleOutlined style={{ color: '#52c41a' }} /> : undefined
+                },
+                { 
+                  title: '校验工艺拓扑', 
+                  description: syncProgress > 65 ? '工艺路径校验通过' : syncProgress > 30 ? '正在校验工序逻辑...' : '等待中',
+                  icon: syncProgress > 65 ? <CheckCircleOutlined style={{ color: '#52c41a' }} /> : undefined
+                },
+                { 
+                  title: '推送调度引擎', 
+                  description: syncProgress >= 100 ? '数据同步完成' : syncProgress > 65 ? '正在注入算法模型...' : '等待中',
+                  icon: syncProgress >= 100 ? <CheckCircleOutlined style={{ color: '#52c41a' }} /> : undefined
+                }
+              ]}
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
