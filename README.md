@@ -17,7 +17,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="License">
-  <img src="https://img.shields.io/badge/Version-v1.1.0-blue.svg?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/Version-v1.2.0-blue.svg?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/Node.js-%3E%3D18-339933?style=flat-square&logo=node.js" alt="Node.js">
 </p>
 
@@ -139,7 +139,10 @@ system/
 │   │   ├── 📁 routes/         # API 路由
 │   │   │   ├── orderRoutes.js
 │   │   │   ├── productionTaskRoutes.js
-│   │   │   └── scheduleRoutes.js
+│   │   │   ├── scheduleRoutes.js
+│   │   │   └── schedulingTestRoutes.js
+│   │   ├── 📁 controllers/    # 控制器
+│   │   │   └── schedulingTestController.js
 │   │   ├── 📁 config/         # 配置文件
 │   │   ├── 📄 prismaClient.js # Prisma 客户端
 │   │   └── 📄 index.js        # 服务入口
@@ -151,14 +154,24 @@ system/
 │   │   ├── 📁 pages/          # 页面组件
 │   │   │   ├── 📁 BasicData/
 │   │   │   └── 📁 SchedulingManagement/
+│   │   │       ├── OrderManagement.tsx
+│   │   │       ├── TaskManagement.tsx
+│   │   │       ├── ScheduleManagement.tsx
+│   │   │       └── PlanMaking.tsx
 │   │   ├── 📁 config/         # 配置文件
 │   │   │   ├── dictionaries.ts  # 字典配置
 │   │   │   └── menuConfig.ts    # 菜单配置
+│   │   ├── 📁 utils/          # 工具函数
+│   │   │   └── schedulingAdapter.ts  # 调度数据转换
+│   │   ├── 📁 types/          # 类型定义
+│   │   │   └── schedulingInput.d.ts
 │   │   ├── 📁 store/          # 状态管理
 │   │   └── 📄 App.tsx
 │   └── 📄 package.json
 │
-└── 📄 README.md
+├── 📄 README.md
+├── 📄 调度输入文件生成说明.md  # 调度输入文件详细说明
+└── 📄 input_test.json         # 调度算法输入文件（自动生成）
 ```
 
 ---
@@ -263,8 +276,25 @@ system/
 - 🔄 舱段步骤无序，可自由添加/删除
 - ✅ 保存后任务状态变更为"已拆分"
 
-#### 📅 生产计划制定
-> 🚧 功能开发中...
+#### 📅 生产计划制定 (PlanMaking.tsx)
+
+```
+✓ 任务列表展示与筛选
+✓ 调度输入数据生成（自动转换）
+✓ 输入文件保存 (input_test.json)
+✓ 工序类型动态匹配（GT/YT工位）
+✓ 资源能力智能分配
+✓ 产品库自动构建
+```
+
+**核心特性：**
+- 📝 自动生成调度算法所需的输入文件
+- 🔄 智能转换数据库数据为调度格式
+- 🎯 工位-工序类型匹配（GT/YT分离）
+- 📊 完整的工作日历、资源、订单、产品库配置
+- 📁 输出标准JSON格式，支持外部调度算法对接
+
+> 详细说明请参考：[调度输入文件生成说明.md](调度输入文件生成说明.md)
 
 #### 🧪 模拟排程评估
 > 🚧 功能开发中...
@@ -352,6 +382,20 @@ GET    /api/schedules/:taskId    # 获取任务的拆分步骤列表
 POST   /api/schedules/:taskId    # 批量保存拆分步骤
 DELETE /api/schedules/:taskId    # 删除任务的所有拆分步骤（任务状态恢复为待拆分）
 ```
+
+### 📊 调度输入文件相关
+
+```http
+GET    /api/production-tasks/:id/scheduling-input    # 获取指定任务的调度输入数据（JSON格式）
+POST   /api/scheduling-test/save-input              # 保存调度输入数据到 input_test.json
+GET    /api/scheduling-test/get-input               # 读取 input_test.json 文件内容
+```
+
+**调度输入数据结构：**
+- `config`: 工作日历和资源配置
+- `resources`: 班组、工位、设备及其能力定义
+- `orders`: 待排程的生产订单
+- `product_library`: 产品工艺路线库
 
 ---
 
@@ -539,6 +583,30 @@ DEVICE_TYPE_OPTIONS
 ---
 
 ## 📜 版本历史
+
+### 🚀 v1.2.0 (2025-12-31)
+
+**调度输入文件生成功能**
+- ✅ 实现调度算法输入数据自动生成
+- ✅ 完成 schedulingAdapter.ts 数据转换逻辑
+- ✅ 实现工序类型动态匹配（GT固体/YT液体工位）
+- ✅ 添加调度输入文件保存/读取接口
+- ✅ 输出标准 JSON 格式（input_test.json）
+- ✅ 新增完整的调度输入文件生成说明文档
+
+**功能优化**
+- ✅ 优化资源能力配置逻辑
+  - 班组：保留数据库真实能力
+  - 工位：基于工序类型智能匹配
+  - 设备：全量工序支持
+- ✅ 完善工作日历配置
+- ✅ 实现产品工艺库自动构建
+- ✅ 添加数据约束与验证规则
+
+**接口完善**
+- ✅ GET `/api/production-tasks/:id/scheduling-input` - 获取调度输入数据
+- ✅ POST `/api/scheduling-test/save-input` - 保存输入文件
+- ✅ GET `/api/scheduling-test/get-input` - 读取输入文件
 
 ### 🎉 v1.1.0 (2025-12-29)
 
