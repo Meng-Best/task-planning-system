@@ -251,21 +251,45 @@ router.post('/from-order', async (req, res) => {
     try {
         const { orderId, taskCount } = req.body;
 
+        // 参数验证
+        if (!orderId) {
+            console.error('[from-order] 缺少参数 orderId');
+            return res.status(400).json({
+                status: 'error',
+                message: '缺少必要参数: orderId'
+            });
+        }
+
+        if (!taskCount || taskCount < 1) {
+            console.error('[from-order] 无效的 taskCount:', taskCount);
+            return res.status(400).json({
+                status: 'error',
+                message: '任务数量必须大于0'
+            });
+        }
+
+        console.log(`[from-order] 开始创建任务 - 订单ID: ${orderId}, 数量: ${taskCount}`);
+
         // 获取订单信息
         const order = await prisma.order.findUnique({
-            where: { id: orderId }
+            where: { id: parseInt(orderId) },
+            include: { product: true }
         });
 
         if (!order) {
+            console.error('[from-order] 订单不存在:', orderId);
             return res.status(404).json({
                 status: 'error',
                 message: '订单不存在'
             });
         }
 
+        console.log(`[from-order] 找到订单: ${order.code}, 产品ID: ${order.productId}`);
+
         // 检查剩余可创建数量
         const remainingQuantity = order.quantity - order.scheduledQuantity;
         if (taskCount > remainingQuantity) {
+            console.error(`[from-order] 超出可创建数量 - 请求: ${taskCount}, 剩余: ${remainingQuantity}`);
             return res.status(400).json({
                 status: 'error',
                 message: `超出可创建数量，剩余可创建: ${remainingQuantity}`
@@ -274,14 +298,43 @@ router.post('/from-order', async (req, res) => {
 
         // 使用事务创建任务并更新订单
         const result = await prisma.$transaction(async (tx) => {
+            // 获取今天的日期字符串
+            const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            const todayPrefix = `TASK-${today}-`;
+
+            // 查询今天已创建的任务数量，以此生成新的序号
+            const existingTasksToday = await tx.productionTask.findMany({
+                where: {
+                    code: {
+                        startsWith: todayPrefix
+                    }
+                },
+                select: { code: true }
+            });
+
+            // 从已有任务编号中提取最大序号
+            let maxSeq = 0;
+            existingTasksToday.forEach(t => {
+                const match = t.code.match(/TASK-\d{8}-(\d+)$/);
+                if (match) {
+                    const seq = parseInt(match[1]);
+                    if (seq > maxSeq) maxSeq = seq;
+                }
+            });
+
+            console.log(`[from-order] 今天已有 ${existingTasksToday.length} 个任务，最大序号: ${maxSeq}`);
+
             // 创建任务
             const tasks = [];
             for (let i = 0; i < taskCount; i++) {
-                const taskCode = `TASK-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${String(order.scheduledQuantity + i + 1).padStart(3, '0')}`;
+                const taskCode = `TASK-${today}-${String(maxSeq + i + 1).padStart(3, '0')}`;
+
+                console.log(`[from-order] 创建任务 ${i + 1}/${taskCount}: ${taskCode}`);
+
                 const task = await tx.productionTask.create({
                     data: {
                         code: taskCode,
-                        orderId: orderId,
+                        orderId: parseInt(orderId),
                         productId: order.productId,
                         quantity: 1,
                         status: 0,
@@ -294,7 +347,7 @@ router.post('/from-order', async (req, res) => {
 
             // 更新订单的 scheduledQuantity
             await tx.order.update({
-                where: { id: orderId },
+                where: { id: parseInt(orderId) },
                 data: {
                     scheduledQuantity: order.scheduledQuantity + taskCount
                 }
@@ -303,16 +356,25 @@ router.post('/from-order', async (req, res) => {
             return tasks;
         });
 
+        console.log(`[from-order] 成功创建 ${result.length} 个任务`);
+
         res.json({
             status: 'ok',
             message: `成功创建 ${taskCount} 个生产任务`,
             data: result
         });
     } catch (error) {
-        console.error('创建生产任务失败:', error);
+        console.error('[from-order] 创建生产任务失败:', error);
+        console.error('[from-order] 错误详情:', {
+            name: error.constructor.name,
+            message: error.message,
+            code: error.code,
+            meta: error.meta
+        });
         res.status(500).json({
             status: 'error',
-            message: '创建生产任务失败'
+            message: error.message || '创建生产任务失败',
+            detail: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });

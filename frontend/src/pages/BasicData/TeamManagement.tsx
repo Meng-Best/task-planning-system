@@ -17,11 +17,12 @@ import {
   DisconnectOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
-import { 
+import {
   getStatusConfig,
   SHIFT_TYPES,
   MAJOR_OPTIONS,
-  getStaffLevelLabel 
+  getStaffLevelLabel,
+  getProcessTypeLabel
 } from '../../config/dictionaries';
 import TreeTransfer from '../../components/TreeTransfer';
 
@@ -510,7 +511,7 @@ const TeamManagement: React.FC = () => {
                 render: (code: string) => <span className="business-code">{code}</span>
               },
               { title: '工序名称', dataIndex: 'name', key: 'name', width: '30%' },
-              { title: '工序类型', dataIndex: 'type', key: 'type', width: '30%', render: (val: string) => val || '-' },
+              { title: '工序类型', dataIndex: 'type', key: 'type', width: '30%', render: (val: number) => val !== undefined && val !== null ? getProcessTypeLabel(val) : '-' },
               {
                 title: '操作',
                 key: 'action',

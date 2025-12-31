@@ -38,6 +38,15 @@ exports.getTeams = async (req, res) => {
               level: true
             }
           },
+          capabilities: {
+            select: {
+              process: {
+                select: {
+                  code: true
+                }
+              }
+            }
+          },
           _count: {
             select: { staffs: true }
           }
@@ -49,11 +58,17 @@ exports.getTeams = async (req, res) => {
       prisma.team.count({ where: whereClause })
     ]);
 
+    // 转换班组能力格式：从 { process: { code: 'XXX' } } 转为 'XXX'
+    const transformedTeams = teams.map(team => ({
+      ...team,
+      capabilities: team.capabilities?.map(cap => cap.process.code) || []
+    }));
+
     res.json({
       status: 'ok',
       message: '班组列表获取成功',
       data: {
-        list: teams,
+        list: transformedTeams,
         total,
         current: currentPage,
         pageSize: size

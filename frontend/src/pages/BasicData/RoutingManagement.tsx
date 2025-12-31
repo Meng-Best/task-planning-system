@@ -26,7 +26,7 @@ import {
     InfoCircleOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
-import { ROUTING_TYPE_OPTIONS, getRoutingTypeLabel } from '../../config/dictionaries';
+import { ROUTING_TYPE_OPTIONS, getRoutingTypeLabel, getProcessTypeLabel } from '../../config/dictionaries';
 
 const API_BASE_URL = 'http://localhost:3001';
 
@@ -82,16 +82,27 @@ const RoutingManagement: React.FC = () => {
     const [editingRouting, setEditingRouting] = useState<Routing | null>(null);
     const [form] = Form.useForm();
 
-    const fetchRoutings = async (page?: number, size?: number) => {
+    // filterOverrides 可以在重置时直接传入空值，避免等待状态更新
+    const fetchRoutings = async (
+        page?: number,
+        size?: number,
+        filterOverrides?: { code?: string; name?: string; type?: number }
+    ) => {
         setLoading(true);
         try {
             const params: any = {
                 current: page || pagination.current,
                 pageSize: size || pagination.pageSize
             };
-            if (filterCode) params.code = filterCode;
-            if (filterName) params.name = filterName;
-            if (filterType !== undefined) params.type = filterType;
+
+            // 使用 filterOverrides 或当前状态
+            const code = filterOverrides?.code ?? filterCode;
+            const name = filterOverrides?.name ?? filterName;
+            const type = filterOverrides?.type ?? filterType;
+
+            if (code) params.code = code;
+            if (name) params.name = name;
+            if (type !== undefined) params.type = type;
 
             const response = await axios.get(`${API_BASE_URL}/api/routings`, { params });
             if (response.data.status === 'ok') {
@@ -149,6 +160,12 @@ const RoutingManagement: React.FC = () => {
         setFilterCode('');
         setFilterName('');
         setFilterType(undefined);
+        // 直接传入空筛选条件，避免等待状态更新
+        fetchRoutings(1, undefined, { code: '', name: '', type: undefined });
+    };
+
+    const handleSearch = () => {
+        // 查询时从第1页开始
         fetchRoutings(1);
     };
 
@@ -250,28 +267,28 @@ const RoutingManagement: React.FC = () => {
     };
 
     const columns = [
-        { 
-            title: '工艺路线编号', 
-            dataIndex: 'code', 
-            key: 'code', 
+        {
+            title: '工艺路线编号',
+            dataIndex: 'code',
+            key: 'code',
             width: '15%',
             render: (code: string) => <span className="business-code">{code}</span>
         },
         { title: '工艺路线名称', dataIndex: 'name', key: 'name', width: '20%' },
-        { 
-            title: '工艺路线类型', 
-            dataIndex: 'type', 
-            key: 'type', 
+        {
+            title: '工艺路线类型',
+            dataIndex: 'type',
+            key: 'type',
             width: '15%',
             render: (type: number) => {
                 const config = ROUTING_TYPE_OPTIONS.find(opt => opt.value === type);
                 return <Tag color={config?.color || 'default'}>{config?.label || '未知'}</Tag>;
             }
         },
-        { 
-            title: '状态', 
-            dataIndex: 'status', 
-            key: 'status', 
+        {
+            title: '状态',
+            dataIndex: 'status',
+            key: 'status',
             width: '15%',
             render: (status: string) => {
                 const color = status === 'active' ? 'green' : 'orange';
@@ -297,7 +314,7 @@ const RoutingManagement: React.FC = () => {
                             message.error('删除失败');
                         }
                     }}
-                    onCancel={(e) => e?.stopPropagation()}
+                        onCancel={(e) => e?.stopPropagation()}
                     >
                         <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={(e) => e.stopPropagation()}>删除</Button>
                     </Popconfirm>
@@ -318,10 +335,10 @@ const RoutingManagement: React.FC = () => {
                 </Tag>
             )
         },
-        { 
-            title: '工序编号', 
-            dataIndex: 'code', 
-            key: 'code', 
+        {
+            title: '工序编号',
+            dataIndex: 'code',
+            key: 'code',
             width: '18%',
             render: (code: string) => <span className="business-code">{code}</span>
         },
@@ -408,7 +425,7 @@ const RoutingManagement: React.FC = () => {
                                     allowClear
                                     value={filterCode}
                                     onChange={e => setFilterCode(e.target.value)}
-                                    onPressEnter={fetchRoutings}
+                                    onPressEnter={handleSearch}
                                 />
                             </div>
                             <div className="flex items-center gap-2">
@@ -419,7 +436,7 @@ const RoutingManagement: React.FC = () => {
                                     allowClear
                                     value={filterName}
                                     onChange={e => setFilterName(e.target.value)}
-                                    onPressEnter={fetchRoutings}
+                                    onPressEnter={handleSearch}
                                 />
                             </div>
                             <div className="flex items-center gap-2">
@@ -437,7 +454,7 @@ const RoutingManagement: React.FC = () => {
                     </Col>
                     <Col flex="auto" className="flex justify-end">
                         <Space size="middle">
-                            <Button type="primary" icon={<SearchOutlined />} onClick={fetchRoutings}>查询</Button>
+                            <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
                             <Button icon={<ReloadOutlined />} onClick={handleReset}>重置</Button>
                         </Space>
                     </Col>
@@ -561,14 +578,14 @@ const RoutingManagement: React.FC = () => {
                                 optionFilterProp="children"
                                 filterOption={(input, option) =>
                                     ((option?.label ?? option?.children ?? '') as string)
-                                      .toString()
-                                      .toLowerCase()
-                                      .includes(input.toLowerCase())
+                                        .toString()
+                                        .toLowerCase()
+                                        .includes(input.toLowerCase())
                                 }
                             >
                                 {standardProcesses.map(process => (
                                     <Select.Option key={process.id} value={process.id}>
-                                        [{process.code}] {process.name} {process.type && `(${process.type})`}
+                                        [{process.code}] {process.name} {process.type !== undefined && process.type !== null ? `(${getProcessTypeLabel(process.type)})` : ''}
                                     </Select.Option>
                                 ))}
                             </Select>

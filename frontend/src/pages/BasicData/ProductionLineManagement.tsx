@@ -97,7 +97,7 @@ const ProductionLineManagement: React.FC = () => {
 
   const LINE_TYPE_OPTIONS = [
     { value: 0, label: '部装' },
-    { value: 1, label: '整装' }
+    { value: 1, label: '总装' }
   ]
 
   const normalizeType = (val: any): number => {

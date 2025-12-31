@@ -72,7 +72,7 @@ model ProductionLine {
   id             Int             @id @default(autoincrement())
   code           String?         @unique // 产线代码（如：A-CX-01）
   name           String          // 产线名称
-  type           Int             @default(0) /// 0: 部装, 1: 整装
+  type           Int             @default(0) /// 0: 部装, 1: 总装
   capacity       Int             @default(100) // 标准日产能，用于排程计算
   status         Int             @default(0) /// 0: 可占用(Available), 1: 不可用(Unavailable), 2: 已占用(Occupied)
   factoryId      Int             // 所属工厂ID

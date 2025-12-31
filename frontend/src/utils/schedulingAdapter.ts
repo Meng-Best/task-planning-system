@@ -246,9 +246,63 @@ function extractAllProcessCodes(tasks: BackendTask[]): string[] {
 // ============ 资源转换 ============
 
 /**
+ * 从编码中提取工序类型标识
+ * @param code - 工序编码或工位编码 (如 PROCZXGTWG04, GW-CS-GT-01)
+ * @returns 工序类型标识 (GT=固体, YT=液体) 或 null
+ */
+function extractProcessType(code: string): string | null {
+    // 尝试匹配常见的工序类型模式
+    // 示例：PROCZXGTWG04 -> GT, PROCZXYTWG04 -> YT
+    // 示例：GW-CS-GT-01 -> GT, GW-CS-YT-01 -> YT
+    const upperCode = code.toUpperCase();
+
+    // 匹配 GT (固体)
+    if (upperCode.includes('GT')) {
+        return 'GT';
+    }
+    // 匹配 YT (液体)
+    if (upperCode.includes('YT')) {
+        return 'YT';
+    }
+
+    return null;
+}
+
+/**
+ * 根据工位/设备类型过滤可执行的工序编码
+ * @param resourceCode - 资源编码 (工位或设备)
+ * @param allProcessCodes - 所有工序编码列表
+ * @returns 匹配的工序编码列表
+ *
+ * 匹配规则：
+ * - GT工位 -> 只能处理GT工序（固体工序）
+ * - YT工位 -> 只能处理YT工序（液体工序）
+ * - 无类型标识 -> 可以处理所有工序
+ */
+function filterProcessCodesByType(
+    resourceCode: string,
+    allProcessCodes: string[]
+): string[] {
+    const resourceType = extractProcessType(resourceCode);
+
+    // 如果资源没有类型标识，返回所有工序编码
+    if (!resourceType) {
+        return allProcessCodes;
+    }
+
+    // 只返回与资源类型匹配的工序编码
+    return allProcessCodes.filter(processCode => {
+        const processType = extractProcessType(processCode);
+        // 如果工序没有类型标识，或类型匹配，则允许
+        return !processType || processType === resourceType;
+    });
+}
+
+/**
  * 转换资源数据
  * - 班组：保留真实 capabilities
- * - 设备/工位：使用全量工序编码作为 capabilities
+ * - 设备：使用全量工序编码作为 capabilities（保留原有逻辑）
+ * - 工位：根据工序类型动态匹配 capabilities (GT工位->GT工序, YT工位->YT工序)
  */
 function transformResources(
     resources: BackendResources,
@@ -267,16 +321,16 @@ function transformResources(
         id: String(device.id), // 确保ID为string类型
         code: device.code,
         name: device.name,
-        capabilities: allProcessCodes // 全能伪装
+        capabilities: allProcessCodes // 保持全能伪装
     }));
 
-    // 转换工位（使用全量工序编码，ID转为string，保留type用于分类）
+    // 转换工位（基于工序类型动态匹配，ID转为string，保留type用于分类）
     const stations: Station[] = resources.stations.map(station => ({
         id: String(station.id), // 确保ID为string类型
         code: station.code,
         name: station.name,
         type: station.type, // 保留type用于part/final分类
-        capabilities: allProcessCodes // 全能伪装
+        capabilities: filterProcessCodesByType(station.code, allProcessCodes) // 动态匹配
     }));
 
     return { teams, stations, machines };

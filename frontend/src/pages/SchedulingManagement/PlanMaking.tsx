@@ -439,7 +439,7 @@ const PlanMaking: React.FC = () => {
     return (
       <div
         style={{
-          flex: 1,
+          flex: '0 0 auto',
           minWidth: 400,
           padding: '12px 16px',
           background: '#f8fafc',

@@ -68,7 +68,7 @@ interface Factory {
 const API_BASE_URL = 'http://localhost:3001'
 const LINE_TYPE_OPTIONS = [
   { value: 0, label: '部装' },
-  { value: 1, label: '整装' }
+  { value: 1, label: '总装' }
 ]
 
 const FactoryManagement: React.FC = () => {
@@ -651,7 +651,7 @@ const FactoryManagement: React.FC = () => {
     }
   },
     {
-      title: '标准产能(件/日)',
+      title: '标准产能(件/月)',
       dataIndex: 'capacity',
       key: 'capacity',
       width: 150,
@@ -1211,7 +1211,7 @@ const FactoryManagement: React.FC = () => {
           </Form.Item>
           <Form.Item
             name="capacity"
-            label="标准产能(件/日)"
+            label="标准产能(件/月)"
             rules={[{ required: true, message: '请输入标准产能' }]}
           >
             <InputNumber

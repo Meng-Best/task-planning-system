@@ -89,7 +89,7 @@ export const SHIFT_TYPES = [
 ]
 
 const STAFF_LEVEL_MAP: Record<string, string[]> = {
-  default: ['设计师', '主管设计师', '高级设计师', '副主任设计师', '主任设计师'],
+  default: ['设计师', '主管设计师', '高管设计师', '副主任设计师', '主任设计师'],
   craft: ['初级工艺师', '中级工艺师', '高级工艺师', '工艺副主任', '工艺主任']
 }
 

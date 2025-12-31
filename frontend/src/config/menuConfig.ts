@@ -133,7 +133,7 @@ export const menuItems: MenuItem[] = [
       },
       {
         key: 'simulation-eval',
-        label: '模拟排程评估',
+        label: '正式排程调度',
         icon: React.createElement(ExperimentOutlined)
       },
       {
