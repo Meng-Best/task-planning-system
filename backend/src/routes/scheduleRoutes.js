@@ -2,6 +2,128 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const fs = require('fs').promises;
+const path = require('path');
+
+// ========== 具体路由（必须放在通配路由之前） ==========
+
+/**
+ * @swagger
+ * /api/schedules/output/result:
+ *   get:
+ *     summary: 获取调度算法输出结果
+ *     tags: [Schedule]
+ *     responses:
+ *       200:
+ *         description: 成功返回调度结果
+ *       404:
+ *         description: 未找到调度结果文件
+ */
+router.get('/output/result', async (req, res) => {
+    try {
+        // 读取项目根目录的output.json文件
+        const outputPath = path.join(__dirname, '../../../output.json');
+
+        // 检查文件是否存在
+        try {
+            await fs.access(outputPath);
+        } catch (error) {
+            return res.status(404).json({
+                status: 'error',
+                message: '未找到调度结果文件，请先运行调度算法生成调度结果'
+            });
+        }
+
+        // 读取文件内容
+        const fileContent = await fs.readFile(outputPath, 'utf-8');
+        const data = JSON.parse(fileContent);
+
+        // 获取文件修改时间
+        const stats = await fs.stat(outputPath);
+
+        res.json({
+            status: 'ok',
+            data: data,
+            meta: {
+                lastModified: stats.mtime,
+                fileSize: stats.size
+            }
+        });
+    } catch (error) {
+        console.error('读取调度结果失败:', error);
+        res.status(500).json({
+            status: 'error',
+            message: '读取调度结果失败: ' + error.message
+        });
+    }
+});
+
+/**
+ * @swagger
+ * /api/schedules/output/check:
+ *   get:
+ *     summary: 检查output.json文件是否存在
+ *     tags: [Schedule]
+ *     responses:
+ *       200:
+ *         description: 返回文件存在状态
+ */
+router.get('/output/check', async (req, res) => {
+    try {
+        const outputPath = path.join(__dirname, '../../../output.json');
+
+        try {
+            const stats = await fs.stat(outputPath);
+            res.json({
+                status: 'ok',
+                exists: true,
+                lastModified: stats.mtime,
+                fileSize: stats.size
+            });
+        } catch (error) {
+            res.json({
+                status: 'ok',
+                exists: false
+            });
+        }
+    } catch (error) {
+        console.error('检查文件失败:', error);
+        res.status(500).json({
+            status: 'error',
+            message: '检查文件失败: ' + error.message
+        });
+    }
+});
+
+/**
+ * @swagger
+ * /api/schedules/run:
+ *   post:
+ *     summary: 触发调度算法运行
+ *     tags: [Schedule]
+ *     responses:
+ *       200:
+ *         description: 调度算法已触发
+ */
+router.post('/run', async (req, res) => {
+    try {
+        // TODO: 这里将来会调用实际的调度算法
+        // 目前只是返回成功,表示已接收到调度请求
+
+        res.json({
+            status: 'ok',
+            message: '调度请求已接收，算法正在运行中...'
+        });
+    } catch (error) {
+        console.error('触发调度失败:', error);
+        res.status(500).json({
+            status: 'error',
+            message: '触发调度失败: ' + error.message
+        });
+    }
+});
+
+// ========== 通配路由（带参数的路由） ==========
 
 /**
  * @swagger

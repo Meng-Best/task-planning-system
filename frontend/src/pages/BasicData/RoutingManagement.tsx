@@ -52,7 +52,7 @@ interface Process {
     id: number;
     code: string;
     name: string;
-    type: string;
+    type: number;
     description: string;
 }
 
