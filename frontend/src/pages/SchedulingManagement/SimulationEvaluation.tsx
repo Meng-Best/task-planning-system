@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Card, Button, Typography, Empty, Spin, Progress, Alert, Space, Statistic, message } from 'antd'
-import { PlayCircleOutlined, CheckCircleOutlined, ClockCircleOutlined, RocketOutlined } from '@ant-design/icons'
+import { Card, Button, Typography, Progress, Alert, Space, Statistic, message, Row, Col } from 'antd'
+import {
+  PlayCircleOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  RocketOutlined,
+  ThunderboltOutlined,
+  DatabaseOutlined,
+  CalculatorOutlined,
+  SyncOutlined,
+  CloudServerOutlined,
+  ApiOutlined,
+  NodeIndexOutlined
+} from '@ant-design/icons'
 import axios from 'axios'
 import { useTabStore } from '../../store/useTabStore'
 
@@ -10,11 +22,20 @@ const API_BASE_URL = 'http://localhost:3001'
 
 type ScheduleStatus = 'idle' | 'running' | 'completed' | 'error'
 
+// 调度流程步骤配置
+const SCHEDULE_STEPS = [
+  { key: 'load', label: '数据加载', icon: <DatabaseOutlined />, color: '#1677ff' },
+  { key: 'parse', label: '约束解析', icon: <ApiOutlined />, color: '#722ed1' },
+  { key: 'optimize', label: '优化计算', icon: <CalculatorOutlined />, color: '#faad14' },
+  { key: 'generate', label: '方案生成', icon: <NodeIndexOutlined />, color: '#52c41a' },
+]
+
 const SimulationEvaluation: React.FC = () => {
   const [status, setStatus] = useState<ScheduleStatus>('idle')
   const [progress, setProgress] = useState(0)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [errorMessage, setErrorMessage] = useState('')
+  const [currentStep, setCurrentStep] = useState(0)
   const pollingIntervalRef = useRef<number | null>(null)
   const timerRef = useRef<number | null>(null)
   const { addTab } = useTabStore()
@@ -31,6 +52,16 @@ const SimulationEvaluation: React.FC = () => {
     }
   }, [])
 
+  // 根据进度更新当前步骤
+  useEffect(() => {
+    if (status === 'running') {
+      if (progress < 25) setCurrentStep(0)
+      else if (progress < 50) setCurrentStep(1)
+      else if (progress < 75) setCurrentStep(2)
+      else setCurrentStep(3)
+    }
+  }, [progress, status])
+
   // 检查 output.json 是否存在
   const checkOutputFile = async (): Promise<boolean> => {
     try {
@@ -45,35 +76,29 @@ const SimulationEvaluation: React.FC = () => {
   // 开始轮询检测文件
   const startPolling = () => {
     const startTime = Date.now()
-    // 随机30-60秒的动画时长
-    const animationDuration = 30000 + Math.random() * 30000 // 30-60秒
-    const maxWaitTime = 600000 // 最多等待10分钟
+    const animationDuration = 30000 + Math.random() * 30000
+    const maxWaitTime = 600000
     let fileDetected = false
 
     pollingIntervalRef.current = setInterval(async () => {
       const elapsed = Date.now() - startTime
 
-      // 前30秒：进度条按时间推进到95%
       if (elapsed <= animationDuration) {
         const progress = (elapsed / animationDuration) * 95
         setProgress(progress)
       } else if (!fileDetected) {
-        // 30秒后如果还没检测到文件，保持95%并继续等待
         setProgress(95)
       }
 
-      // 检查文件是否存在
       if (!fileDetected) {
         const exists = await checkOutputFile()
 
         if (exists) {
           fileDetected = true
 
-          // 如果在30秒内检测到，等待动画完成
           if (elapsed < animationDuration) {
             const remainingTime = animationDuration - elapsed
 
-            // 等待剩余时间后完成
             setTimeout(() => {
               if (pollingIntervalRef.current) {
                 clearInterval(pollingIntervalRef.current)
@@ -86,7 +111,6 @@ const SimulationEvaluation: React.FC = () => {
               setStatus('completed')
               message.success('调度完成！即将跳转到结果页面...')
 
-              // 2秒后跳转到结果页面
               setTimeout(() => {
                 addTab({
                   key: 'schedule-result',
@@ -95,7 +119,6 @@ const SimulationEvaluation: React.FC = () => {
               }, 2000)
             }, remainingTime)
           } else {
-            // 30秒后检测到，立即完成
             if (pollingIntervalRef.current) {
               clearInterval(pollingIntervalRef.current)
             }
@@ -107,7 +130,6 @@ const SimulationEvaluation: React.FC = () => {
             setStatus('completed')
             message.success('调度完成！即将跳转到结果页面...')
 
-            // 2秒后跳转到结果页面
             setTimeout(() => {
               addTab({
                 key: 'schedule-result',
@@ -118,7 +140,6 @@ const SimulationEvaluation: React.FC = () => {
         }
       }
 
-      // 超时检查（10分钟）
       if (elapsed >= maxWaitTime && !fileDetected) {
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current)
@@ -130,9 +151,8 @@ const SimulationEvaluation: React.FC = () => {
         setStatus('error')
         setErrorMessage('调度超时，请检查调度算法是否正常运行')
       }
-    }, 100) // 每100ms检查一次，让进度更平滑
+    }, 100)
 
-    // 启动计时器
     timerRef.current = setInterval(() => {
       setElapsedTime(prev => prev + 1)
     }, 1000)
@@ -145,13 +165,11 @@ const SimulationEvaluation: React.FC = () => {
       setProgress(0)
       setElapsedTime(0)
       setErrorMessage('')
+      setCurrentStep(0)
 
-      // 调用后端API触发调度（目前只是占位，实际调度算法还未实现）
       await axios.post(`${API_BASE_URL}/api/schedules/run`)
 
       message.info('调度已启动，正在等待结果...')
-
-      // 开始轮询检测 output.json
       startPolling()
 
     } catch (error: any) {
@@ -174,6 +192,7 @@ const SimulationEvaluation: React.FC = () => {
     setProgress(0)
     setElapsedTime(0)
     setErrorMessage('')
+    setCurrentStep(0)
   }
 
   // 格式化时间
@@ -183,125 +202,489 @@ const SimulationEvaluation: React.FC = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
+  // 科技感背景装饰组件
+  const TechBackground = () => (
+    <div style={{
+      position: 'absolute',
+      inset: 0,
+      overflow: 'hidden',
+      pointerEvents: 'none',
+      opacity: 0.6,
+    }}>
+      {/* 网格背景 */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        backgroundImage: `
+          linear-gradient(rgba(22, 119, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(22, 119, 255, 0.03) 1px, transparent 1px)
+        `,
+        backgroundSize: '40px 40px',
+      }} />
+
+      {/* 渐变光晕 */}
+      <div style={{
+        position: 'absolute',
+        top: '20%',
+        left: '10%',
+        width: '300px',
+        height: '300px',
+        background: 'radial-gradient(circle, rgba(22, 119, 255, 0.08) 0%, transparent 70%)',
+        borderRadius: '50%',
+        filter: 'blur(40px)',
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: '20%',
+        right: '10%',
+        width: '250px',
+        height: '250px',
+        background: 'radial-gradient(circle, rgba(114, 46, 209, 0.08) 0%, transparent 70%)',
+        borderRadius: '50%',
+        filter: 'blur(40px)',
+      }} />
+
+      {/* 装饰圆点 */}
+      {[...Array(6)].map((_, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            width: '4px',
+            height: '4px',
+            borderRadius: '50%',
+            background: '#1677ff',
+            opacity: 0.3,
+            top: `${15 + i * 15}%`,
+            left: `${5 + (i % 3) * 3}%`,
+            animation: `pulse 2s ease-in-out ${i * 0.3}s infinite`,
+          }}
+        />
+      ))}
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.5); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes dash {
+          to { stroke-dashoffset: -1000; }
+        }
+      `}</style>
+    </div>
+  )
+
+  // 流程步骤组件
+  const ProcessSteps = ({ active = false }: { active?: boolean }) => (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: '8px',
+      marginTop: '40px',
+      marginBottom: '20px',
+    }}>
+      {SCHEDULE_STEPS.map((step, index) => {
+        const isActive = active && index === currentStep
+        const isCompleted = active && index < currentStep
+
+        return (
+          <React.Fragment key={step.key}>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '8px',
+            }}>
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '12px',
+                background: isCompleted
+                  ? `linear-gradient(135deg, ${step.color} 0%, ${step.color}dd 100%)`
+                  : isActive
+                    ? `linear-gradient(135deg, ${step.color}20 0%, ${step.color}10 100%)`
+                    : '#f5f5f5',
+                border: isActive ? `2px solid ${step.color}` : '2px solid transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '22px',
+                color: isCompleted ? '#fff' : isActive ? step.color : '#bfbfbf',
+                transition: 'all 0.3s ease',
+                boxShadow: isActive
+                  ? `0 4px 12px ${step.color}30`
+                  : isCompleted
+                    ? `0 4px 12px ${step.color}40`
+                    : 'none',
+                animation: isActive ? 'pulse 1.5s ease-in-out infinite' : 'none',
+              }}>
+                {isCompleted ? <CheckCircleOutlined /> : step.icon}
+              </div>
+              <Text style={{
+                fontSize: '12px',
+                color: isActive || isCompleted ? step.color : '#8c8c8c',
+                fontWeight: isActive ? 600 : 400,
+              }}>
+                {step.label}
+              </Text>
+            </div>
+
+            {index < SCHEDULE_STEPS.length - 1 && (
+              <div style={{
+                width: '60px',
+                height: '2px',
+                background: isCompleted
+                  ? `linear-gradient(90deg, ${SCHEDULE_STEPS[index].color}, ${SCHEDULE_STEPS[index + 1].color})`
+                  : '#f0f0f0',
+                marginBottom: '28px',
+                borderRadius: '1px',
+                transition: 'all 0.3s ease',
+              }} />
+            )}
+          </React.Fragment>
+        )
+      })}
+    </div>
+  )
+
+  // 系统状态指示器
+  const SystemIndicators = () => (
+    <Row gutter={[16, 16]} style={{ marginTop: '32px' }}>
+      <Col span={6}>
+        <Card size="small" style={{
+          background: 'linear-gradient(135deg, #e6f4ff 0%, #bae0ff 100%)',
+          border: 'none',
+          borderRadius: '12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <CloudServerOutlined style={{ fontSize: '24px', color: '#1677ff' }} />
+            <div>
+              <Text style={{ fontSize: '12px', color: '#8c8c8c' }}>调度引擎</Text>
+              <div style={{ color: '#52c41a', fontWeight: 600, fontSize: '13px' }}>
+                <span style={{
+                  display: 'inline-block',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: '#52c41a',
+                  marginRight: '6px',
+                  animation: 'pulse 1s infinite',
+                }} />
+                在线
+              </div>
+            </div>
+          </div>
+        </Card>
+      </Col>
+      <Col span={6}>
+        <Card size="small" style={{
+          background: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          border: 'none',
+          borderRadius: '12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <ThunderboltOutlined style={{ fontSize: '24px', color: '#722ed1' }} />
+            <div>
+              <Text style={{ fontSize: '12px', color: '#8c8c8c' }}>算法版本</Text>
+              <div style={{ color: '#722ed1', fontWeight: 600, fontSize: '13px' }}>v2.1.0</div>
+            </div>
+          </div>
+        </Card>
+      </Col>
+      <Col span={6}>
+        <Card size="small" style={{
+          background: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          border: 'none',
+          borderRadius: '12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <DatabaseOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
+            <div>
+              <Text style={{ fontSize: '12px', color: '#8c8c8c' }}>数据就绪</Text>
+              <div style={{ color: '#52c41a', fontWeight: 600, fontSize: '13px' }}>100%</div>
+            </div>
+          </div>
+        </Card>
+      </Col>
+      <Col span={6}>
+        <Card size="small" style={{
+          background: 'linear-gradient(135deg, #fffbe6 0%, #fff1b8 100%)',
+          border: 'none',
+          borderRadius: '12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <SyncOutlined style={{ fontSize: '24px', color: '#faad14' }} />
+            <div>
+              <Text style={{ fontSize: '12px', color: '#8c8c8c' }}>同步状态</Text>
+              <div style={{ color: '#faad14', fontWeight: 600, fontSize: '13px' }}>已同步</div>
+            </div>
+          </div>
+        </Card>
+      </Col>
+    </Row>
+  )
+
+  // 运行时数据面板
+  const RuntimePanel = () => (
+    <Row gutter={[24, 24]} style={{ marginTop: '40px' }}>
+      <Col span={8}>
+        <Card style={{
+          borderRadius: '16px',
+          border: '1px solid #f0f0f0',
+          textAlign: 'center',
+          height: '100%',
+        }}>
+          <Statistic
+            title={<Text style={{ fontSize: '13px' }}>已用时间</Text>}
+            value={formatTime(elapsedTime)}
+            prefix={<ClockCircleOutlined style={{ color: '#1677ff' }} />}
+            valueStyle={{ color: '#1677ff', fontSize: '28px' }}
+          />
+        </Card>
+      </Col>
+      <Col span={8}>
+        <Card style={{
+          borderRadius: '16px',
+          border: '1px solid #f0f0f0',
+          textAlign: 'center',
+          height: '100%',
+        }}>
+          <Statistic
+            title={<Text style={{ fontSize: '13px' }}>当前阶段</Text>}
+            value={SCHEDULE_STEPS[currentStep]?.label || '-'}
+            prefix={<SyncOutlined spin style={{ color: '#722ed1', fontSize: '14px' }} />}
+            valueStyle={{ color: '#722ed1', fontSize: '28px' }}
+          />
+        </Card>
+      </Col>
+      <Col span={8}>
+        <Card style={{
+          borderRadius: '16px',
+          border: '1px solid #f0f0f0',
+          textAlign: 'center',
+          height: '100%',
+        }}>
+          <Statistic
+            title={<Text style={{ fontSize: '13px' }}>完成进度</Text>}
+            value={Math.floor(progress)}
+            suffix="%"
+            prefix={<ThunderboltOutlined style={{ color: '#52c41a' }} />}
+            valueStyle={{ color: '#52c41a', fontSize: '28px' }}
+          />
+        </Card>
+      </Col>
+    </Row>
+  )
+
   // 渲染不同状态的界面
   const renderContent = () => {
     switch (status) {
       case 'idle':
         return (
-          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-            <RocketOutlined style={{ fontSize: 80, color: '#1890ff', marginBottom: 24 }} />
-            <Title level={3}>正式排程调度</Title>
-            <Paragraph type="secondary" style={{ marginBottom: 32 }}>
-              点击下方按钮启动调度算法，系统将自动生成排程结果
-            </Paragraph>
-            <Button
-              type="primary"
-              size="large"
-              icon={<PlayCircleOutlined />}
-              onClick={handleStartSchedule}
-              style={{ height: 48, fontSize: 16, paddingLeft: 32, paddingRight: 32 }}
-            >
-              开始排程调度
-            </Button>
+          <div style={{ position: 'relative', minHeight: '65vh' }}>
+            <TechBackground />
+
+            <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', paddingTop: '60px' }}>
+              {/* 主图标区域 */}
+              <div style={{
+                width: '120px',
+                height: '120px',
+                margin: '0 auto 32px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #e6f4ff 0%, #bae0ff 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 32px rgba(22, 119, 255, 0.2)',
+                animation: 'float 3s ease-in-out infinite',
+              }}>
+                <RocketOutlined style={{ fontSize: '56px', color: '#1677ff' }} />
+              </div>
+
+              <Title level={2} style={{ marginBottom: '12px', fontWeight: 600 }}>
+                正式排程调度
+              </Title>
+              <Paragraph type="secondary" style={{ fontSize: '15px', marginBottom: '40px' }}>
+                基于智能优化算法，自动生成最优生产排程方案
+              </Paragraph>
+
+              <Button
+                type="primary"
+                size="large"
+                icon={<PlayCircleOutlined />}
+                onClick={handleStartSchedule}
+                style={{
+                  height: '52px',
+                  fontSize: '16px',
+                  paddingLeft: '40px',
+                  paddingRight: '40px',
+                  borderRadius: '26px',
+                  boxShadow: '0 4px 16px rgba(22, 119, 255, 0.3)',
+                }}
+              >
+                开始排程调度
+              </Button>
+
+              {/* 调度流程预览 */}
+              <ProcessSteps />
+
+              {/* 系统状态指示器 */}
+              <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+                <SystemIndicators />
+              </div>
+            </div>
           </div>
         )
 
       case 'running':
         return (
-          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <Spin size="large" />
-            <Title level={3} style={{ marginTop: 24, marginBottom: 16 }}>
-              调度算法运行中...
-            </Title>
-            <Paragraph type="secondary">
-              系统正在执行排程计算，请耐心等待
-            </Paragraph>
+          <div style={{ position: 'relative', minHeight: '65vh' }}>
+            <TechBackground />
 
-            <div style={{ maxWidth: 600, margin: '40px auto' }}>
-              <Progress
-                percent={Math.floor(progress)}
-                status="active"
-                strokeColor={{
-                  '0%': '#108ee9',
-                  '100%': '#87d068',
-                }}
-              />
+            <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', paddingTop: '40px' }}>
+              {/* 运行动画图标 */}
+              <div style={{
+                width: '80px',
+                height: '80px',
+                margin: '0 auto 24px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 32px rgba(22, 119, 255, 0.4)',
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}>
+                <SyncOutlined spin style={{ fontSize: '36px', color: '#fff' }} />
+              </div>
+
+              <Title level={3} style={{ marginBottom: '8px' }}>
+                调度算法运行中
+              </Title>
+              <Paragraph type="secondary">
+                系统正在执行智能排程计算，请耐心等待
+              </Paragraph>
+
+              {/* 流程步骤 */}
+              <ProcessSteps active />
+
+              {/* 进度条 */}
+              <div style={{ maxWidth: '600px', margin: '32px auto' }}>
+                <Progress
+                  percent={Math.floor(progress)}
+                  status="active"
+                  strokeWidth={12}
+                  strokeColor={{
+                    '0%': '#1677ff',
+                    '50%': '#722ed1',
+                    '100%': '#52c41a',
+                  }}
+                  trailColor="#f0f0f0"
+                  style={{ marginBottom: '16px' }}
+                />
+              </div>
+
+              {/* 运行时数据 */}
+              <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+                <RuntimePanel />
+              </div>
+
+              {/* 提示信息 */}
+              <div style={{ maxWidth: '500px', margin: '32px auto 0' }}>
+                <Alert
+                  message="正在检测调度结果"
+                  description="调度算法正在运行中，结果生成后将自动跳转"
+                  type="info"
+                  showIcon
+                  icon={<SyncOutlined spin />}
+                  style={{
+                    borderRadius: '12px',
+                    textAlign: 'left',
+                  }}
+                />
+              </div>
+
+              <Button
+                style={{ marginTop: '24px' }}
+                onClick={handleReset}
+                danger
+              >
+                取消调度
+              </Button>
             </div>
-
-            <Space size="large" style={{ marginTop: 32 }}>
-              <Statistic
-                title="已用时间"
-                value={formatTime(elapsedTime)}
-                prefix={<ClockCircleOutlined />}
-              />
-              <Statistic
-                title="进度"
-                value={Math.floor(progress)}
-                suffix="%"
-              />
-            </Space>
-
-            <div style={{ maxWidth: 600, margin: '40px auto 0', display: 'flex', justifyContent: 'center' }}>
-              <style>{`
-                .schedule-alert .ant-alert-icon {
-                  align-self: center !important;
-                }
-              `}</style>
-              <Alert
-                message="正在检测调度结果"
-                description="调度算法正常运行排程中，请保持耐心等待，出现结果将会自动跳转"
-                type="info"
-                showIcon
-                className="schedule-alert"
-                style={{ textAlign: 'left', width: '100%' }}
-              />
-            </div>
-
-            <Button
-              style={{ marginTop: 24 }}
-              onClick={handleReset}
-              danger
-            >
-              取消调度
-            </Button>
           </div>
         )
 
       case 'completed':
         return (
-          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-            <CheckCircleOutlined style={{ fontSize: 80, color: '#52c41a', marginBottom: 24 }} />
-            <Title level={3} style={{ color: '#52c41a' }}>
-              调度完成！
-            </Title>
-            <Paragraph type="secondary" style={{ marginBottom: 32 }}>
-              排程结果已生成，耗时 {formatTime(elapsedTime)}
-            </Paragraph>
-            <Progress percent={100} status="success" />
-            <div style={{ marginTop: 32 }}>
-              <Text type="secondary">正在跳转到结果页面...</Text>
+          <div style={{ position: 'relative', minHeight: '65vh' }}>
+            <TechBackground />
+
+            <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', paddingTop: '80px' }}>
+              <div style={{
+                width: '120px',
+                height: '120px',
+                margin: '0 auto 32px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 32px rgba(82, 196, 26, 0.4)',
+              }}>
+                <CheckCircleOutlined style={{ fontSize: '56px', color: '#fff' }} />
+              </div>
+
+              <Title level={2} style={{ color: '#52c41a', marginBottom: '12px' }}>
+                调度完成！
+              </Title>
+              <Paragraph type="secondary" style={{ fontSize: '15px', marginBottom: '32px' }}>
+                排程结果已生成，总耗时 {formatTime(elapsedTime)}
+              </Paragraph>
+
+              <div style={{ maxWidth: '400px', margin: '0 auto' }}>
+                <Progress percent={100} status="success" strokeWidth={12} />
+              </div>
+
+              <div style={{ marginTop: '40px' }}>
+                <SyncOutlined spin style={{ marginRight: '8px', color: '#1677ff' }} />
+                <Text type="secondary">正在跳转到结果页面...</Text>
+              </div>
             </div>
           </div>
         )
 
       case 'error':
         return (
-          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-            <Alert
-              message="调度失败"
-              description={errorMessage || '未知错误'}
-              type="error"
-              showIcon
-              style={{ marginBottom: 32 }}
-            />
-            <Space>
-              <Button onClick={handleReset}>
-                重置
-              </Button>
-              <Button type="primary" onClick={handleStartSchedule}>
-                重新调度
-              </Button>
-            </Space>
+          <div style={{ position: 'relative', minHeight: '65vh' }}>
+            <TechBackground />
+
+            <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', paddingTop: '80px' }}>
+              <Alert
+                message="调度失败"
+                description={errorMessage || '未知错误'}
+                type="error"
+                showIcon
+                style={{ maxWidth: '500px', margin: '0 auto 32px', borderRadius: '12px' }}
+              />
+              <Space size="large">
+                <Button onClick={handleReset} size="large">
+                  重置
+                </Button>
+                <Button type="primary" onClick={handleStartSchedule} size="large">
+                  重新调度
+                </Button>
+              </Space>
+            </div>
           </div>
         )
 
@@ -311,10 +694,15 @@ const SimulationEvaluation: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-2">
+    <div style={{ padding: '8px' }}>
       <Card
-        className="shadow-sm border-none"
-        styles={{ body: { minHeight: '70vh' } }}
+        style={{
+          borderRadius: '16px',
+          border: '1px solid #f0f0f0',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+          overflow: 'hidden',
+        }}
+        styles={{ body: { padding: 0, minHeight: '70vh' } }}
       >
         {renderContent()}
       </Card>
