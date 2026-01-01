@@ -5,9 +5,62 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>任务筹划系统</title>
+    <style>
+      /* 首屏加载动画样式 */
+      #initial-loader {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      }
+
+      .loader-container {
+        text-align: center;
+      }
+
+      .spinner {
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid #ffffff;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .loader-text {
+        margin-top: 20px;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 500;
+        letter-spacing: 1px;
+      }
+
+      .loader-subtitle {
+        margin-top: 8px;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 12px;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- 首屏加载动画，React 挂载后会自动替换 -->
+      <div id="initial-loader">
+        <div class="loader-container">
+          <div class="spinner"></div>
+          <p class="loader-text">任务筹划系统</p>
+          <p class="loader-subtitle">正在加载中...</p>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
