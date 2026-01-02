@@ -10,7 +10,6 @@ import {
     Statistic,
     Tag,
     Modal,
-    Select,
     Steps,
     InputNumber,
     Divider,
