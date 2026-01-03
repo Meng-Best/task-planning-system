@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { 
-  Card, 
-  Calendar, 
-  Modal, 
-  Form, 
-  DatePicker, 
-  Select, 
-  Input, 
+import {
+  Card,
+  Calendar,
+  Modal,
+  Form,
+  DatePicker,
+  Select,
+  Input,
   message,
   Tag,
   Typography,
@@ -66,23 +66,23 @@ interface CalendarApiData {
 
 // 日期类型配置 - 全局日历
 const GLOBAL_DATE_TYPE_OPTIONS = [
-  { 
-    value: 'WORK', 
+  {
+    value: 'WORK',
     label: '🟢 调休上班',
     description: `工作日8小时工作制`
   },
-  { 
-    value: 'HOLIDAY', 
+  {
+    value: 'HOLIDAY',
     label: '🔴 法定节假日',
     description: '国家法定节假日，全员休息'
   },
-  { 
-    value: 'REST', 
+  {
+    value: 'REST',
     label: '⚪ 公司福利假',
     description: '公司统一放假或福利假期'
   },
-  { 
-    value: 'DEFAULT', 
+  {
+    value: 'DEFAULT',
     label: '❌ 恢复默认',
     description: '清除配置，恢复为系统默认规则'
   }
@@ -90,23 +90,23 @@ const GLOBAL_DATE_TYPE_OPTIONS = [
 
 // 日期类型配置 - 产线日历
 const LINE_DATE_TYPE_OPTIONS = [
-  { 
-    value: 'WORK', 
+  {
+    value: 'WORK',
     label: '🟢 产线加班',
     description: `加班排班：${FACTORY_WORK_HOURS.totalLabel}`
   },
-  { 
-    value: 'REST', 
+  {
+    value: 'REST',
     label: '⚪ 产线停工',
     description: '此产线在该日期停工检修或维护'
   },
-  { 
-    value: 'HOLIDAY', 
+  {
+    value: 'HOLIDAY',
     label: '🔴 产线例外休息',
     description: '此产线在该日期特殊休息（覆盖全局工作日）'
   },
-  { 
-    value: 'DEFAULT', 
+  {
+    value: 'DEFAULT',
     label: '❌ 恢复默认',
     description: '清除产线专用配置，使用全局日历规则'
   }
@@ -131,14 +131,14 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
       // 获取当前月的第一天和最后一天，并扩展前后几天以覆盖日历显示范围
       const startDate = month.startOf('month').subtract(7, 'day').format('YYYY-MM-DD')
       const endDate = month.endOf('month').add(7, 'day').format('YYYY-MM-DD')
-      
+
       const params: Record<string, string | number> = { startDate, endDate }
       if (isProductionLineCalendar && productionLineId !== undefined) {
         params.productionLineId = productionLineId
       }
-      
+
       console.log('Fetching calendar events:', params)
-      
+
       const response = await axios.get<ApiResponse<CalendarApiData>>(
         `${API_BASE_URL}/api/calendar`,
         { params }
@@ -148,23 +148,23 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
 
       if (response.data.status === 'ok') {
         const eventMap = new Map<string, CalendarEvent>()
-        
+
         // 合并逻辑：先填入全局数据，再填入产线数据（产线数据覆盖全局）
         const globalEvents = response.data.data.events.filter(e => !e.productionLineId)
         const lineEvents = response.data.data.events.filter(e => e.productionLineId)
-        
+
         // 先填入全局数据
         globalEvents.forEach(event => {
           const dateKey = dayjs(event.date).format('YYYY-MM-DD')
           eventMap.set(dateKey, event)
         })
-        
+
         // 产线数据覆盖全局数据
         lineEvents.forEach(event => {
           const dateKey = dayjs(event.date).format('YYYY-MM-DD')
           eventMap.set(dateKey, event)
         })
-        
+
         setEvents(eventMap)
         console.log(`Events loaded: ${eventMap.size} (${globalEvents.length} global, ${lineEvents.length} line-specific)`)
       } else {
@@ -211,7 +211,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
     try {
       const values = await form.validateFields()
       const { dateRange, type, note } = values
-      
+
       const startDate = dateRange[0].format('YYYY-MM-DD')
       const endDate = dateRange[1].format('YYYY-MM-DD')
 
@@ -240,12 +240,12 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
       if (response.data.status === 'ok') {
         const typeOptions = isProductionLineCalendar ? LINE_DATE_TYPE_OPTIONS : GLOBAL_DATE_TYPE_OPTIONS
         const typeLabel = typeOptions.find((opt: { value: string; label: string }) => opt.value === type)?.label || type
-        
+
         message.success(
-          type === 'DEFAULT' 
-            ? isProductionLineCalendar 
-              ? '已恢复为全局日历规则' 
-              : '已恢复为默认日历规则' 
+          type === 'DEFAULT'
+            ? isProductionLineCalendar
+              ? '已恢复为全局日历规则'
+              : '已恢复为默认日历规则'
             : `成功设置 ${response.data.data.affectedDates} 天为 ${typeLabel}`
         )
         setModalOpen(false)
@@ -277,33 +277,43 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
     const dayOfWeek = value.day() // 0 = Sunday, 6 = Saturday
     const isToday = value.isSame(dayjs(), 'day')
 
+    // 判断是否为非本月日期（上月或下月的日期）
+    const isOtherMonth = !value.isSame(currentMonth, 'month')
+
     // 样式类名
     let cellClassName = 'ant-picker-cell-inner ant-picker-calendar-date'
-    
+
+    // 添加非本月日期的类名
+    if (isOtherMonth) {
+      cellClassName += ' other-month-cell'
+    }
+
     // 添加今天的类名
     if (isToday) {
       cellClassName += ' ant-picker-calendar-date-today'
     }
-    
-    // 添加事件类型样式
-    if (event) {
-      switch (event.type) {
-        case 'HOLIDAY':
-          cellClassName += ' holiday-cell'
-          break
-        case 'WORK':
-          cellClassName += ' production-day-cell'
-          break
-        case 'REST':
-          cellClassName += ' rest-cell'
-          break
+
+    // 添加事件类型样式（非本月日期不添加背景色）
+    if (!isOtherMonth) {
+      if (event) {
+        switch (event.type) {
+          case 'HOLIDAY':
+            cellClassName += ' holiday-cell'
+            break
+          case 'WORK':
+            cellClassName += ' production-day-cell'
+            break
+          case 'REST':
+            cellClassName += ' rest-cell'
+            break
+        }
+      } else if (dayOfWeek === 0 || dayOfWeek === 6) {
+        // 默认周末样式
+        cellClassName += ' weekend-cell'
+      } else {
+        // 默认工作日（周一至周五，且无特殊事件）
+        cellClassName += ' production-day-cell'
       }
-    } else if (dayOfWeek === 0 || dayOfWeek === 6) {
-      // 默认周末样式
-      cellClassName += ' weekend-cell'
-    } else {
-      // 默认工作日（周一至周五，且无特殊事件）
-      cellClassName += ' production-day-cell'
     }
 
     // 点击单元格时打开设置窗口
@@ -342,12 +352,13 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
               <span>16小时</span>
             </div>
           ) : null} */}
-          
-          {event && (
+
+          {/* 非本月日期只显示日期数字，不显示事件内容 */}
+          {!isOtherMonth && event && (
             <div className="calendar-cell-content">
               <div className="flex items-center gap-1">
-                <Tag 
-                  color={event.type === 'HOLIDAY' ? 'red' : event.type === 'WORK' ? 'success' : 'default'} 
+                <Tag
+                  color={event.type === 'HOLIDAY' ? 'red' : event.type === 'WORK' ? 'success' : 'default'}
                   className={`text-xs font-bold px-2 ${isLineSpecific ? 'line-specific-tag' : ''}`}
                 >
                   {getTagText(event.type, isProductionLineCalendar, isLineSpecific)}
@@ -365,7 +376,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
               )}
             </div>
           )}
-          {!event && (dayOfWeek === 0 || dayOfWeek === 6) && (
+          {!isOtherMonth && !event && (dayOfWeek === 0 || dayOfWeek === 6) && (
             <div className="calendar-cell-content">
               <span className="text-xs text-gray-400">休</span>
             </div>
@@ -378,222 +389,222 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
   return (
     <ConfigProvider locale={zhCN}>
       <div className="work-calendar-container">
-        <Card 
-        title={
-          <div className="flex items-center justify-between">
-            <Title level={4} className="mb-0">
-              {isProductionLineCalendar ? `产线日历 - ${productionLineName}` : '全局工作日历'}
-            </Title>
-            <div className="text-sm text-gray-500 font-normal">
-              点击日期可设置节假日或调休 | 已加载 {events.size} 个事件
+        <Card
+          title={
+            <div className="flex items-center justify-between">
+              <Title level={4} className="mb-0">
+                {isProductionLineCalendar ? `产线日历 - ${productionLineName}` : '全局工作日历'}
+              </Title>
+              <div className="text-sm text-gray-500 font-normal">
+                点击日期可设置节假日或调休 | 已加载 {events.size} 个事件
+              </div>
             </div>
-          </div>
-        }
-        loading={loading}
-      >
-        <div className="mb-4 flex gap-4 flex-wrap items-center">
-          {isProductionLineCalendar ? (
-            <>
-              <div className="flex items-center gap-2">
-                <Tag color="success">产线加班</Tag>
-                <Tag color="default">产线停工</Tag>
-                <Tag color="red">产线例外休息</Tag>
-                <span className="text-xs text-gray-400">默认周末</span>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-gray-500">
-                <div className="flex items-center gap-1">
-                  <StarOutlined className="text-orange-500" />
-                  <span>带星标表示产线专用配置（覆盖全局设置）</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <ClockCircleOutlined />
-                  <span>工作日排班</span>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center gap-2">
-                <Tag color="red">法定节假日</Tag>
-                <Tag color="success">工作日（包含调休上班）</Tag>
-                <Tag color="default">公司福利假</Tag>
-                <span className="text-xs text-gray-400">默认周末</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-gray-500 ml-auto">
-                <ClockCircleOutlined />
-                <span>工作日：8:00-12:00;14:00-18:00，最多8小时产能</span>
-              </div>
-            </>
-          )}
-        </div>
-
-        <Calendar
-          key={`calendar-${currentMonth.format('YYYY-MM')}-${events.size}`}
-          value={currentMonth}
-          onPanelChange={handlePanelChange}
-          headerRender={({ value, onChange }) => {
-            const start = 0;
-            const end = 12;
-            const monthOptions = [];
-
-            const months = [];
-            for (let i = 0; i < 12; i++) {
-              months.push(`${i + 1}月`);
-            }
-
-            for (let i = start; i < end; i++) {
-              monthOptions.push(
-                <Select.Option key={i} value={i} className="month-item">
-                  {months[i]}
-                </Select.Option>,
-              );
-            }
-
-            const year = value.year();
-            const month = value.month();
-            const options = [];
-            for (let i = year - 10; i < year + 10; i += 1) {
-              options.push(
-                <Select.Option key={i} value={i} className="year-item">
-                  {i}
-                </Select.Option>,
-              );
-            }
-            return (
-              <div style={{ padding: 8 }}>
-                <Row gutter={8} justify="end">
-                  <Col>
-                    <Select
-                      size="small"
-                      popupMatchSelectWidth={false}
-                      className="my-year-select"
-                      value={year}
-                      onChange={(newYear) => {
-                        const now = value.clone().year(newYear);
-                        onChange(now);
-                      }}
-                    >
-                      {options}
-                    </Select>
-                  </Col>
-                  <Col>
-                    <Select
-                      size="small"
-                      popupMatchSelectWidth={false}
-                      value={month}
-                      onChange={(newMonth) => {
-                        const now = value.clone().month(newMonth);
-                        onChange(now);
-                      }}
-                    >
-                      {monthOptions}
-                    </Select>
-                  </Col>
-                </Row>
-              </div>
-            );
-          }}
-          fullCellRender={fullCellRender}
-          className="work-calendar"
-        />
-      </Card>
-
-      {/* 设置日期状态弹窗 */}
-      <Modal
-        title={
-          <div className="flex items-center gap-2">
+          }
+          loading={loading}
+        >
+          <div className="mb-4 flex gap-4 flex-wrap items-center">
             {isProductionLineCalendar ? (
               <>
-                <CalendarOutlined className="text-orange-500" />
-                <span>设置产线日历 - {productionLineName}</span>
+                <div className="flex items-center gap-2">
+                  <Tag color="success">产线加班</Tag>
+                  <Tag color="default">产线停工</Tag>
+                  <Tag color="red">产线例外休息</Tag>
+                  <span className="text-xs text-gray-400">默认周末</span>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <StarOutlined className="text-orange-500" />
+                    <span>带星标表示产线专用配置（覆盖全局设置）</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <ClockCircleOutlined />
+                    <span>工作日排班</span>
+                  </div>
+                </div>
               </>
             ) : (
               <>
-                <CalendarOutlined className="text-blue-500" />
-                <span>设置全局日历</span>
+                <div className="flex items-center gap-2">
+                  <Tag color="red">法定节假日</Tag>
+                  <Tag color="success">工作日（包含调休上班）</Tag>
+                  <Tag color="default">公司福利假</Tag>
+                  <span className="text-xs text-gray-400">默认周末</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-gray-500 ml-auto">
+                  <ClockCircleOutlined />
+                  <span>工作日：8:00-12:00;14:00-18:00，最多8小时产能</span>
+                </div>
               </>
             )}
           </div>
-        }
-        open={modalOpen}
-        onOk={handleSaveEvent}
-        onCancel={() => {
-          setModalOpen(false)
-          form.resetFields()
-        }}
-        confirmLoading={loading}
-        width={550}
-        destroyOnHidden
-        okText="保存"
-        cancelText="取消"
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          className="mt-4"
-        >
-          <Form.Item
-            name="dateRange"
-            label="日期范围"
-            rules={[{ required: true, message: '请选择日期范围' }]}
-          >
-            <RangePicker 
-              className="w-full"
-              format="YYYY-MM-DD"
-              placeholder={['开始日期', '结束日期']}
-            />
-          </Form.Item>
 
-          <Form.Item
-            name="type"
-            label={isProductionLineCalendar ? '产线状态' : '日期类型'}
-            rules={[{ required: true, message: '请选择日期类型' }]}
-            tooltip={isProductionLineCalendar ? '设置此产线在指定日期的工作状态' : '设置全局工作日历规则'}
-          >
-            <Select 
-              options={isProductionLineCalendar ? LINE_DATE_TYPE_OPTIONS : GLOBAL_DATE_TYPE_OPTIONS}
-              optionRender={(option) => (
-                <div className="py-1">
-                  <div className="font-medium">{option.data.label}</div>
-                  <div className="text-xs text-gray-500">{option.data.description}</div>
-                </div>
-              )}
-            />
-          </Form.Item>
+          <Calendar
+            key={`calendar-${currentMonth.format('YYYY-MM')}-${events.size}`}
+            value={currentMonth}
+            onPanelChange={handlePanelChange}
+            headerRender={({ value, onChange }) => {
+              const start = 0;
+              const end = 12;
+              const monthOptions = [];
 
-          <Form.Item
-            name="note"
-            label="备注说明（可选）"
-          >
-            <Input.TextArea
-              rows={3}
-              placeholder={
-                isProductionLineCalendar 
-                  ? "例如：设备检修、订单加急、临时停工等" 
-                  : "例如：国庆节假期、中秋节调休等"
+              const months = [];
+              for (let i = 0; i < 12; i++) {
+                months.push(`${i + 1}月`);
               }
-              maxLength={200}
-              showCount
-            />
-          </Form.Item>
 
-          {isProductionLineCalendar && (
-            <div className="bg-orange-50 border border-orange-200 rounded p-3 mb-2">
-              <div className="flex items-start gap-2">
-                <StarOutlined className="text-orange-500 mt-0.5" />
-                <div className="text-xs text-gray-600">
-                  <div className="font-medium text-orange-700 mb-1">产线专用配置说明：</div>
-                  <div>• 此配置仅对当前产线"{productionLineName}"有效</div>
-                  <div>• 产线专用配置优先级高于全局日历</div>
-                  <div>• 其他产线不受影响，仍遵循全局日历规则</div>
+              for (let i = start; i < end; i++) {
+                monthOptions.push(
+                  <Select.Option key={i} value={i} className="month-item">
+                    {months[i]}
+                  </Select.Option>,
+                );
+              }
+
+              const year = value.year();
+              const month = value.month();
+              const options = [];
+              for (let i = year - 10; i < year + 10; i += 1) {
+                options.push(
+                  <Select.Option key={i} value={i} className="year-item">
+                    {i}
+                  </Select.Option>,
+                );
+              }
+              return (
+                <div style={{ padding: 8 }}>
+                  <Row gutter={8} justify="end">
+                    <Col>
+                      <Select
+                        size="small"
+                        popupMatchSelectWidth={false}
+                        className="my-year-select"
+                        value={year}
+                        onChange={(newYear) => {
+                          const now = value.clone().year(newYear);
+                          onChange(now);
+                        }}
+                      >
+                        {options}
+                      </Select>
+                    </Col>
+                    <Col>
+                      <Select
+                        size="small"
+                        popupMatchSelectWidth={false}
+                        value={month}
+                        onChange={(newMonth) => {
+                          const now = value.clone().month(newMonth);
+                          onChange(now);
+                        }}
+                      >
+                        {monthOptions}
+                      </Select>
+                    </Col>
+                  </Row>
+                </div>
+              );
+            }}
+            fullCellRender={fullCellRender}
+            className="work-calendar"
+          />
+        </Card>
+
+        {/* 设置日期状态弹窗 */}
+        <Modal
+          title={
+            <div className="flex items-center gap-2">
+              {isProductionLineCalendar ? (
+                <>
+                  <CalendarOutlined className="text-orange-500" />
+                  <span>设置产线日历 - {productionLineName}</span>
+                </>
+              ) : (
+                <>
+                  <CalendarOutlined className="text-blue-500" />
+                  <span>设置全局日历</span>
+                </>
+              )}
+            </div>
+          }
+          open={modalOpen}
+          onOk={handleSaveEvent}
+          onCancel={() => {
+            setModalOpen(false)
+            form.resetFields()
+          }}
+          confirmLoading={loading}
+          width={550}
+          destroyOnHidden
+          okText="保存"
+          cancelText="取消"
+        >
+          <Form
+            form={form}
+            layout="vertical"
+            className="mt-4"
+          >
+            <Form.Item
+              name="dateRange"
+              label="日期范围"
+              rules={[{ required: true, message: '请选择日期范围' }]}
+            >
+              <RangePicker
+                className="w-full"
+                format="YYYY-MM-DD"
+                placeholder={['开始日期', '结束日期']}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="type"
+              label={isProductionLineCalendar ? '产线状态' : '日期类型'}
+              rules={[{ required: true, message: '请选择日期类型' }]}
+              tooltip={isProductionLineCalendar ? '设置此产线在指定日期的工作状态' : '设置全局工作日历规则'}
+            >
+              <Select
+                options={isProductionLineCalendar ? LINE_DATE_TYPE_OPTIONS : GLOBAL_DATE_TYPE_OPTIONS}
+                optionRender={(option) => (
+                  <div className="py-1">
+                    <div className="font-medium">{option.data.label}</div>
+                    <div className="text-xs text-gray-500">{option.data.description}</div>
+                  </div>
+                )}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="note"
+              label="备注说明（可选）"
+            >
+              <Input.TextArea
+                rows={3}
+                placeholder={
+                  isProductionLineCalendar
+                    ? "例如：设备检修、订单加急、临时停工等"
+                    : "例如：国庆节假期、中秋节调休等"
+                }
+                maxLength={200}
+                showCount
+              />
+            </Form.Item>
+
+            {isProductionLineCalendar && (
+              <div className="bg-orange-50 border border-orange-200 rounded p-3 mb-2">
+                <div className="flex items-start gap-2">
+                  <StarOutlined className="text-orange-500 mt-0.5" />
+                  <div className="text-xs text-gray-600">
+                    <div className="font-medium text-orange-700 mb-1">产线专用配置说明：</div>
+                    <div>• 此配置仅对当前产线"{productionLineName}"有效</div>
+                    <div>• 产线专用配置优先级高于全局日历</div>
+                    <div>• 其他产线不受影响，仍遵循全局日历规则</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </Form>
-      </Modal>
+            )}
+          </Form>
+        </Modal>
 
-      <style>{`
+        <style>{`
         .calendar-cell-content {
           padding: 2px;
           min-height: 24px;
@@ -659,7 +670,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
         }
 
         .work-calendar .weekend-cell {
-          background-color: rgba(0, 0, 0, 0.02) !important;
+          background-color: rgba(24, 144, 255, 0.06) !important;
         }
 
         /* 确保事件背景色在选中状态下也显示 */
@@ -680,13 +691,27 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productio
 
         .work-calendar .ant-picker-cell-selected .weekend-cell,
         .work-calendar .ant-picker-cell-today .weekend-cell {
-          background-color: rgba(0, 0, 0, 0.02) !important;
+          background-color: rgba(24, 144, 255, 0.06) !important;
         }
 
         /* 产线专用配置的视觉样式 */
         .line-specific-tag {
           border: 1px dashed #ff9800 !important;
           font-weight: 600 !important;
+        }
+
+        /* 非本月日期样式（上月/下月的日期） */
+        .work-calendar .other-month-cell {
+          background-color: #fafafa !important;
+        }
+
+        .work-calendar .other-month-cell .ant-picker-calendar-date-value {
+          color: #d9d9d9 !important;
+          font-weight: normal !important;
+        }
+
+        .work-calendar .other-month-cell:hover {
+          background-color: #f0f0f0 !important;
         }
       `}</style>
       </div>
