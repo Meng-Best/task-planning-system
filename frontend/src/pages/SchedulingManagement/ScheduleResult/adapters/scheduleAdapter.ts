@@ -159,8 +159,9 @@ export class ScheduleAdapter {
 
   /**
    * 获取工位时间线数据
+   * @param allStations 可选，所有工位列表（用于显示没有任务的工位）
    */
-  toStationTimeline(): StationTimelineData[] {
+  toStationTimeline(allStations?: Array<{ code: string; name: string }>): StationTimelineData[] {
     const stationMap = new Map<string, TaskPlan[]>()
 
     // 按工位分组任务
@@ -176,6 +177,23 @@ export class ScheduleAdapter {
     const stats = this.getStatistics()
     const totalDays = stats.dateRange.days
 
+    // 如果传入了所有工位列表，确保没有任务的工位也包含在结果中
+    if (allStations) {
+      allStations.forEach(station => {
+        if (!stationMap.has(station.code)) {
+          stationMap.set(station.code, [])
+        }
+      })
+    }
+
+    // 创建工位名称映射（用于没有任务的工位）
+    const stationNameMap = new Map<string, string>()
+    if (allStations) {
+      allStations.forEach(station => {
+        stationNameMap.set(station.code, station.name)
+      })
+    }
+
     return Array.from(stationMap.entries()).map(([stationCode, tasks]) => {
       // 计算工位总工作时长（小时）
       let totalHours = 0
@@ -185,11 +203,16 @@ export class ScheduleAdapter {
       })
 
       // 利用率 = 工作时长 / (总天数 * 24小时)
-      const utilization = (totalHours / (totalDays * 24)) * 100
+      const utilization = tasks.length > 0 ? (totalHours / (totalDays * 24)) * 100 : 0
+
+      // 获取工位名称：优先从任务中获取，否则从 allStations 中获取
+      const stationName = tasks.length > 0
+        ? tasks[0]['station name']
+        : (stationNameMap.get(stationCode) || stationCode)
 
       return {
         stationCode,
-        stationName: tasks[0]['station name'],
+        stationName,
         tasks: tasks.sort((a, b) =>
           dayjs(a.planstart).valueOf() - dayjs(b.planstart).valueOf()
         ),

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Card, Tabs, Button, message, Spin, Alert, Modal, Descriptions, Tag } from 'antd'
 import { ReloadOutlined } from '@ant-design/icons'
+import axios from 'axios'
 import dayjs from 'dayjs'
 import StatisticCards from './ScheduleResult/components/StatisticCards'
 import OrderView from './ScheduleResult/components/OrderView'
@@ -11,6 +12,7 @@ import TeamView from './ScheduleResult/components/TeamView'
 import { ScheduleAdapter } from './ScheduleResult/adapters/scheduleAdapter'
 import type { ScheduleResultData, TaskPlan, GanttItem } from './ScheduleResult/types'
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 const { TabPane } = Tabs
 
 const ScheduleResult: React.FC = () => {
@@ -20,6 +22,23 @@ const ScheduleResult: React.FC = () => {
   const [lastModified, setLastModified] = useState<string>('')
   const [selectedTask, setSelectedTask] = useState<TaskPlan | GanttItem | null>(null)
   const [detailVisible, setDetailVisible] = useState(false)
+  const [allStations, setAllStations] = useState<Array<{ code: string; name: string }>>([])
+
+  // 加载所有工位列表
+  const loadAllStations = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/stations`, { params: { pageSize: 9999 } })
+      if (response.data && response.data.data) {
+        const stations = response.data.data.map((s: { code: string; name: string }) => ({
+          code: s.code,
+          name: s.name
+        }))
+        setAllStations(stations)
+      }
+    } catch (error) {
+      console.error('加载工位列表失败:', error)
+    }
+  }
 
   // 加载调度结果数据
   const loadScheduleResult = async () => {
@@ -45,6 +64,7 @@ const ScheduleResult: React.FC = () => {
   }
 
   useEffect(() => {
+    loadAllStations()
     loadScheduleResult()
   }, [])
 
@@ -140,7 +160,7 @@ const ScheduleResult: React.FC = () => {
   const ganttByStation = adapter.toGanttDataByStation()
   const ganttByTeam = adapter.toGanttDataByTeam()
   const ganttByOrder = adapter.toGanttDataByOrder()
-  const stationTimeline = adapter.toStationTimeline()
+  const stationTimeline = adapter.toStationTimeline(allStations.length > 0 ? allStations : undefined)
   const teamWorkload = adapter.toTeamWorkload()
 
   return (

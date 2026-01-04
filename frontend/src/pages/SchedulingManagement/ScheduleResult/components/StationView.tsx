@@ -60,13 +60,13 @@ const StationView: React.FC<StationViewProps> = ({ data, onTaskClick }) => {
                 </div>
                 <Progress
                   percent={station.utilization}
-                  status={station.utilization > 80 ? 'exception' : 'normal'}
+                  format={(percent) => `${percent}%`}
                   strokeColor={
                     station.utilization > 80
                       ? '#ff4d4f'
                       : station.utilization > 60
-                      ? '#faad14'
-                      : '#52c41a'
+                        ? '#faad14'
+                        : '#52c41a'
                   }
                 />
                 <div style={{ textAlign: 'center', marginTop: 8 }}>

@@ -71,7 +71,7 @@ const OrderView: React.FC<OrderViewProps> = ({ data, onTaskClick }) => {
   return (
     <div>
       <Collapse
-        defaultActiveKey={data.map(o => o.orderCode)}
+        defaultActiveKey={[]}
         style={{ background: 'transparent' }}
         expandIconPosition="start"
       >
