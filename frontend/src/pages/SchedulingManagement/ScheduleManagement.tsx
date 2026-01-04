@@ -13,7 +13,6 @@ import {
     Divider,
     Modal,
     Typography,
-    Badge
 } from 'antd';
 import {
     PlusOutlined,
@@ -32,7 +31,7 @@ interface Product {
     id: number;
     code: string;
     name: string;
-    type: string;
+    type?: string;
 }
 
 interface ProductionTask {
@@ -47,10 +46,7 @@ interface ProductionTask {
         code: string;
         name: string;
     };
-    product: {
-        code: string;
-        name: string;
-    };
+    product: Product;
 }
 
 interface ScheduleStep {
@@ -67,7 +63,6 @@ const ScheduleManagement: React.FC = () => {
     const [selectedTask, setSelectedTask] = useState<ProductionTask | null>(null);
     const [steps, setSteps] = useState<ScheduleStep[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [isAddSegmentModalOpen, setIsAddSegmentModalOpen] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState<number | undefined>(undefined);
@@ -79,7 +74,6 @@ const ScheduleManagement: React.FC = () => {
 
     // 获取待拆分任务列表（status=0）
     const fetchPendingTasks = async () => {
-        setLoading(true);
         try {
             const response = await axios.get(`${API_BASE_URL}/api/production-tasks`, {
                 params: {
@@ -92,8 +86,6 @@ const ScheduleManagement: React.FC = () => {
             }
         } catch (error) {
             message.error('获取任务列表失败');
-        } finally {
-            setLoading(false);
         }
     };
 
