@@ -50,7 +50,7 @@ interface Product {
       id: number
       code: string
       name: string
-      processes?: { id: number; seq: number; code: string; name: string }[]
+      processes?: { id: number; seq: number; code: string; name: string; duration?: number }[]
     }
   }[]
 }
@@ -178,7 +178,7 @@ const PlanMaking: React.FC = () => {
               code: p.code,
               name: p.name,
               seq: p.seq,
-              duration: 60 // 默认60分钟
+              duration: p.duration || 1 // 使用后端返回的工时（小时），默认1小时
             }))
           }))
         } : undefined,
@@ -200,7 +200,7 @@ const PlanMaking: React.FC = () => {
                 code: p.code,
                 name: p.name,
                 seq: p.seq,
-                duration: 60
+                duration: p.duration || 1 // 使用后端返回的工时（小时），默认1小时
               }))
             }))
           } : undefined

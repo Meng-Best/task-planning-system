@@ -58,6 +58,7 @@ router.get('/with-schedule', async (req, res) => {
         const skip = (parseInt(current) - 1) * parseInt(pageSize);
         const take = parseInt(pageSize);
 
+
         const [list, total, pendingCount, schedulingCount] = await Promise.all([
             prisma.productionTask.findMany({
                 where,
@@ -67,7 +68,8 @@ router.get('/with-schedule', async (req, res) => {
                             id: true,
                             code: true,
                             name: true,
-                            type: true
+                            type: true,
+                            quantity: true
                         }
                     },
                     product: {
@@ -116,6 +118,66 @@ router.get('/with-schedule', async (req, res) => {
             prisma.productionTask.count({ where: { status: 0 } }),
             prisma.productionTask.count({ where: { status: 1 } })
         ]);
+
+        // 收集所有工序编码，用于查询 Process 表获取 standardTime
+        const processCodeSet = new Set();
+        const collectProcessCodes = (product) => {
+            if (product?.routings) {
+                for (const pr of product.routings) {
+                    if (pr.routing?.processes) {
+                        for (const proc of pr.routing.processes) {
+                            processCodeSet.add(proc.code);
+                        }
+                    }
+                }
+            }
+        };
+
+        for (const task of list) {
+            collectProcessCodes(task.product);
+            if (task.steps) {
+                for (const step of task.steps) {
+                    collectProcessCodes(step.product);
+                }
+            }
+        }
+
+        // 从 Process 表批量查询 standardTime
+        const processCodes = Array.from(processCodeSet);
+        const processTimeMap = new Map();
+
+        if (processCodes.length > 0) {
+            const processes = await prisma.process.findMany({
+                where: { code: { in: processCodes } },
+                select: { code: true, standardTime: true }
+            });
+            for (const p of processes) {
+                processTimeMap.set(p.code, p.standardTime);
+            }
+        }
+
+        // 丰富工序数据：添加 duration 字段（来自 Process.standardTime）
+        const enrichProcesses = (product) => {
+            if (product?.routings) {
+                for (const pr of product.routings) {
+                    if (pr.routing?.processes) {
+                        for (const proc of pr.routing.processes) {
+                            // 添加 duration 字段（单位：小时，与数据库一致）
+                            proc.duration = processTimeMap.get(proc.code) || 0;
+                        }
+                    }
+                }
+            }
+        };
+
+        for (const task of list) {
+            enrichProcesses(task.product);
+            if (task.steps) {
+                for (const step of task.steps) {
+                    enrichProcesses(step.product);
+                }
+            }
+        }
 
         res.json({
             status: 'ok',

@@ -340,3 +340,17 @@ model Process {
   @@map("processes")
 }
 
+// 仪表盘趋势记录表 - 存储每日资源使用率快照
+model DashboardTrend {
+  id        Int      @id @default(autoincrement())
+  date      String   @unique // 日期 (YYYY-MM-DD)
+  factory   Float    // 工厂负载率
+  device    Float    // 设备负载率
+  line      Float    // 产线负载率
+  staff     Float    // 人员可用率
+  team      Float    // 班组统计
+  createdAt DateTime @default(now())
+
+  @@map("dashboard_trends")
+}
+
