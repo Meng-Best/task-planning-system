@@ -490,7 +490,7 @@ const SimulationEvaluation: React.FC = () => {
     switch (status) {
       case 'idle':
         return (
-          <div style={{ position: 'relative', minHeight: '65vh' }}>
+          <div style={{ position: 'relative', minHeight: '75vh' }}>
             <TechBackground />
 
             <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', paddingTop: '60px' }}>

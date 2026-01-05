@@ -257,10 +257,10 @@ const ProductManagement: React.FC = () => {
     };
 
     const columns = [
-        { 
-            title: '产品编号', 
-            dataIndex: 'code', 
-            key: 'code', 
+        {
+            title: '产品编号',
+            dataIndex: 'code',
+            key: 'code',
             width: '15%',
             render: (code: string) => <span className="business-code">{code}</span>
         },
@@ -285,7 +285,7 @@ const ProductManagement: React.FC = () => {
                             message.error('删除失败');
                         }
                     }}
-                    onCancel={(e) => e?.stopPropagation()}
+                        onCancel={(e) => e?.stopPropagation()}
                     >
                         <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={(e) => e.stopPropagation()}>删除</Button>
                     </Popconfirm>
@@ -415,16 +415,16 @@ const ProductManagement: React.FC = () => {
                                                         transition: 'all 0.3s ease',
                                                         cursor: 'default'
                                                     }}
-                                                    onMouseEnter={(e) => {
-                                                        e.currentTarget.style.backgroundColor = '#f0f7ff';
-                                                        e.currentTarget.style.borderColor = '#91caff';
-                                                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(24, 144, 255, 0.15)';
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.currentTarget.style.backgroundColor = '#fafafa';
-                                                        e.currentTarget.style.borderColor = '#e8e8e8';
-                                                        e.currentTarget.style.boxShadow = 'none';
-                                                    }}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.backgroundColor = '#f0f7ff';
+                                                            e.currentTarget.style.borderColor = '#91caff';
+                                                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(24, 144, 255, 0.15)';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.backgroundColor = '#fafafa';
+                                                            e.currentTarget.style.borderColor = '#e8e8e8';
+                                                            e.currentTarget.style.boxShadow = 'none';
+                                                        }}
                                                     >
                                                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                                                             <div style={{ flex: 1 }}>
@@ -438,10 +438,15 @@ const ProductManagement: React.FC = () => {
                                                                         工序 {process.seq}
                                                                     </Tag>
                                                                     <span style={{
-                                                                        color: '#999',
+                                                                        color: '#1890ff',
                                                                         fontSize: '12px',
-                                                                        fontFamily: 'monospace',
-                                                                        marginLeft: '8px'
+                                                                        fontFamily: 'Monaco, Consolas, monospace',
+                                                                        marginLeft: '8px',
+                                                                        backgroundColor: '#e6f4ff',
+                                                                        padding: '2px 8px',
+                                                                        borderRadius: '4px',
+                                                                        fontWeight: 500,
+                                                                        border: '1px solid #91caff'
                                                                     }}>
                                                                         {process.code}
                                                                     </span>
