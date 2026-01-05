@@ -4,6 +4,8 @@
 export interface TaskPlan {
   'order code': string
   order_name: string
+  product_code?: string
+  product_name?: string
   'task id': string
   task_code: string
   process_code: string
@@ -16,6 +18,9 @@ export interface TaskPlan {
   'station id': string
   'station code': string  // 注意：JSON中是带空格的
   'station name': string  // 注意：JSON中是带空格的
+  'machine id'?: string
+  'machine code'?: string
+  'machine name'?: string
 }
 
 // 订单计划项
@@ -28,7 +33,7 @@ export interface OrderPlan {
 
 // 调度结果完整数据
 export interface ScheduleResultData {
-  order_best_product_sequences: string[]
+  best_order_sequence: string[]  // 订单最佳序列
   product_order_plan: OrderPlan[]
   task_plan: TaskPlan[]
 }

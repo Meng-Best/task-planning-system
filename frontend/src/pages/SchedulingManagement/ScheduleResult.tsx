@@ -28,8 +28,8 @@ const ScheduleResult: React.FC = () => {
   const loadAllStations = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/stations`, { params: { pageSize: 9999 } })
-      if (response.data && response.data.data) {
-        const stations = response.data.data.map((s: { code: string; name: string }) => ({
+      if (response.data?.data?.list) {
+        const stations = response.data.data.list.map((s: { code: string; name: string }) => ({
           code: s.code,
           name: s.name
         }))

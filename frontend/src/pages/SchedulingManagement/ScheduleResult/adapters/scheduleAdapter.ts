@@ -169,49 +169,64 @@ export class ScheduleAdapter {
   toOrderTree(): OrderTreeNode[] {
     const orderMap = new Map<string, OrderTreeNode>()
 
-    // 处理订单最佳产品序列
-    this.data.order_best_product_sequences.forEach(seq => {
-      const match = seq.match(/订单 (\w+) 最佳产品序列: \[(.*)\]/)
-      if (match) {
-        const orderCode = match[1]
-        const productSeq = match[2].replace(/'/g, '').split(', ')
+    // 根据 best_order_sequence 顺序构建订单树
+    const orderSequence = this.data.best_order_sequence || []
 
-        const orderPlan = this.data.product_order_plan.find(
-          p => p['Order code'] === orderCode
-        )
+    // 先从 product_order_plan 创建订单节点
+    this.data.product_order_plan.forEach(orderPlan => {
+      const orderCode = orderPlan['Order code']
+      orderMap.set(orderCode, {
+        key: orderCode,
+        orderCode: orderPlan['Order code'],
+        orderName: orderPlan['Order name'],
+        productSequence: [], // 从任务中提取产品序列
+        planStart: orderPlan.planstart,
+        planEnd: orderPlan.planend,
+        tasks: [],
+        children: []
+      })
+    })
 
-        if (orderPlan) {
-          orderMap.set(orderCode, {
-            key: orderCode,
-            orderCode: orderPlan['Order code'],
-            orderName: orderPlan['Order name'],
-            productSequence: productSeq,
-            planStart: orderPlan.planstart,
-            planEnd: orderPlan.planend,
-            tasks: [],
-            children: []
-          })
+    // 添加任务到对应订单，并提取产品序列
+    const orderProductSet = new Map<string, Set<string>>()
+    this.data.task_plan.forEach(task => {
+      const orderCode = task['order code']
+      const orderNode = orderMap.get(orderCode)
+      if (orderNode) {
+        orderNode.tasks.push(task)
+        // 收集产品编码
+        if (!orderProductSet.has(orderCode)) {
+          orderProductSet.set(orderCode, new Set())
+        }
+        if (task.product_code) {
+          orderProductSet.get(orderCode)!.add(task.product_code)
         }
       }
     })
 
-    // 添加任务到对应订单
-    this.data.task_plan.forEach(task => {
-      const orderNode = orderMap.get(task['order code'])
+    // 设置产品序列
+    orderProductSet.forEach((products, orderCode) => {
+      const orderNode = orderMap.get(orderCode)
       if (orderNode) {
-        orderNode.tasks.push(task)
+        orderNode.productSequence = Array.from(products)
       }
     })
+
+    // 按照 best_order_sequence 顺序返回，如果没有则按原顺序
+    if (orderSequence.length > 0) {
+      return orderSequence
+        .filter(code => orderMap.has(code))
+        .map(code => orderMap.get(code)!)
+    }
 
     return Array.from(orderMap.values())
   }
   /**
-   * 获取工位时间线数据
-   * @param allStations 可选，所有工位列表（用于显示没有任务的工位）
+   * 获取工位时间线数据（只显示有任务的工位）
    * @param workConfig 可选，工作日历配置
    */
   toStationTimeline(
-    allStations?: Array<{ code: string; name: string }>,
+    _allStations?: Array<{ code: string; name: string }>,
     workConfig?: WorkConfig
   ): StationTimelineData[] {
     const stationMap = new Map<string, TaskPlan[]>()
@@ -234,23 +249,6 @@ export class ScheduleAdapter {
       return sum + minutes / 60
     }, 0) || 8
 
-    // 如果传入了所有工位列表，确保没有任务的工位也包含在结果中
-    if (allStations) {
-      allStations.forEach(station => {
-        if (!stationMap.has(station.code)) {
-          stationMap.set(station.code, [])
-        }
-      })
-    }
-
-    // 创建工位名称映射（用于没有任务的工位）
-    const stationNameMap = new Map<string, string>()
-    if (allStations) {
-      allStations.forEach(station => {
-        stationNameMap.set(station.code, station.name)
-      })
-    }
-
     return Array.from(stationMap.entries()).map(([stationCode, tasks]) => {
       // 计算工位实际工作时长（基于工作日历）
       let totalHours = 0
@@ -264,16 +262,11 @@ export class ScheduleAdapter {
       })
 
       // 利用率 = 实际工作时长 / (总天数 * 每日工作小时)
-      const utilization = tasks.length > 0 ? (totalHours / (totalDays * hoursPerDay)) * 100 : 0
-
-      // 获取工位名称：优先从任务中获取，否则从 allStations 中获取
-      const stationName = tasks.length > 0
-        ? tasks[0]['station name']
-        : (stationNameMap.get(stationCode) || stationCode)
+      const utilization = (totalHours / (totalDays * hoursPerDay)) * 100
 
       return {
         stationCode,
-        stationName,
+        stationName: tasks[0]['station name'],
         tasks: tasks.sort((a, b) =>
           dayjs(a.planstart).valueOf() - dayjs(b.planstart).valueOf()
         ),
