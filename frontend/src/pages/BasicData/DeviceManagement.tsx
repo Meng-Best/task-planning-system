@@ -306,8 +306,22 @@ const DeviceManagement: React.FC = () => {
     }
   }
 
-  const handleRowClick = (record: Device) => {
+  const handleRowClick = async (record: Device) => {
+    // 先设置基本信息，让UI响应更快
     setSelectedDevice(record)
+
+    // 然后异步获取维护履历
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/devices/${record.id}/maintenance`)
+      if (response.data.status === 'ok') {
+        setSelectedDevice(prev => prev?.id === record.id ? {
+          ...prev,
+          maintenanceRecords: response.data.data
+        } : prev)
+      }
+    } catch (error) {
+      console.error('获取维护履历失败:', error)
+    }
   }
 
   const stats = {
@@ -390,23 +404,24 @@ const DeviceManagement: React.FC = () => {
       children: selectedDevice ? (
         <div className="py-8 px-4" style={{ maxHeight: '400px', overflowY: 'auto' }}>
           {selectedDevice.maintenanceRecords && selectedDevice.maintenanceRecords.length > 0 ? (
-            <Timeline 
-              mode="left"
+            <Timeline
               items={selectedDevice.maintenanceRecords.map((record: any) => ({
                 color: record.status === 1 ? 'green' : 'orange',
-                label: <Text type="secondary">{dayjs(record.startTime).format('YYYY-MM-DD HH:mm')}</Text>,
                 children: (
                   <Card size="small" className="mb-4 shadow-sm" style={{ borderLeft: `3px solid ${record.status === 1 ? '#52c41a' : '#faad14'}` }}>
                     <div className="flex justify-between items-start">
                       <div className="flex flex-col gap-1">
-                        <Text strong style={{ fontSize: '15px' }}>
-                          {record.status === 0 ? (
-                            <ClockCircleOutlined className="mr-2 text-orange-500 animate-pulse" />
-                          ) : (
-                            <CheckCircleOutlined className="mr-2 text-green-500" />
-                          )}
-                          {record.title}
-                        </Text>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Text strong style={{ fontSize: '15px' }}>
+                            {record.status === 0 ? (
+                              <ClockCircleOutlined className="mr-2 text-orange-500 animate-pulse" />
+                            ) : (
+                              <CheckCircleOutlined className="mr-2 text-green-500" />
+                            )}
+                            {record.title}
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: '12px' }}>{dayjs(record.startTime).format('YYYY-MM-DD HH:mm')}</Text>
+                        </div>
                         <Text type="secondary" style={{ fontSize: '12px' }}>类型: {record.type === 'AUTO' ? '系统自动触发' : '人工登记'}</Text>
                         {record.content && <Text className="mt-2 block bg-gray-50 p-2 rounded">{record.content}</Text>}
                         {record.endTime && (

@@ -357,6 +357,8 @@ exports.updateDevice = async (req, res) => {
     if (error.message === 'UNBIND_CONFIRM_REQUIRED') {
       return res.status(400).json({
         status: 'confirm_required',
+        error: 'UNBIND_CONFIRM_REQUIRED',
+        stationName: error.lineName,
         message: `该设备当前正绑定在工位 [${error.lineName}] 上。若要将其状态改为"可用"，必须先从工位移除。是否确认移除并修改状态？`,
         timestamp: new Date().toISOString()
       });
