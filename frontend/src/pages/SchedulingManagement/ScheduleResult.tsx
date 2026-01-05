@@ -114,13 +114,13 @@ const ScheduleResult: React.FC = () => {
         <Descriptions.Item label="班组">
           <Tag color="green">
             {isTaskPlan ? task.team_code : (selectedTask as GanttItem).teamCode} -{' '}
-            {isTaskPlan ? task.team_name : (selectedTask as GanttItem).teamName}
+            {isTaskPlan ? task['team name'] : (selectedTask as GanttItem).teamName}
           </Tag>
         </Descriptions.Item>
         <Descriptions.Item label="工位">
           <Tag color="purple">
-            {isTaskPlan ? task.station_code : (selectedTask as GanttItem).stationCode} -{' '}
-            {isTaskPlan ? task.station_name : (selectedTask as GanttItem).stationName}
+            {isTaskPlan ? task['station code'] : (selectedTask as GanttItem).stationCode} -{' '}
+            {isTaskPlan ? task['station name'] : (selectedTask as GanttItem).stationName}
           </Tag>
         </Descriptions.Item>
       </Descriptions>
