@@ -5,12 +5,15 @@ import type { GanttItem } from '../types'
 import dayjs from 'dayjs'
 import { splitAllTasksByWorkHours, DEFAULT_WORK_CONFIG, type WorkConfig } from '../utils/splitTaskByWorkHours'
 
-type TimeScale = 'week' | 'month'
+type TimeScale = 'day' | 'week' | 'month'
 
 // 根据时间刻度获取时间范围
 const getTimeRange = (scale: TimeScale, minTime: number, maxTime: number) => {
   const dataStart = dayjs(minTime)  // 使用数据的开始时间，而不是当前时间
   switch (scale) {
+    case 'day':
+      // 显示数据开始日期的那一天
+      return { min: dataStart.startOf('day').valueOf(), max: dataStart.endOf('day').valueOf() }
     case 'week':
       // 显示数据开始日期所在的那一周
       return { min: dataStart.startOf('week').valueOf(), max: dataStart.endOf('week').valueOf() }
@@ -193,7 +196,9 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
         ...getTimeRange(timeScale, minTime, maxTime),
         axisLabel: {
           formatter: (value: number) => {
-            if (timeScale === 'week') {
+            if (timeScale === 'day') {
+              return dayjs(value).format('HH:mm')
+            } else if (timeScale === 'week') {
               return dayjs(value).format('ddd HH:mm')
             }
             return dayjs(value).format('MM-DD HH:mm')
@@ -301,6 +306,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
           </Radio.Group>
           <Divider type="vertical" />
           <Radio.Group value={timeScale} onChange={(e) => setTimeScale(e.target.value)}>
+            <Radio.Button value="day">日视图</Radio.Button>
             <Radio.Button value="week">周视图</Radio.Button>
             <Radio.Button value="month">月视图</Radio.Button>
           </Radio.Group>
