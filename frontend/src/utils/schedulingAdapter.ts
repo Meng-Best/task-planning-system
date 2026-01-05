@@ -1,10 +1,11 @@
 /**
  * 调度数据组装适配器
  * Scheduling Data Assembly Adapter
- * 
+ *
  * 核心功能：将后端数据转换为调度算法所需的 SchedulingInput 格式
- * - 设备/工位能力：默认全量（使用所有任务涉及的工序编码）
- * - 班组能力：保留后端真实数据
+ * - 班组能力：数据库配置 ∪ 任务涉及的所有工序（确保能力完整）
+ * - 设备能力：使用所有任务涉及的工序编码（全能）
+ * - 工位能力：根据工序类型动态匹配 (GT工位->GT工序, YT工位->YT工序)
  * - 工作日历：固定时段 8-12, 14-18
  */
 
@@ -300,21 +301,26 @@ function filterProcessCodesByType(
 
 /**
  * 转换资源数据
- * - 班组：保留真实 capabilities
- * - 设备：使用全量工序编码作为 capabilities（保留原有逻辑）
+ * - 班组：数据库配置 ∪ 任务涉及的所有工序（确保能力完整）
+ * - 设备：使用全量工序编码作为 capabilities（全能）
  * - 工位：根据工序类型动态匹配 capabilities (GT工位->GT工序, YT工位->YT工序)
  */
 function transformResources(
     resources: BackendResources,
     allProcessCodes: string[]
 ): Resources {
-    // 转换班组（保留真实能力，ID转为string）
-    const teams: Team[] = resources.teams.map(team => ({
-        id: String(team.id), // 确保ID为string类型
-        code: team.code,
-        name: team.name,
-        capabilities: team.capabilities || []
-    }));
+    // 转换班组（数据库配置 ∪ 任务涉及的所有工序，确保能力完整）
+    const teams: Team[] = resources.teams.map(team => {
+        const dbCapabilities = team.capabilities || [];
+        // 合并数据库配置和任务涉及的所有工序，去重
+        const mergedCapabilities = [...new Set([...dbCapabilities, ...allProcessCodes])];
+        return {
+            id: String(team.id),
+            code: team.code,
+            name: team.name,
+            capabilities: mergedCapabilities
+        };
+    });
 
     // 转换设备（使用全量工序编码，ID转为string）
     const machines: Machine[] = resources.devices.map(device => ({
@@ -368,7 +374,7 @@ function transformOrders(tasks: BackendTask[]): Order[] {
         }
 
         return {
-            Order_code: task.order?.code || task.code,
+            Order_code: task.code, // 使用生产任务编码（唯一标识）
             Order_name: task.order?.name || `任务-${task.code}`,
             products,
             queue: task.priority ?? index + 1,

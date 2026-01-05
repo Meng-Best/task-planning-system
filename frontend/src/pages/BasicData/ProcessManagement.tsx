@@ -141,10 +141,10 @@ const ProcessManagement: React.FC = () => {
                 return <Tag color={config?.color || 'default'}>{config?.label || '未知'}</Tag>;
             }
         },
-        { 
-            title: '标准工时 (h)', 
-            dataIndex: 'standardTime', 
-            key: 'standardTime', 
+        {
+            title: '标准工时 (h)',
+            dataIndex: 'standardTime',
+            key: 'standardTime',
             width: '15%',
             render: (time: number) => <span className="font-mono">{time || 0}</span>
         },
@@ -367,7 +367,7 @@ const ProcessManagement: React.FC = () => {
                         </Col>
                         <Col span={12}>
                             <Form.Item name="standardTime" label="标准工时 (小时)" rules={[{ required: true, message: '请输入标准工时' }]}>
-                                <InputNumber style={{ width: '100%' }} min={0} placeholder="小时" />
+                                <InputNumber style={{ width: '100%' }} min={0} precision={0} placeholder="小时" />
                             </Form.Item>
                         </Col>
                     </Row>
