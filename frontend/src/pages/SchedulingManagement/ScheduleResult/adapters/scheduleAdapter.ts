@@ -1,4 +1,4 @@
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import type {
   ScheduleResultData,
   GanttItem,
@@ -8,6 +8,55 @@ import type {
   StatisticData,
   TaskPlan
 } from '../types'
+import { DEFAULT_WORK_CONFIG, type WorkConfig } from '../utils/splitTaskByWorkHours'
+
+
+/**
+ * 计算任务的实际工作时长（小时）
+ * 考虑工作日历（每日工作时间、周末、节假日）
+ */
+function calculateActualWorkHours(
+  startDate: Dayjs,
+  endDate: Dayjs,
+  workConfig: WorkConfig = DEFAULT_WORK_CONFIG
+): number {
+  if (!startDate.isValid() || !endDate.isValid() || endDate.isBefore(startDate)) {
+    return 0
+  }
+
+  let totalMinutes = 0
+  let currentDay = startDate.startOf('day')
+  const lastDay = endDate.startOf('day')
+
+  while (currentDay.isBefore(lastDay) || currentDay.isSame(lastDay, 'day')) {
+    const dateStr = currentDay.format('YYYY-MM-DD')
+
+    // 跳过节假日和周末
+    const dayOfWeek = currentDay.day()
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+    const isHoliday = workConfig.holidays.includes(dateStr)
+
+    if (!isWeekend && !isHoliday) {
+      // 计算当天的工作时间
+      for (const shift of workConfig.shifts) {
+        const shiftStart = currentDay.hour(shift.startHour).minute(shift.startMinute)
+        const shiftEnd = currentDay.hour(shift.endHour).minute(shift.endMinute)
+
+        // 计算班次与任务时间的交集
+        const effectiveStart = startDate.isAfter(shiftStart) ? startDate : shiftStart
+        const effectiveEnd = endDate.isBefore(shiftEnd) ? endDate : shiftEnd
+
+        if (effectiveStart.isBefore(effectiveEnd)) {
+          totalMinutes += effectiveEnd.diff(effectiveStart, 'minute')
+        }
+      }
+    }
+
+    currentDay = currentDay.add(1, 'day')
+  }
+
+  return totalMinutes / 60
+}
 
 /**
  * 调度结果数据适配器
@@ -156,12 +205,15 @@ export class ScheduleAdapter {
 
     return Array.from(orderMap.values())
   }
-
   /**
    * 获取工位时间线数据
    * @param allStations 可选，所有工位列表（用于显示没有任务的工位）
+   * @param workConfig 可选，工作日历配置
    */
-  toStationTimeline(allStations?: Array<{ code: string; name: string }>): StationTimelineData[] {
+  toStationTimeline(
+    allStations?: Array<{ code: string; name: string }>,
+    workConfig?: WorkConfig
+  ): StationTimelineData[] {
     const stationMap = new Map<string, TaskPlan[]>()
 
     // 按工位分组任务
@@ -176,6 +228,11 @@ export class ScheduleAdapter {
     // 计算每个工位的利用率
     const stats = this.getStatistics()
     const totalDays = stats.dateRange.days
+    // 每日工作小时数（默认 8 小时）
+    const hoursPerDay = workConfig?.shifts.reduce((sum, shift) => {
+      const minutes = (shift.endHour * 60 + shift.endMinute) - (shift.startHour * 60 + shift.startMinute)
+      return sum + minutes / 60
+    }, 0) || 8
 
     // 如果传入了所有工位列表，确保没有任务的工位也包含在结果中
     if (allStations) {
@@ -195,15 +252,19 @@ export class ScheduleAdapter {
     }
 
     return Array.from(stationMap.entries()).map(([stationCode, tasks]) => {
-      // 计算工位总工作时长（小时）
+      // 计算工位实际工作时长（基于工作日历）
       let totalHours = 0
       tasks.forEach(task => {
-        const duration = dayjs(task.planend).diff(dayjs(task.planstart), 'hour')
-        totalHours += duration
+        const hours = calculateActualWorkHours(
+          dayjs(task.planstart),
+          dayjs(task.planend),
+          workConfig
+        )
+        totalHours += hours
       })
 
-      // 利用率 = 工作时长 / (总天数 * 24小时)
-      const utilization = tasks.length > 0 ? (totalHours / (totalDays * 24)) * 100 : 0
+      // 利用率 = 实际工作时长 / (总天数 * 每日工作小时)
+      const utilization = tasks.length > 0 ? (totalHours / (totalDays * hoursPerDay)) * 100 : 0
 
       // 获取工位名称：优先从任务中获取，否则从 allStations 中获取
       const stationName = tasks.length > 0
@@ -223,8 +284,9 @@ export class ScheduleAdapter {
 
   /**
    * 获取班组工作负荷数据
+   * @param workConfig 可选，工作日历配置
    */
-  toTeamWorkload(): TeamWorkloadData[] {
+  toTeamWorkload(workConfig?: WorkConfig): TeamWorkloadData[] {
     const teamMap = new Map<string, TaskPlan[]>()
 
     // 按班组分组任务
@@ -237,11 +299,15 @@ export class ScheduleAdapter {
     })
 
     return Array.from(teamMap.entries()).map(([teamCode, tasks]) => {
-      // 计算班组总工作时长（小时）
+      // 计算班组实际工作时长（基于工作日历）
       let totalHours = 0
       tasks.forEach(task => {
-        const duration = dayjs(task.planend).diff(dayjs(task.planstart), 'hour')
-        totalHours += duration
+        const hours = calculateActualWorkHours(
+          dayjs(task.planstart),
+          dayjs(task.planend),
+          workConfig
+        )
+        totalHours += hours
       })
 
       return {

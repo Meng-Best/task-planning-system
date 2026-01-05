@@ -1,14 +1,33 @@
-import { Card, Radio } from 'antd'
+import { Card, Radio, Divider, Switch, Tooltip } from 'antd'
 import { useState, useMemo } from 'react'
 import ReactECharts from 'echarts-for-react'
 import type { GanttItem } from '../types'
 import dayjs from 'dayjs'
+import { splitAllTasksByWorkHours, DEFAULT_WORK_CONFIG, type WorkConfig } from '../utils/splitTaskByWorkHours'
+
+type TimeScale = 'week' | 'month'
+
+// 根据时间刻度获取时间范围
+const getTimeRange = (scale: TimeScale, minTime: number, maxTime: number) => {
+  const dataStart = dayjs(minTime)  // 使用数据的开始时间，而不是当前时间
+  switch (scale) {
+    case 'week':
+      // 显示数据开始日期所在的那一周
+      return { min: dataStart.startOf('week').valueOf(), max: dataStart.endOf('week').valueOf() }
+    case 'month':
+    default:
+      // 显示全部数据范围
+      return { min: minTime, max: maxTime }
+  }
+}
 
 interface GanttChartViewProps {
   dataByStation: GanttItem[]
   dataByTeam: GanttItem[]
   dataByOrder: GanttItem[]
   onTaskClick?: (task: GanttItem) => void
+  workConfig?: WorkConfig  // 工作日历配置
+  holidays?: string[]      // 节假日列表
 }
 
 type GroupMode = 'order' | 'station' | 'team'
@@ -31,26 +50,41 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
   dataByStation,
   dataByTeam,
   dataByOrder,
-  onTaskClick
+  onTaskClick,
+  workConfig,
+  holidays = []
 }) => {
   const [groupMode, setGroupMode] = useState<GroupMode>('order')
+  const [timeScale, setTimeScale] = useState<TimeScale>('month')
+  const [enableWorkTimeSplit, setEnableWorkTimeSplit] = useState(false)  // 是否启用工作时间拆分
+
+  // 合并工作日历配置
+  const effectiveWorkConfig: WorkConfig = useMemo(() => ({
+    shifts: workConfig?.shifts || DEFAULT_WORK_CONFIG.shifts,
+    holidays: [...(workConfig?.holidays || []), ...holidays]
+  }), [workConfig, holidays])
 
   const option = useMemo(() => {
     // 根据当前分组模式获取数据
-    let data: GanttItem[] = []
+    let rawData: GanttItem[] = []
     switch (groupMode) {
       case 'station':
-        data = dataByStation
+        rawData = dataByStation
         break
       case 'team':
-        data = dataByTeam
+        rawData = dataByTeam
         break
       case 'order':
-        data = dataByOrder
+        rawData = dataByOrder
         break
       default:
-        data = dataByOrder
+        rawData = dataByOrder
     }
+
+    // 如果启用了工作时间拆分，处理数据
+    const data = enableWorkTimeSplit
+      ? splitAllTasksByWorkHours(rawData, effectiveWorkConfig)
+      : rawData
 
     // 如果没有数据，返回空配置
     if (!data || data.length === 0) {
@@ -156,10 +190,12 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
       },
       xAxis: {
         type: 'time',
-        min: minTime,
-        max: maxTime,
+        ...getTimeRange(timeScale, minTime, maxTime),
         axisLabel: {
           formatter: (value: number) => {
+            if (timeScale === 'week') {
+              return dayjs(value).format('ddd HH:mm')
+            }
             return dayjs(value).format('MM-DD HH:mm')
           },
           rotate: 45
@@ -196,11 +232,30 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
       series: [
         {
           type: 'custom',
+          clip: true,  // 裁剪超出图表区域的部分
           renderItem: (params: any, api: any) => {
             const categoryIndex = api.value(0)
-            const start = api.coord([api.value(1), categoryIndex])
-            const end = api.coord([api.value(2), categoryIndex])
+            const startTime = api.value(1)
+            const endTime = api.value(2)
+
+            // 获取当前坐标系的范围
+            const coordSys = params.coordSys
+            const xAxisStart = coordSys.x
+            const xAxisEnd = coordSys.x + coordSys.width
+
+            const start = api.coord([startTime, categoryIndex])
+            const end = api.coord([endTime, categoryIndex])
             const height = api.size([0, 1])[1] * 0.6
+
+            // 限制任务条在可见区域内
+            const clampedStartX = Math.max(start[0], xAxisStart)
+            const clampedEndX = Math.min(end[0], xAxisEnd)
+            const width = Math.max(clampedEndX - clampedStartX, 2)
+
+            // 如果任务完全在可见区域外，不渲染
+            if (clampedEndX <= xAxisStart || clampedStartX >= xAxisEnd) {
+              return null
+            }
 
             // 获取颜色，添加空值检查
             const color = params.data?.itemStyle?.color || '#5470C6'
@@ -208,9 +263,9 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
             return {
               type: 'rect',
               shape: {
-                x: start[0],
+                x: clampedStartX,
                 y: start[1] - height / 2,
-                width: end[0] - start[0],
+                width: width,
                 height: height
               },
               style: {
@@ -226,7 +281,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
         }
       ]
     }
-  }, [groupMode, dataByStation, dataByTeam, dataByOrder])
+  }, [groupMode, dataByStation, dataByTeam, dataByOrder, timeScale, enableWorkTimeSplit, effectiveWorkConfig])
 
   const onChartClick = (params: any) => {
     if (params.data?.taskData && onTaskClick) {
@@ -238,11 +293,27 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
     <Card
       title="甘特图"
       extra={
-        <Radio.Group value={groupMode} onChange={(e) => setGroupMode(e.target.value)}>
-          <Radio.Button value="order">按订单分组</Radio.Button>
-          <Radio.Button value="station">按工位分组</Radio.Button>
-          <Radio.Button value="team">按班组分组</Radio.Button>
-        </Radio.Group>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Radio.Group value={groupMode} onChange={(e) => setGroupMode(e.target.value)}>
+            <Radio.Button value="order">按订单分组</Radio.Button>
+            <Radio.Button value="station">按工位分组</Radio.Button>
+            <Radio.Button value="team">按班组分组</Radio.Button>
+          </Radio.Group>
+          <Divider type="vertical" />
+          <Radio.Group value={timeScale} onChange={(e) => setTimeScale(e.target.value)}>
+            <Radio.Button value="week">周视图</Radio.Button>
+            <Radio.Button value="month">月视图</Radio.Button>
+          </Radio.Group>
+          <Divider type="vertical" />
+          <Tooltip title="按工作时间拆分任务（8:00-12:00, 14:00-18:00）">
+            <Switch
+              checked={enableWorkTimeSplit}
+              onChange={setEnableWorkTimeSplit}
+              checkedChildren="工时"
+              unCheckedChildren="连续"
+            />
+          </Tooltip>
+        </div>
       }
     >
       <ReactECharts
