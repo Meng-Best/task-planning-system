@@ -48,6 +48,7 @@ interface ProductionLine {
   type: number
   status: number
   factoryId: number
+  capacity?: number
   factory?: {
     name: string
   }
@@ -131,53 +132,53 @@ const ProductionLineManagement: React.FC = () => {
 
   // 2. 定义表格列
   const lineColumns = [
-    { 
-      title: '状态', 
-      dataIndex: 'status', 
-      key: 'status', 
-      width: '12%', 
-      render: (status: number) => renderStatusTag(status) 
-    },
-    { 
-      title: '产线代码', 
-      dataIndex: 'code', 
-      key: 'code', 
+    {
+      title: '产线代码',
+      dataIndex: 'code',
+      key: 'code',
       width: '18%',
       render: (val: string) => <span className="business-code">{val}</span>
     },
-    { 
-      title: '产线名称', 
-      dataIndex: 'name', 
+    {
+      title: '产线名称',
+      dataIndex: 'name',
       key: 'name',
       width: '25%',
       render: (val: string) => <span className="text-gray-800">{val}</span>
     },
-    { 
-      title: '所属工厂', 
-      dataIndex: ['factory', 'name'], 
-      key: 'factoryName', 
-      width: '25%',
-      render: (val: any) => val ? <span className="text-gray-600">{val}</span> : <span className="text-gray-400 italic">未指定</span> 
+    {
+      title: '所属工厂',
+      dataIndex: ['factory', 'name'],
+      key: 'factoryName',
+      width: '20%',
+      render: (val: any) => val ? <span className="text-gray-600">{val}</span> : <span className="text-gray-400 italic">未指定</span>
     },
-    { 
-      title: '类型', 
-      dataIndex: 'type', 
+    {
+      title: '类型',
+      dataIndex: 'type',
       key: 'type',
-      width: '10%',
+      width: '12%',
       render: (val: number) => {
         const option = LINE_TYPE_OPTIONS.find(o => o.value === normalizeType(val))
         return <span className="text-gray-600">{option?.label || '-'}</span>
       }
     },
     {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      width: '12%',
+      render: (status: number) => renderStatusTag(status)
+    },
+    {
       title: '操作',
       key: 'action',
-      width: '10%',
+      width: '13%',
       render: (_: any, record: ProductionLine) => (
         <Space size="middle">
           <Button type="link" size="small" icon={<EditOutlined />} onClick={(e) => { e.stopPropagation(); handleEdit(record); }}>编辑</Button>
-          <Popconfirm 
-            title="确定删除此产线吗？" 
+          <Popconfirm
+            title="确定删除此产线吗？"
             onConfirm={(e) => { e?.stopPropagation(); handleDelete(record.id); }}
             okText="确定"
             cancelText="取消"
@@ -418,30 +419,30 @@ const ProductionLineManagement: React.FC = () => {
     <div className="flex flex-col gap-4 p-2">
       {/* 统计看板 */}
       <Row gutter={16}>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
-              title={<span className="text-gray-500 font-medium">产线总数</span>} 
-              value={stats.total} 
-              valueStyle={{ color: '#1890ff', fontWeight: 700 }} 
+            <Statistic
+              title={<span className="text-gray-500 font-medium">产线总数</span>}
+              value={stats.total}
+              valueStyle={{ color: '#1890ff', fontWeight: 700 }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">可用</span>}
-              value={stats.available} 
-              valueStyle={{ color: '#52c41a', fontWeight: 700 }} 
+              value={stats.available}
+              valueStyle={{ color: '#52c41a', fontWeight: 700 }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
             <Statistic
-              title={<span className="text-gray-500 font-medium">不可用</span>} 
-              value={stats.unavailable} 
-              valueStyle={{ color: '#ff4d4f', fontWeight: 700 }} 
+              title={<span className="text-gray-500 font-medium">不可用</span>}
+              value={stats.unavailable}
+              valueStyle={{ color: '#ff4d4f', fontWeight: 700 }}
             />
           </Card>
         </Col>

@@ -119,13 +119,6 @@ const DeviceManagement: React.FC = () => {
   // 2. 定义表格列
   const columns = [
     {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: '12%',
-      render: (status: number) => renderStatusTag(status)
-    },
-    {
       title: '设备编号',
       dataIndex: 'code',
       key: 'code',
@@ -173,9 +166,16 @@ const DeviceManagement: React.FC = () => {
       ) : <Text type="secondary">未绑定</Text>
     },
     {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      width: '10%',
+      render: (status: number) => renderStatusTag(status)
+    },
+    {
       title: '操作',
       key: 'action',
-      width: '12%',
+      width: '15%',
       render: (_: any, record: Device) => (
         <Space size="middle">
           <Button type="link" size="small" icon={<EditOutlined />} onClick={(e) => { e.stopPropagation(); handleEdit(record); }}>编辑</Button>
@@ -500,30 +500,30 @@ const DeviceManagement: React.FC = () => {
     <div className="flex flex-col gap-4 p-2">
       {/* 顶部统计卡片 */}
       <Row gutter={16}>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
-              title={<span className="text-gray-500 font-medium">设备总数</span>} 
-              value={stats.total} 
-              valueStyle={{ color: '#1890ff', fontWeight: 700 }} 
+            <Statistic
+              title={<span className="text-gray-500 font-medium">设备总数</span>}
+              value={stats.total}
+              valueStyle={{ color: '#1890ff', fontWeight: 700 }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">可用</span>}
-              value={stats.available} 
-              valueStyle={{ color: '#52c41a', fontWeight: 700 }} 
+              value={stats.available}
+              valueStyle={{ color: '#52c41a', fontWeight: 700 }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
             <Statistic
-              title={<span className="text-gray-500 font-medium">不可用</span>} 
-              value={stats.unavailable} 
-              valueStyle={{ color: '#ff4d4f', fontWeight: 700 }} 
+              title={<span className="text-gray-500 font-medium">不可用</span>}
+              value={stats.unavailable}
+              valueStyle={{ color: '#ff4d4f', fontWeight: 700 }}
             />
           </Card>
         </Col>

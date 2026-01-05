@@ -19,7 +19,6 @@ import {
 import axios from 'axios';
 import {
   getStatusConfig,
-  SHIFT_TYPES,
   MAJOR_OPTIONS,
   getStaffLevelLabel,
   getProcessTypeLabel
@@ -88,7 +87,7 @@ const TeamManagement: React.FC = () => {
   // 筛选状态
   const [filterCode, setFilterCode] = useState<string>('');
   const [filterName, setFilterName] = useState<string>('');
-  const [filterShiftType, setFilterShiftType] = useState<number | undefined>(undefined);
+
 
   // 联动数据
   const [stations, setStations] = useState<any[]>([]);
@@ -189,11 +188,9 @@ const TeamManagement: React.FC = () => {
 
       const sCode = overrides?.code !== undefined ? overrides.code : filterCode;
       const sName = overrides?.name !== undefined ? overrides.name : filterName;
-      const sShift = overrides?.shiftType !== undefined ? overrides.shiftType : filterShiftType;
 
       if (sCode) params.code = sCode;
       if (sName) params.name = sName;
-      if (sShift !== undefined) params.shiftType = sShift;
 
       const response = await axios.get(`${API_BASE_URL}/api/teams`, { params });
       if (response.data.status === 'ok') {
@@ -216,7 +213,7 @@ const TeamManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.current, pagination.pageSize, filterCode, filterName, filterShiftType, selectedTeam]);
+  }, [pagination.current, pagination.pageSize, filterCode, filterName, selectedTeam]);
 
   const fetchResources = useCallback(async (id: number) => {
     setResourcesLoading(true);
@@ -238,7 +235,7 @@ const TeamManagement: React.FC = () => {
 
   useEffect(() => {
     fetchTeams(1);
-  }, [filterShiftType]);
+  }, []);
 
   const fetchStations = async () => {
     try {
@@ -533,7 +530,7 @@ const TeamManagement: React.FC = () => {
       children: (
         <div className="py-8 px-4">
           {selectedTeam?.station ? (
-            <Card className="max-w-2xl shadow-sm border-gray-100">
+            <Card className="shadow-sm border-gray-100">
               <Descriptions
                 title={
                   <div className="flex items-center justify-between">
@@ -571,9 +568,19 @@ const TeamManagement: React.FC = () => {
     <div className="flex flex-col gap-4 p-2">
       {/* 统计看板 */}
       <Row gutter={16}>
-        <Col span={24}>
+        <Col span={8}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
             <Statistic title="班组总数" value={pagination.total} valueStyle={{ color: '#1890ff', fontWeight: 700 }} />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
+            <Statistic title="已绑定工位" value={teams.filter(t => t.stationId).length} valueStyle={{ color: '#52c41a', fontWeight: 700 }} />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
+            <Statistic title="未绑定工位" value={teams.filter(t => !t.stationId).length} valueStyle={{ color: '#faad14', fontWeight: 700 }} />
           </Card>
         </Col>
       </Row>
@@ -593,27 +600,14 @@ const TeamManagement: React.FC = () => {
                 onPressEnter={() => fetchTeams(1)}
               />
               <span className="text-gray-500 ml-2">班组名称:</span>
-              <Input 
-                placeholder="搜索名称" 
+              <Input
+                placeholder="搜索名称"
                 style={{ width: 160 }}
                 allowClear
                 value={filterName}
                 onChange={e => setFilterName(e.target.value)}
                 onPressEnter={() => fetchTeams(1)}
               />
-              <span className="text-gray-500 ml-2">所属班次:</span>
-              <Select
-                placeholder="全部班次"
-                style={{ width: 200 }}
-                allowClear
-                value={filterShiftType}
-                onChange={setFilterShiftType}
-                popupMatchSelectWidth={false}
-              >
-                {SHIFT_TYPES.map(s => (
-                  <Select.Option key={s.value} value={s.value}>{s.label}</Select.Option>
-                ))}
-              </Select>
             </Space>
           </Col>
           <Col flex="auto" className="flex justify-end">
@@ -622,8 +616,7 @@ const TeamManagement: React.FC = () => {
               <Button icon={<ReloadOutlined />} onClick={() => {
                 setFilterCode('');
                 setFilterName('');
-                setFilterShiftType(undefined);
-                fetchTeams(1, pagination.pageSize, { code: '', name: '', shiftType: undefined });
+                fetchTeams(1, pagination.pageSize, { code: '', name: '' });
               }}>重置</Button>
             </Space>
           </Col>

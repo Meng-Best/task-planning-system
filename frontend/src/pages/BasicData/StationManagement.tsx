@@ -148,40 +148,40 @@ const StationManagement: React.FC = () => {
 
   // 2. 定义表格列
   const stationColumns = [
-    { 
-      title: '状态', 
-      dataIndex: 'status', 
-      key: 'status', 
-      width: '10%', 
-      render: (s: number) => renderStatusTag(s) 
+    {
+      title: '工位编号',
+      dataIndex: 'code',
+      key: 'code',
+      width: 140,
+      render: (code: string) => <span className="business-code">{code}</span>
     },
-    { 
-      title: '工位类型', 
-      dataIndex: 'type', 
-      key: 'type', 
+    { title: '工位名称', dataIndex: 'name', key: 'name', width: 180 },
+    {
+      title: '工位类型',
+      dataIndex: 'type',
+      key: 'type',
       width: 120,
       render: (type: number) => {
         const config = STATION_TYPE_OPTIONS.find(opt => opt.value === type)
         return <Tag color={config?.color || 'default'} style={{ fontWeight: 600 }}>{config?.label || '未知'}</Tag>
       }
     },
-    { 
-      title: '工位编号', 
-      dataIndex: 'code', 
-      key: 'code', 
-      width: 140,
-      render: (code: string) => <span className="business-code">{code}</span>
-    },
-    { title: '工位名称', dataIndex: 'name', key: 'name', width: 180 },
-    { 
-      title: '所属产线', 
-      dataIndex: ['productionLine', 'name'], 
-      key: 'line', 
+    {
+      title: '所属产线',
+      dataIndex: ['productionLine', 'name'],
+      key: 'line',
       width: 180,
       render: (val: string) => val || <span className="text-gray-400">未关联</span>
     },
-    { title: '关联设备', key: 'devices', width: '12%', render: (_: any, record: Station) => record._count?.devices || 0 },
-    { title: '关联班组', key: 'teams', width: '12%', render: (_: any, record: Station) => record._count?.teams || 0 },
+    { title: '关联设备', key: 'devices', width: '10%', render: (_: any, record: Station) => record._count?.devices || 0 },
+    { title: '关联班组', key: 'teams', width: '10%', render: (_: any, record: Station) => record._count?.teams || 0 },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      width: '10%',
+      render: (s: number) => renderStatusTag(s)
+    },
     {
       title: '操作',
       key: 'action',
@@ -555,30 +555,30 @@ const StationManagement: React.FC = () => {
     <div className="flex flex-col gap-4 p-2">
       {/* 统计看板 */}
       <Row gutter={16}>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
-            <Statistic 
-              title={<span className="text-gray-500 font-medium">工位总数</span>} 
-              value={stats.total} 
-              valueStyle={{ color: '#1890ff', fontWeight: 700 }} 
+            <Statistic
+              title={<span className="text-gray-500 font-medium">工位总数</span>}
+              value={stats.total}
+              valueStyle={{ color: '#1890ff', fontWeight: 700 }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">可用</span>}
-              value={stats.available} 
-              valueStyle={{ color: '#52c41a', fontWeight: 700 }} 
+              value={stats.available}
+              valueStyle={{ color: '#52c41a', fontWeight: 700 }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
             <Statistic
-              title={<span className="text-gray-500 font-medium">不可用</span>} 
-              value={stats.unavailable} 
-              valueStyle={{ color: '#ff4d4f', fontWeight: 700 }} 
+              title={<span className="text-gray-500 font-medium">不可用</span>}
+              value={stats.unavailable}
+              valueStyle={{ color: '#ff4d4f', fontWeight: 700 }}
             />
           </Card>
         </Col>

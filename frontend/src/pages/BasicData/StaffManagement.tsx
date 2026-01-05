@@ -262,7 +262,7 @@ const StaffManagement: React.FC = () => {
     <div className="staff-management flex flex-col gap-4 p-2">
       {/* 顶部：统计卡片 */}
       <Row gutter={16}>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">人员总数</span>}
@@ -271,7 +271,7 @@ const StaffManagement: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">可上岗</span>}
@@ -280,7 +280,7 @@ const StaffManagement: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Card className="shadow-sm border-0" styles={{ body: { padding: '20px' } }}>
             <Statistic
               title={<span className="text-gray-500 font-medium">休息中</span>}
