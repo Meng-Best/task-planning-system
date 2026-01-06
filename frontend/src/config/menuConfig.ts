@@ -19,7 +19,8 @@ import {
   SnippetsOutlined,
   DeploymentUnitOutlined,
   ExperimentOutlined,
-  AreaChartOutlined
+  AreaChartOutlined,
+  ContainerOutlined
 } from '@ant-design/icons'
 import React from 'react'
 
@@ -136,6 +137,11 @@ export const menuItems: MenuItem[] = [
         key: 'schedule-result',
         label: '排程结果展示',
         icon: React.createElement(AreaChartOutlined)
+      },
+      {
+        key: 'task-pool',
+        label: '生产任务池',
+        icon: React.createElement(ContainerOutlined)
       }
     ]
   },

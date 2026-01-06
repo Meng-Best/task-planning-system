@@ -17,6 +17,7 @@ import ScheduleManagement from '../../pages/SchedulingManagement/ScheduleManagem
 import PlanMaking from '../../pages/SchedulingManagement/PlanMaking'
 import SimulationEvaluation from '../../pages/SchedulingManagement/SimulationEvaluation'
 import ScheduleResult from '../../pages/SchedulingManagement/ScheduleResult'
+import TaskPool from '../../pages/SchedulingManagement/TaskPool'
 
 interface PageViewProps {
   tabKey: string
@@ -82,6 +83,8 @@ const PageView: React.FC<PageViewProps> = ({ tabKey }) => {
       return <SimulationEvaluation />
     case 'schedule-result':
       return <ScheduleResult />
+    case 'task-pool':
+      return <TaskPool />
     default:
       return <GenericPageView tabKey={tabKey} />
   }

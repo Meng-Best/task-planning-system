@@ -229,8 +229,13 @@ const PlanMaking: React.FC = () => {
         console.warn('⚠️ 保存测试文件失败:', saveError)
       }
 
-      // TODO: 正式环境发送到调度引擎
-      // await axios.post(`${API_BASE_URL}/api/scheduling/sync`, schedulingInput)
+      // 更新任务状态为"已排程"
+      try {
+        const taskIds = tasks.map(t => t.id)
+        await axios.post(`${API_BASE_URL}/api/schedules/run`, { taskIds })
+      } catch (updateError) {
+        console.warn('⚠️ 更新任务状态失败:', updateError)
+      }
 
       await new Promise(resolve => setTimeout(resolve, 300))
       setSyncProgress(100)
@@ -292,7 +297,7 @@ const PlanMaking: React.FC = () => {
         pageSize
       }
 
-      params.status = 1 // 只显示已拆分
+      params.status = '1,2' // 显示已拆分和已排程的任务
       if (filters.orderCode) params.orderCode = filters.orderCode
       if (filters.productCode) params.productCode = filters.productCode
       if (filters.deadline && filters.deadline.length === 2) {

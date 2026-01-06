@@ -249,7 +249,7 @@ model ProductionTask {
   productId   Int            // 关联产品ID
   product     Product        @relation(fields: [productId], references: [id])
   quantity    Int            @default(1) // 任务数量（通常为1，表示生产1个产品）
-  status      Int            @default(0) // 0: 待排程, 1: 排程中
+  status      Int            @default(0) // 0: 待拆分, 1: 已拆分, 2: 已排程, 3: 待生产
   priority    Int            @default(0) // 优先级（0-9，数字越大优先级越高）
   deadline    DateTime       // 截止时间（继承自订单）
   startTime   DateTime?      // 实际开始时间

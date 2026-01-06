@@ -137,14 +137,41 @@ router.post('/terminate', async (req, res) => {
  * @swagger
  * /api/schedules/run:
  *   post:
- *     summary: 触发调度算法运行
+ *     summary: 触发调度算法运行并更新任务状态
  *     tags: [Schedule]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               taskIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 description: 需要排程的任务ID列表
  *     responses:
  *       200:
  *         description: 调度算法已触发
  */
 router.post('/run', async (req, res) => {
     try {
+        const { taskIds } = req.body;
+
+        // 批量更新任务状态为"已排程"
+        let updatedCount = 0;
+        if (taskIds && taskIds.length > 0) {
+            const result = await prisma.productionTask.updateMany({
+                where: {
+                    id: { in: taskIds.map(id => parseInt(id)) },
+                    status: { in: [1, 2] } // 只更新已拆分或已排程的任务
+                },
+                data: { status: 2 }
+            });
+            updatedCount = result.count;
+            console.log(`[Scheduler] 已更新 ${updatedCount} 个任务状态为"已排程"`);
+        }
+
         // 获取 dispatch 文件夹路径
         const dispatchDir = path.join(__dirname, '../../../dispatch');
         const schedulerPath = path.join(dispatchDir, 'Scheduler.exe');
@@ -228,13 +255,130 @@ router.post('/run', async (req, res) => {
             status: 'ok',
             message: '调度程序已在后台启动',
             pid: scheduler.pid,
-            startTime: startTime.toISOString()  // 返回开始时间，供前端判断
+            startTime: startTime.toISOString(),  // 返回开始时间，供前端判断
+            data: { updatedCount }
         });
     } catch (error) {
         console.error('触发调度失败:', error);
         res.status(500).json({
             status: 'error',
             message: '触发调度失败: ' + error.message
+        });
+    }
+});
+
+/**
+ * @swagger
+ * /api/schedules/confirm:
+ *   post:
+ *     summary: 确认排程结果，将任务状态更新为待生产
+ *     tags: [Schedule]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               taskIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *               taskCodes:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ */
+router.post('/confirm', async (req, res) => {
+    try {
+        const { taskIds, taskCodes } = req.body;
+
+        if ((!taskIds || taskIds.length === 0) && (!taskCodes || taskCodes.length === 0)) {
+            return res.status(400).json({
+                status: 'error',
+                message: '请提供需要确认的任务ID或任务编码列表'
+            });
+        }
+
+        // 构建查询条件：状态为已拆分(1)或已排程(2)的都可以确认
+        const whereCondition = { status: { in: [1, 2] } };
+
+        if (taskCodes && taskCodes.length > 0) {
+            // 使用任务编码查询
+            whereCondition.code = { in: taskCodes };
+        } else if (taskIds && taskIds.length > 0) {
+            // 使用任务ID查询
+            whereCondition.id = { in: taskIds.map(id => parseInt(id)) };
+        }
+
+        // 更新任务状态为 status=3 (待生产)
+        const result = await prisma.productionTask.updateMany({
+            where: whereCondition,
+            data: { status: 3 }
+        });
+
+        res.json({
+            status: 'ok',
+            message: `成功确认 ${result.count} 个任务，已加入生产任务池`,
+            data: { confirmedCount: result.count }
+        });
+    } catch (error) {
+        console.error('确认排程失败:', error);
+        res.status(500).json({
+            status: 'error',
+            message: '确认排程失败: ' + error.message
+        });
+    }
+});
+
+/**
+ * @swagger
+ * /api/schedules/withdraw:
+ *   post:
+ *     summary: 撤回任务，将待生产任务回退为已拆分状态
+ *     tags: [Schedule]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               taskIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ */
+router.post('/withdraw', async (req, res) => {
+    try {
+        const { taskIds } = req.body;
+
+        if (!taskIds || taskIds.length === 0) {
+            return res.status(400).json({
+                status: 'error',
+                message: '请提供需要撤回的任务ID列表'
+            });
+        }
+
+        // 只更新 status=3 (待生产) 的任务，回退到 status=1 (已拆分)
+        const result = await prisma.productionTask.updateMany({
+            where: {
+                id: { in: taskIds.map(id => parseInt(id)) },
+                status: 3
+            },
+            data: { status: 1 }
+        });
+
+        res.json({
+            status: 'ok',
+            message: `成功撤回 ${result.count} 个任务`,
+            data: { withdrawnCount: result.count }
+        });
+    } catch (error) {
+        console.error('撤回任务失败:', error);
+        res.status(500).json({
+            status: 'error',
+            message: '撤回任务失败: ' + error.message
         });
     }
 });

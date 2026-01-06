@@ -163,7 +163,9 @@ export const getOrderStatusLabel = (value: number): string => {
 // 生产任务状态
 export const PRODUCTION_TASK_STATUS_OPTIONS = [
   { value: 0, label: '待拆分', color: 'default' },
-  { value: 1, label: '已拆分', color: 'processing' }
+  { value: 1, label: '已拆分', color: 'processing' },
+  { value: 2, label: '已排程', color: 'warning' },
+  { value: 3, label: '待生产', color: 'success' }
 ]
 
 export const getProductionTaskStatusLabel = (value: number): string => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Card, Tabs, Button, message, Spin, Alert, Modal, Descriptions, Tag } from 'antd'
-import { ReloadOutlined } from '@ant-design/icons'
+import { Card, Tabs, Button, message, Spin, Alert, Modal, Descriptions, Tag, Space } from 'antd'
+import { ReloadOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import axios from 'axios'
 import dayjs from 'dayjs'
 import StatisticCards from './ScheduleResult/components/StatisticCards'
@@ -23,6 +23,7 @@ const ScheduleResult: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<TaskPlan | GanttItem | null>(null)
   const [detailVisible, setDetailVisible] = useState(false)
   const [allStations, setAllStations] = useState<Array<{ code: string; name: string }>>([])
+  const [confirming, setConfirming] = useState(false)
 
   // 加载所有工位列表
   const loadAllStations = async () => {
@@ -67,6 +68,55 @@ const ScheduleResult: React.FC = () => {
     loadAllStations()
     loadScheduleResult()
   }, [])
+
+  // 从排程结果中提取任务编码列表（用于确认排程）
+  const getTaskCodesFromResult = (): string[] => {
+    if (!scheduleData?.task_plan) return []
+    // 从 task_plan 中提取唯一的 order code（实际是任务编码）
+    const taskCodeSet = new Set<string>()
+    for (const task of scheduleData.task_plan) {
+      const taskCode = task['order code']
+      if (taskCode) {
+        taskCodeSet.add(taskCode)
+      }
+    }
+    return Array.from(taskCodeSet)
+  }
+
+  // 确认排程 - 将任务状态从 已排程(2) 更新为 待生产(3)
+  const handleConfirmSchedule = () => {
+    const taskCodes = getTaskCodesFromResult()
+    if (taskCodes.length === 0) {
+      message.warning('未找到可确认的任务')
+      return
+    }
+
+    Modal.confirm({
+      title: '确认排程结果',
+      content: `确认后，${taskCodes.length} 个任务将进入生产任务池，不再参与后续排程。是否确认？`,
+      okText: '确认',
+      cancelText: '取消',
+      onOk: async () => {
+        setConfirming(true)
+        try {
+          const response = await axios.post(`${API_BASE_URL}/api/schedules/confirm`, { taskCodes })
+          if (response.data.status === 'ok') {
+            const count = response.data.data.confirmedCount
+            if (count > 0) {
+              message.success(`成功确认 ${count} 个任务进入生产任务池`)
+            } else {
+              message.info('任务已全部确认，无需重复操作')
+            }
+          }
+        } catch (error) {
+          console.error('确认排程失败:', error)
+          message.error('确认排程失败，请稍后重试')
+        } finally {
+          setConfirming(false)
+        }
+      }
+    })
+  }
 
   // 任务点击处理
   const handleTaskClick = (task: TaskPlan | GanttItem) => {
@@ -171,9 +221,20 @@ const ScheduleResult: React.FC = () => {
           <div style={{ fontSize: 18, fontWeight: 600, color: '#262626' }}>
             排程结果
           </div>
-          <Button type="primary" icon={<ReloadOutlined />} onClick={loadScheduleResult}>
-            刷新数据
-          </Button>
+          <Space>
+            <Button type="primary" icon={<ReloadOutlined />} onClick={loadScheduleResult}>
+              刷新数据
+            </Button>
+            <Button
+              type="primary"
+              icon={<CheckCircleOutlined />}
+              onClick={handleConfirmSchedule}
+              loading={confirming}
+              style={{ background: '#52c41a', borderColor: '#52c41a' }}
+            >
+              确认排程
+            </Button>
+          </Space>
         </div>
       </Card>
 

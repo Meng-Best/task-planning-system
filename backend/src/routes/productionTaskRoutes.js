@@ -5,11 +5,12 @@ const prisma = new PrismaClient();
 
 /**
  * 获取带拆分步骤的生产任务（含过滤与分页）
+ * status 参数支持逗号分隔的多个状态，如 "1,2"
  */
 router.get('/with-schedule', async (req, res) => {
     try {
         const {
-            status = 1,
+            status = '1',
             current = 1,
             pageSize = 10,
             orderCode,
@@ -20,10 +21,13 @@ router.get('/with-schedule', async (req, res) => {
 
         const where = {};
 
+        // 支持多个状态查询，如 status=1,2
         if (status !== undefined && status !== '') {
-            const parsedStatus = parseInt(status);
-            if (!Number.isNaN(parsedStatus)) {
-                where.status = parsedStatus;
+            const statusArr = String(status).split(',').map(s => parseInt(s.trim())).filter(s => !Number.isNaN(s));
+            if (statusArr.length === 1) {
+                where.status = statusArr[0];
+            } else if (statusArr.length > 1) {
+                where.status = { in: statusArr };
             }
         }
 
@@ -195,6 +199,95 @@ router.get('/with-schedule', async (req, res) => {
         res.status(500).json({
             status: 'error',
             message: '获取包含拆分步骤的生产任务失败'
+        });
+    }
+});
+
+/**
+ * @swagger
+ * /api/production-tasks/pending-production:
+ *   get:
+ *     summary: 获取待生产任务列表（生产任务池）
+ *     tags: [ProductionTask]
+ *     parameters:
+ *       - in: query
+ *         name: current
+ *         schema:
+ *           type: integer
+ *         description: 当前页码
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *         description: 每页数量
+ *       - in: query
+ *         name: orderCode
+ *         schema:
+ *           type: string
+ *         description: 订单编号筛选
+ *       - in: query
+ *         name: productCode
+ *         schema:
+ *           type: string
+ *         description: 产品编号筛选
+ *     responses:
+ *       200:
+ *         description: 成功返回待生产任务列表
+ */
+router.get('/pending-production', async (req, res) => {
+    try {
+        const { current = 1, pageSize = 10, orderCode, productCode } = req.query;
+
+        const where = { status: 3 }; // 只查询待生产状态
+
+        if (orderCode) {
+            where.order = {
+                code: { contains: orderCode }
+            };
+        }
+
+        if (productCode) {
+            where.product = {
+                code: { contains: productCode }
+            };
+        }
+
+        const skip = (parseInt(current) - 1) * parseInt(pageSize);
+        const take = parseInt(pageSize);
+
+        const [list, total] = await Promise.all([
+            prisma.productionTask.findMany({
+                where,
+                include: {
+                    order: {
+                        select: { id: true, code: true, name: true, type: true }
+                    },
+                    product: {
+                        select: { id: true, code: true, name: true }
+                    },
+                    steps: {
+                        include: {
+                            product: { select: { id: true, code: true, name: true } }
+                        },
+                        orderBy: { seq: 'asc' }
+                    }
+                },
+                skip,
+                take,
+                orderBy: { updatedAt: 'desc' }
+            }),
+            prisma.productionTask.count({ where })
+        ]);
+
+        res.json({
+            status: 'ok',
+            data: { list, total, current: parseInt(current), pageSize: parseInt(pageSize) }
+        });
+    } catch (error) {
+        console.error('获取待生产任务列表失败:', error);
+        res.status(500).json({
+            status: 'error',
+            message: '获取待生产任务列表失败'
         });
     }
 });
