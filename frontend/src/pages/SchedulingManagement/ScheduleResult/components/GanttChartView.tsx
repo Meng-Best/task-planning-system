@@ -49,6 +49,15 @@ const getColorByOrder = (orderCode: string): string => {
   return colors[Math.abs(hash) % colors.length]
 }
 
+// 调整颜色亮度（用于明暗交替）
+const adjustBrightness = (hex: string, percent: number): string => {
+  const num = parseInt(hex.replace('#', ''), 16)
+  const r = Math.min(255, Math.max(0, (num >> 16) + percent))
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + percent))
+  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + percent))
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`
+}
+
 const GanttChartView: React.FC<GanttChartViewProps> = ({
   dataByStation,
   dataByTeam,
@@ -121,9 +130,12 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
     const series = groups.map((group, groupIndex) => {
       const tasks = groupedMap[group]
 
-      return tasks.map(task => {
+      return tasks.map((task, taskIndex) => {
         const start = dayjs(task.start)
         const end = dayjs(task.end)
+        const baseColor = getColorByOrder(task.orderCode)
+        // 明暗交替：奇数任务加亮，偶数任务变暗
+        const color = taskIndex % 2 === 0 ? baseColor : adjustBrightness(baseColor, 30)
 
         return {
           name: task.name,
@@ -134,8 +146,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
             end.diff(start, 'hour')
           ],
           itemStyle: {
-            // 根据订单分配颜色
-            color: getColorByOrder(task.orderCode)
+            color: color
           },
           // 附加任务信息，用于点击事件和提示框
           taskData: task
@@ -265,13 +276,19 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
             // 获取颜色，添加空值检查
             const color = params.data?.itemStyle?.color || '#5470C6'
 
+            // 添加微间隙：左右各缩进1px，确保连续任务有视觉分隔
+            const gap = 1
+            const adjustedX = clampedStartX + gap
+            const adjustedWidth = Math.max(width - gap * 2, 2)
+
             return {
               type: 'rect',
               shape: {
-                x: clampedStartX,
+                x: adjustedX,
                 y: start[1] - height / 2,
-                width: width,
-                height: height
+                width: adjustedWidth,
+                height: height,
+                r: 2  // 小圆角
               },
               style: {
                 fill: color
