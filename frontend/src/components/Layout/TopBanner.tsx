@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { RocketOutlined, UserOutlined, BellOutlined, HistoryOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import { Avatar, Badge, Popover, List, Typography, Empty, Space, Tag } from 'antd'
 import { getSystemNotifications, NotificationItem } from '../../api/notificationApi'
+import dayjs from 'dayjs'
+import 'dayjs/locale/zh-cn'
+
+dayjs.locale('zh-cn')
 
 const { Text } = Typography;
+
+// 星期映射
+const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
 const TopBanner: React.FC = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -11,6 +18,30 @@ const TopBanner: React.FC = () => {
   const [hasNew, setHasNew] = useState(false);
   // 使用 Ref 存储最后查看的 ID，避免轮询中的闭包陷阱
   const lastViewedIdRef = React.useRef<number>(0);
+
+  // 实时时钟状态
+  const [currentTime, setCurrentTime] = useState(dayjs());
+
+  // 鼠标视差效果
+  const bannerRef = useRef<HTMLDivElement>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // 实时时钟更新
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(dayjs());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 鼠标移动视差效果
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!bannerRef.current) return;
+    const rect = bannerRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setMousePosition({ x, y });
+  }, []);
 
   // 轮询检查新通知 (短轮询：每1秒检查一次，确保实时性)
   useEffect(() => {
@@ -96,14 +127,46 @@ const TopBanner: React.FC = () => {
 
   return (
     <div
+      ref={bannerRef}
+      onMouseMove={handleMouseMove}
       className="h-[100px] flex items-center justify-between px-8 relative overflow-hidden select-none"
       style={{
         background: 'linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #111111 100%)',
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)'
       }}
     >
+      {/* 噪点纹理层 */}
+      <div
+        className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none noise-texture"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '128px 128px'
+        }}
+      />
+
+      {/* 扫描线效果 */}
+      <div className="absolute inset-0 z-[1] pointer-events-none scanlines" />
+
+      {/* 鼠标跟随光晕 */}
+      <div
+        className="absolute w-[400px] h-[200px] z-[1] pointer-events-none transition-opacity duration-300"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%)',
+          left: `calc(${(mousePosition.x + 0.5) * 100}% - 200px)`,
+          top: `calc(${(mousePosition.y + 0.5) * 100}% - 100px)`,
+          opacity: Math.abs(mousePosition.x) > 0.01 || Math.abs(mousePosition.y) > 0.01 ? 1 : 0
+        }}
+      />
+
       {/* 粒子背景 - 使用 CSS 实现星点效果 */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      <div
+        className="absolute inset-0 z-0 overflow-hidden"
+        style={{
+          transform: `translate(${mousePosition.x * -10}px, ${mousePosition.y * -5}px)`,
+          transition: 'transform 0.3s ease-out'
+        }}
+      >
         {/* 静态星点层 */}
         <div
           className="absolute inset-0"
@@ -213,6 +276,40 @@ const TopBanner: React.FC = () => {
 
       {/* 右侧内容区域 */}
       <div className="flex items-center gap-5 z-10">
+        {/* 实时时钟 */}
+        <div className="flex flex-col items-end gap-0.5 mr-2">
+          <div className="flex items-baseline gap-2">
+            <span
+              className="text-[28px] font-light tabular-nums tracking-tight"
+              style={{
+                color: '#fff',
+                textShadow: '0 0 20px rgba(139, 92, 246, 0.3)',
+                fontFamily: "'SF Mono', 'Roboto Mono', 'Consolas', monospace"
+              }}
+            >
+              {currentTime.format('HH:mm')}
+            </span>
+            <span
+              className="text-[16px] font-light tabular-nums opacity-60"
+              style={{
+                color: '#fff',
+                fontFamily: "'SF Mono', 'Roboto Mono', 'Consolas', monospace"
+              }}
+            >
+              {currentTime.format('ss')}
+            </span>
+          </div>
+          <span
+            className="text-[11px] tracking-wide"
+            style={{ color: 'rgba(255, 255, 255, 0.45)' }}
+          >
+            {currentTime.format('YYYY年MM月DD日')} {WEEKDAYS[currentTime.day()]}
+          </span>
+        </div>
+
+        {/* 分隔线 */}
+        <div className="h-10 w-[1px] bg-gradient-to-b from-transparent via-white/20 to-transparent" />
+
         {/* 通知铃铛 */}
         <Popover
           content={notificationContent}
@@ -361,6 +458,33 @@ const TopBanner: React.FC = () => {
         @keyframes lineBreath {
           0%, 100% { opacity: 0.6; }
           50% { opacity: 1; }
+        }
+
+        /* 扫描线效果 */
+        .scanlines {
+          background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 255, 255, 0.01) 2px,
+            rgba(255, 255, 255, 0.01) 4px
+          );
+          animation: scanlineMove 8s linear infinite;
+        }
+
+        @keyframes scanlineMove {
+          0% { background-position: 0 0; }
+          100% { background-position: 0 100px; }
+        }
+
+        /* 噪点动画 - 微妙的闪烁 */
+        .noise-texture {
+          animation: noiseFlicker 0.15s infinite;
+        }
+
+        @keyframes noiseFlicker {
+          0%, 100% { opacity: 0.03; }
+          50% { opacity: 0.04; }
         }
       `}</style>
     </div>
