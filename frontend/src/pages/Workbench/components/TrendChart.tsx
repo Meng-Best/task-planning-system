@@ -182,7 +182,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data, loading }) => {
             资源负载趋势
           </span>
           <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 400 }}>
-            过去 10 天
+            过去 15 天
           </span>
         </div>
       }

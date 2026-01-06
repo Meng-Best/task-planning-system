@@ -269,41 +269,30 @@ const TopBanner: React.FC = () => {
               color: 'rgba(255, 255, 255, 0.5)'
             }}
           >
-            MISSION PLANNING SYSTEM
+            {/* MISSION PLANNING SYSTEM */}
           </span>
         </div>
       </div>
 
       {/* 右侧内容区域 */}
       <div className="flex items-center gap-5 z-10">
-        {/* 实时时钟 */}
-        <div className="flex flex-col items-end gap-0.5 mr-2">
-          <div className="flex items-baseline gap-2">
-            <span
-              className="text-[28px] font-light tabular-nums tracking-tight"
-              style={{
-                color: '#fff',
-                textShadow: '0 0 20px rgba(139, 92, 246, 0.3)',
-                fontFamily: "'SF Mono', 'Roboto Mono', 'Consolas', monospace"
-              }}
-            >
-              {currentTime.format('HH:mm')}
-            </span>
-            <span
-              className="text-[16px] font-light tabular-nums opacity-60"
-              style={{
-                color: '#fff',
-                fontFamily: "'SF Mono', 'Roboto Mono', 'Consolas', monospace"
-              }}
-            >
-              {currentTime.format('ss')}
-            </span>
-          </div>
+        {/* 实时时钟 - 单行显示 */}
+        <div className="flex items-center gap-3 mr-2">
           <span
-            className="text-[11px] tracking-wide"
-            style={{ color: 'rgba(255, 255, 255, 0.45)' }}
+            className="text-[13px] tracking-wide"
+            style={{ color: 'rgba(255, 255, 255, 0.5)' }}
           >
-            {currentTime.format('YYYY年MM月DD日')} {WEEKDAYS[currentTime.day()]}
+            {currentTime.format('YYYY/MM/DD')} {WEEKDAYS[currentTime.day()]}
+          </span>
+          <span
+            className="text-[18px] font-light tabular-nums"
+            style={{
+              color: '#fff',
+              textShadow: '0 0 15px rgba(139, 92, 246, 0.25)',
+              fontFamily: "'SF Mono', 'Roboto Mono', 'Consolas', monospace"
+            }}
+          >
+            {currentTime.format('HH:mm:ss')}
           </span>
         </div>
 

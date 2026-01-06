@@ -1,19 +1,21 @@
 import { Tabs, Dropdown } from 'antd'
 import type { MenuProps } from 'antd'
-import { CloseOutlined, MoreOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
+import { CloseOutlined, MoreOutlined, MenuFoldOutlined, MenuUnfoldOutlined, FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons'
 import { useTabStore } from '../../store/useTabStore'
 import PageView from '../PageView'
 
 interface MainContentProps {
   collapsed: boolean
   onToggle: () => void
+  fullscreen?: boolean
+  onFullscreenToggle?: () => void
 }
 
-const MainContent: React.FC<MainContentProps> = ({ collapsed, onToggle }) => {
-  const { 
-    activeTab, 
-    openedTabs, 
-    setActiveTab, 
+const MainContent: React.FC<MainContentProps> = ({ collapsed, onToggle, fullscreen, onFullscreenToggle }) => {
+  const {
+    activeTab,
+    openedTabs,
+    setActiveTab,
     removeTab,
     closeOtherTabs,
     closeAllTabs
@@ -74,6 +76,18 @@ const MainContent: React.FC<MainContentProps> = ({ collapsed, onToggle }) => {
   // 更多操作下拉菜单
   const moreMenuItems: MenuProps['items'] = [
     {
+      key: 'fullscreen',
+      icon: fullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />,
+      label: fullscreen ? '退出全屏' : '全屏模式',
+      onClick: () => onFullscreenToggle?.()
+    },
+    { type: 'divider' },
+    {
+      key: 'closeOthers',
+      label: '关闭其他标签',
+      onClick: () => closeOtherTabs(activeTab)
+    },
+    {
       key: 'closeAll',
       label: '关闭所有标签',
       onClick: () => closeAllTabs()
@@ -84,13 +98,17 @@ const MainContent: React.FC<MainContentProps> = ({ collapsed, onToggle }) => {
     <div className="flex flex-col h-full bg-slate-100">
       {/* 标签栏 */}
       <div className="flex items-center shadow-sm bg-slate-50 border-b border-gray-200">
-        {/* 固定在顶部的折叠按钮 */}
-        <div 
+        {/* 固定在顶部的折叠按钮 - 全屏时显示退出全屏按钮 */}
+        <div
           className="px-4 h-[40px] flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors border-r border-gray-200 text-slate-500"
-          onClick={onToggle}
-          title={collapsed ? "展开侧边栏" : "收起侧边栏"}
+          onClick={fullscreen ? onFullscreenToggle : onToggle}
+          title={fullscreen ? "退出全屏" : (collapsed ? "展开侧边栏" : "收起侧边栏")}
         >
-          {collapsed ? <MenuUnfoldOutlined className="text-lg" /> : <MenuFoldOutlined className="text-lg" />}
+          {fullscreen ? (
+            <FullscreenExitOutlined className="text-lg" />
+          ) : (
+            collapsed ? <MenuUnfoldOutlined className="text-lg" /> : <MenuFoldOutlined className="text-lg" />
+          )}
         </div>
         <Tabs
           type="editable-card"
@@ -104,10 +122,13 @@ const MainContent: React.FC<MainContentProps> = ({ collapsed, onToggle }) => {
             margin: 0
           }}
         />
-        <div className="bg-gradient-to-b from-slate-50 to-slate-100 h-full flex items-center px-1">
+        <div className="h-full flex items-center px-2 border-l border-gray-200/80">
           <Dropdown menu={{ items: moreMenuItems }} trigger={['click']}>
-            <button className="px-3 py-2 rounded-lg hover:bg-white/60 text-slate-500 transition-colors">
-              <MoreOutlined className="text-base" />
+            <button
+              className="w-8 h-8 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 active:bg-slate-200 transition-all duration-150"
+              title="更多操作"
+            >
+              <MoreOutlined className="text-sm" />
             </button>
           </Dropdown>
         </div>

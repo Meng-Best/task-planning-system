@@ -34,11 +34,11 @@ exports.getDashboardStats = async (req, res) => {
       // 班组统计
       prisma.team.count(),
 
-      // 工厂统计
+      // 工厂统计 - 可用(status:0)视为已投产
       prisma.factory.count(),
       prisma.factory.count({ where: { status: 0 } }),
       prisma.factory.count({ where: { status: 1 } }),
-      prisma.factory.count({ where: { status: 2 } })
+      prisma.factory.count({ where: { status: { in: [0, 2] } } })  // 可用+占用 = 已投产
     ]);
 
     // 如果总数为0，说明是空库，我们提供一组演示用的演示数据
@@ -95,22 +95,22 @@ exports.getDashboardStats = async (req, res) => {
 };
 
 /**
- * 获取资源使用率趋势（过去10天）
+ * 获取资源使用率趋势（过去15天）
  * 优先从 dashboard_trends 表获取真实历史数据，若数据不足则生成模拟数据并存储
  */
 exports.getResourceTrend = async (req, res) => {
   try {
-    // 1. 尝试从数据库获取最近10天的趋势数据
+    // 1. 尝试从数据库获取最近15天的趋势数据
     let trendData = await prisma.dashboardTrend.findMany({
       orderBy: { date: 'desc' },
-      take: 10
+      take: 15
     });
 
-    // 2. 如果数据不足10条，生成一些历史模拟数据补充，让图表看起来完整
-    if (trendData.length < 10) {
+    // 2. 如果数据不足15条，生成一些历史模拟数据补充，让图表看起来完整
+    if (trendData.length < 15) {
       const now = new Date();
       const existingDates = new Set(trendData.map(t => t.date));
-      
+
       const mockBaselines = {
         factory: 45,
         device: 62,
@@ -120,7 +120,7 @@ exports.getResourceTrend = async (req, res) => {
       };
 
       const newRecords = [];
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 15; i++) {
         const date = new Date(now);
         date.setDate(now.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
