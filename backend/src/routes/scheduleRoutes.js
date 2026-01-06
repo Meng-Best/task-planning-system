@@ -4,6 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const fs = require('fs').promises;
 const path = require('path');
+const { spawn } = require('child_process');
 
 // ========== 具体路由（必须放在通配路由之前） ==========
 
@@ -21,7 +22,7 @@ const path = require('path');
  */
 router.get('/output/result', async (req, res) => {
     try {
-        // 读取项目根目录的output.json文件
+        // 读取项目根目录的 output.json 文件（Scheduler.exe 输出到根目录）
         const outputPath = path.join(__dirname, '../../../output.json');
 
         // 检查文件是否存在
@@ -70,6 +71,7 @@ router.get('/output/result', async (req, res) => {
  */
 router.get('/output/check', async (req, res) => {
     try {
+        // 检测项目根目录的 output.json 文件（Scheduler.exe 输出到根目录）
         const outputPath = path.join(__dirname, '../../../output.json');
 
         try {
@@ -97,6 +99,42 @@ router.get('/output/check', async (req, res) => {
 
 /**
  * @swagger
+ * /api/schedules/terminate:
+ *   post:
+ *     summary: 终止Scheduler.exe进程
+ *     tags: [Schedule]
+ *     responses:
+ *       200:
+ *         description: 进程已终止
+ */
+router.post('/terminate', async (req, res) => {
+    try {
+        const { exec } = require('child_process');
+
+        // 使用 taskkill 杀掉 Scheduler.exe 和相关的 cmd 窗口
+        exec('taskkill /F /IM Scheduler.exe /T 2>nul', (error) => {
+            if (error) {
+                console.log('[Terminate] Scheduler.exe 进程不存在或已终止');
+            } else {
+                console.log('[Terminate] 已终止 Scheduler.exe 进程');
+            }
+        });
+
+        res.json({
+            status: 'ok',
+            message: '已发送终止信号'
+        });
+    } catch (error) {
+        console.error('终止进程失败:', error);
+        res.status(500).json({
+            status: 'error',
+            message: '终止进程失败: ' + error.message
+        });
+    }
+});
+
+/**
+ * @swagger
  * /api/schedules/run:
  *   post:
  *     summary: 触发调度算法运行
@@ -107,12 +145,90 @@ router.get('/output/check', async (req, res) => {
  */
 router.post('/run', async (req, res) => {
     try {
-        // TODO: 这里将来会调用实际的调度算法
-        // 目前只是返回成功,表示已接收到调度请求
+        // 获取 dispatch 文件夹路径
+        const dispatchDir = path.join(__dirname, '../../../dispatch');
+        const schedulerPath = path.join(dispatchDir, 'Scheduler.exe');
+
+        // 检查 Scheduler.exe 是否存在
+        try {
+            await fs.access(schedulerPath);
+        } catch (error) {
+            return res.status(404).json({
+                status: 'error',
+                message: '未找到调度程序 Scheduler.exe'
+            });
+        }
+
+        // 不删除旧的 output.json，保证前端始终有结果可显示
+        // 只删除 dispatch 文件夹下的临时结果文件
+        const rootDir = path.join(__dirname, '../../..');
+        const outputPath = path.join(rootDir, 'output.json');
+        const resultPath = path.join(dispatchDir, 'input_test_result.json');
+
+        // 记录开始时间，用于前端判断结果是否是新生成的
+        const startTime = new Date();
+
+        try {
+            await fs.unlink(resultPath);
+            console.log('已删除旧的 input_test_result.json');
+        } catch (error) {
+            // 文件不存在，忽略
+        }
+
+        // 执行 Scheduler.exe，使用 cmd /k 保持窗口打开以便观察
+        // 进程会在前端进度完成跳转时被杀掉
+        const scheduler = spawn('cmd.exe', ['/c', 'start', 'cmd', '/k', schedulerPath], {
+            cwd: dispatchDir,      // 工作目录设为 dispatch 文件夹
+            detached: true,        // 独立进程
+            stdio: 'ignore',       // 忽略输入输出
+            windowsHide: false,    // 显示命令行窗口
+            shell: false
+        });
+
+        scheduler.on('error', (error) => {
+            console.error('[Scheduler error]:', error.message);
+        });
+
+        // 由于 stdio 是 ignore，无法监听 close 事件来处理文件
+        // 改用轮询检测 input_test_result.json 文件
+        const checkResultFile = async () => {
+            try {
+                await fs.access(resultPath);
+
+                // 结果文件存在，等待一小段时间确保写入完成
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // 读取结果文件内容
+                const resultContent = await fs.readFile(resultPath, 'utf-8');
+
+                // 写入到根目录的 output.json
+                await fs.writeFile(outputPath, resultContent, 'utf-8');
+                console.log('[Scheduler] 已将结果文件复制到:', outputPath);
+
+                // 删除 dispatch 文件夹下的 input_test_result.json
+                await fs.unlink(resultPath);
+                console.log('[Scheduler] 已删除临时结果文件:', resultPath);
+
+                console.log('[Scheduler] 排程调度完成！');
+            } catch (err) {
+                // 文件不存在，继续轮询
+                setTimeout(checkResultFile, 2000);
+            }
+        };
+
+        // 3秒后开始检测结果文件
+        setTimeout(checkResultFile, 3000);
+
+        // 解除父子进程关联
+        scheduler.unref();
+
+        console.log(`调度程序已启动，PID: ${scheduler.pid}`);
 
         res.json({
             status: 'ok',
-            message: '调度请求已接收，算法正在运行中...'
+            message: '调度程序已在后台启动',
+            pid: scheduler.pid,
+            startTime: startTime.toISOString()  // 返回开始时间，供前端判断
         });
     } catch (error) {
         console.error('触发调度失败:', error);
@@ -314,3 +430,4 @@ router.delete('/:taskId', async (req, res) => {
 });
 
 module.exports = router;
+

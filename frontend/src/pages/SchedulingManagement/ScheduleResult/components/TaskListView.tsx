@@ -20,6 +20,8 @@ const TaskListView: React.FC<TaskListViewProps> = ({
   onTaskClick
 }) => {
   const [groupMode, setGroupMode] = useState<GroupMode>('order')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
 
   const getCurrentData = () => {
     switch (groupMode) {
@@ -34,14 +36,46 @@ const TaskListView: React.FC<TaskListViewProps> = ({
     }
   }
 
+  // 根据分组模式获取分组编码
+  const getGroupCode = (record: GanttItem) => {
+    switch (groupMode) {
+      case 'station':
+        return record.stationCode
+      case 'team':
+        return record.teamCode
+      case 'order':
+        return record.orderCode
+      default:
+        return record.orderCode
+    }
+  }
+
+  // 根据分组模式获取分组名称（用于Tooltip）
+  const getGroupName = (record: GanttItem) => {
+    switch (groupMode) {
+      case 'station':
+        return record.stationName
+      case 'team':
+        return record.teamName
+      case 'order':
+        return record.orderName
+      default:
+        return record.orderName
+    }
+  }
+
   const columns: ColumnsType<GanttItem> = [
     {
       title: '分组',
       dataIndex: 'group',
       key: 'group',
-      width: 150,
+      width: 120,
       fixed: 'left',
-      render: (text) => <Tag color="blue">{text}</Tag>
+      render: (_, record) => (
+        <Tooltip title={getGroupName(record)}>
+          <Tag color="blue">{getGroupCode(record)}</Tag>
+        </Tooltip>
+      )
     },
     {
       title: '订单',
@@ -133,7 +167,10 @@ const TaskListView: React.FC<TaskListViewProps> = ({
     <Card
       title="任务列表"
       extra={
-        <Radio.Group value={groupMode} onChange={(e) => setGroupMode(e.target.value)}>
+        <Radio.Group value={groupMode} onChange={(e) => {
+          setGroupMode(e.target.value)
+          setCurrentPage(1) // 切换分组模式时重置页码
+        }}>
           <Radio.Button value="order">按订单分组</Radio.Button>
           <Radio.Button value="station">按工位分组</Radio.Button>
           <Radio.Button value="team">按班组分组</Radio.Button>
@@ -146,9 +183,16 @@ const TaskListView: React.FC<TaskListViewProps> = ({
         dataSource={tableData}
         rowKey="id"
         pagination={{
-          pageSize: 50,
+          current: currentPage,
+          pageSize: pageSize,
+          pageSizeOptions: [20, 50, 100, 200],
           showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条任务`
+          showQuickJumper: true,
+          showTotal: (total) => `共 ${total} 条任务`,
+          onChange: (page, size) => {
+            setCurrentPage(page)
+            setPageSize(size)
+          }
         }}
         scroll={{ x: 1200 }}
         onRow={(record) => ({

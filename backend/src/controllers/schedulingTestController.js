@@ -18,8 +18,8 @@ exports.saveTestInput = async (req, res) => {
             });
         }
 
-        // 写入项目根目录下的 input_test.json
-        const filePath = path.join(__dirname, '..', '..', '..', 'input_test.json');
+        // 写入项目根目录下的 dispatch/input_test.json
+        const filePath = path.join(__dirname, '..', '..', '..', 'dispatch', 'input_test.json');
 
         fs.writeFileSync(filePath, JSON.stringify(schedulingInput, null, 2), 'utf8');
 
@@ -48,7 +48,7 @@ exports.saveTestInput = async (req, res) => {
  */
 exports.getTestInput = async (req, res) => {
     try {
-        const filePath = path.join(__dirname, '..', '..', '..', 'input_test.json');
+        const filePath = path.join(__dirname, '..', '..', '..', 'dispatch', 'input_test.json');
 
         if (!fs.existsSync(filePath)) {
             return res.status(404).json({

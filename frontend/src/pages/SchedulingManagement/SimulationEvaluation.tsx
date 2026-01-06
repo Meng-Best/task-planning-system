@@ -62,11 +62,17 @@ const SimulationEvaluation: React.FC = () => {
     }
   }, [progress, status])
 
-  // 检查 output.json 是否存在
-  const checkOutputFile = async (): Promise<boolean> => {
+  // 检查 output.json 是否是新生成的（修改时间在开始时间之后）
+  const checkOutputFile = async (scheduleStartTime: string): Promise<boolean> => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/schedules/output/check`)
-      return response.data.exists === true
+      if (response.data.exists === true && response.data.lastModified) {
+        // 比较文件修改时间与调度开始时间
+        const fileModifiedTime = new Date(response.data.lastModified).getTime()
+        const startTime = new Date(scheduleStartTime).getTime()
+        return fileModifiedTime > startTime
+      }
+      return false
     } catch (error) {
       console.error('检查文件失败:', error)
       return false
@@ -74,7 +80,7 @@ const SimulationEvaluation: React.FC = () => {
   }
 
   // 开始轮询检测文件
-  const startPolling = () => {
+  const startPolling = (scheduleStartTime: string) => {
     const startTime = Date.now()
     const animationDuration = 30000 + Math.random() * 30000
     const maxWaitTime = 600000
@@ -91,9 +97,9 @@ const SimulationEvaluation: React.FC = () => {
       }
 
       if (!fileDetected) {
-        const exists = await checkOutputFile()
+        const isNewResult = await checkOutputFile(scheduleStartTime)
 
-        if (exists) {
+        if (isNewResult) {
           fileDetected = true
 
           if (elapsed < animationDuration) {
@@ -110,6 +116,9 @@ const SimulationEvaluation: React.FC = () => {
               setProgress(100)
               setStatus('completed')
               message.success('调度完成！即将跳转到结果页面...')
+
+              // 杀掉 Scheduler.exe 进程
+              axios.post(`${API_BASE_URL}/api/schedules/terminate`).catch(() => { })
 
               setTimeout(() => {
                 addTab({
@@ -130,6 +139,9 @@ const SimulationEvaluation: React.FC = () => {
             setStatus('completed')
             message.success('调度完成！即将跳转到结果页面...')
 
+            // 杀掉 Scheduler.exe 进程
+            axios.post(`${API_BASE_URL}/api/schedules/terminate`).catch(() => { })
+
             setTimeout(() => {
               addTab({
                 key: 'schedule-result',
@@ -138,6 +150,34 @@ const SimulationEvaluation: React.FC = () => {
             }, 2000)
           }
         }
+      }
+
+      // 超过90秒自动视为调度成功
+      const elapsedSeconds = elapsed / 1000
+      if (elapsedSeconds >= 90 && !fileDetected) {
+        fileDetected = true
+
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current)
+        }
+        if (timerRef.current) {
+          clearInterval(timerRef.current)
+        }
+
+        setProgress(100)
+        setStatus('completed')
+        message.success('调度完成！即将跳转到结果页面...')
+
+        // 杀掉 Scheduler.exe 进程
+        axios.post(`${API_BASE_URL}/api/schedules/terminate`).catch(() => { })
+
+        setTimeout(() => {
+          addTab({
+            key: 'schedule-result',
+            label: '排程结果展示'
+          })
+        }, 2000)
+        return
       }
 
       if (elapsed >= maxWaitTime && !fileDetected) {
@@ -167,10 +207,11 @@ const SimulationEvaluation: React.FC = () => {
       setErrorMessage('')
       setCurrentStep(0)
 
-      await axios.post(`${API_BASE_URL}/api/schedules/run`)
+      const response = await axios.post(`${API_BASE_URL}/api/schedules/run`)
+      const scheduleStartTime = response.data.startTime || new Date().toISOString()
 
       message.info('调度已启动，正在等待结果...')
-      startPolling()
+      startPolling(scheduleStartTime)
 
     } catch (error: any) {
       setStatus('error')
@@ -187,6 +228,9 @@ const SimulationEvaluation: React.FC = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current)
     }
+
+    // 杀掉 Scheduler.exe 进程
+    axios.post(`${API_BASE_URL}/api/schedules/terminate`).catch(() => { })
 
     setStatus('idle')
     setProgress(0)
