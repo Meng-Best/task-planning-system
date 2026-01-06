@@ -46,7 +46,28 @@
         "2026-04-18",
         "2026-04-19",
         "2026-04-25",
-        "2026-04-26"
+        "2026-04-26",
+        "2026-05-01",
+        "2026-05-02",
+        "2026-05-03",
+        "2026-05-04",
+        "2026-05-05",
+        "2026-05-10",
+        "2026-05-16",
+        "2026-05-17",
+        "2026-05-23",
+        "2026-05-24",
+        "2026-05-30",
+        "2026-05-31",
+        "2026-06-06",
+        "2026-06-07",
+        "2026-06-13",
+        "2026-06-14",
+        "2026-06-19",
+        "2026-06-20",
+        "2026-06-21",
+        "2026-06-27",
+        "2026-06-28"
       ]
     },
     "resources": {
@@ -62,7 +83,8 @@
         "九号部装班组",
         "十号综合班组",
         "十一号机动班组",
-        "十二号工艺专项班组"
+        "十二号工艺专项班组",
+        "十三号工艺班组"
       ],
       "machines": [
         "数控机床-7",
@@ -111,7 +133,28 @@
           "PROCZXYTBZ33",
           "PROCXXGTBZ37",
           "PROCXXGTBZ40",
-          "PROCZXGTBZ41"
+          "PROCZXGTBZ41",
+          "PROCXXGTZZ02",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ02",
+          "PROCXXGTBZ03",
+          "PROCXXGTBZ04",
+          "PROCXXGTBZ26",
+          "PROCXXGTBZ27",
+          "PROCXXGTBZ28",
+          "PROCXXGTBZ14",
+          "PROCXXGTBZ15",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -139,7 +182,26 @@
           "PROCXXGTBZ38",
           "PROCZXGTBZ42",
           "PROCZXGTBZ44",
-          "PROCZXYTBZ45"
+          "PROCZXYTBZ45",
+          "PROCXXGTZZ01",
+          "PROCGXXTZZ03",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ01",
+          "PROCXXGTBZ03",
+          "PROCXXGTBZ04",
+          "PROCXXGTBZ37",
+          "PROCXXGTBZ27",
+          "PROCXXGTBZ13",
+          "PROCXXGTBZ15",
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ07",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ43"
         ]
       },
       {
@@ -161,7 +223,32 @@
           "PROCZXYTBZ35",
           "PROCXXGTBZ39",
           "PROCZXGTBZ43",
-          "PROCZXYTBZ46"
+          "PROCZXYTBZ46",
+          "PROCXXGTZZ01",
+          "PROCXXGTZZ02",
+          "PROCGXXTZZ03",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ01",
+          "PROCXXGTBZ02",
+          "PROCXXGTBZ04",
+          "PROCXXGTBZ37",
+          "PROCXXGTBZ26",
+          "PROCXXGTBZ28",
+          "PROCXXGTBZ13",
+          "PROCXXGTBZ14",
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -190,7 +277,25 @@
           "PROCZXYTBZ36",
           "PROCZXYTBZ45",
           "PROCZXYTBZ47",
-          "PROCZXYTBZ48"
+          "PROCZXYTBZ48",
+          "PROCXXGTZZ01",
+          "PROCXXGTZZ02",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ37",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -217,7 +322,30 @@
           "PROCXXGTBZ38",
           "PROCXXGTBZ39",
           "PROCXXGTBZ40",
-          "PROCZXYTBZ48"
+          "PROCZXYTBZ48",
+          "PROCGXXTZZ03",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ01",
+          "PROCXXGTBZ02",
+          "PROCXXGTBZ03",
+          "PROCXXGTBZ04",
+          "PROCXXGTBZ26",
+          "PROCXXGTBZ27",
+          "PROCXXGTBZ28",
+          "PROCXXGTBZ13",
+          "PROCXXGTBZ14",
+          "PROCXXGTBZ15",
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -243,7 +371,34 @@
           "PROCZXYTBZ36",
           "PROCZXYTBZ45",
           "PROCZXYTBZ46",
-          "PROCZXYTBZ47"
+          "PROCZXYTBZ47",
+          "PROCXXGTZZ01",
+          "PROCXXGTZZ02",
+          "PROCGXXTZZ03",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ01",
+          "PROCXXGTBZ02",
+          "PROCXXGTBZ03",
+          "PROCXXGTBZ04",
+          "PROCXXGTBZ37",
+          "PROCXXGTBZ26",
+          "PROCXXGTBZ27",
+          "PROCXXGTBZ28",
+          "PROCXXGTBZ13",
+          "PROCXXGTBZ14",
+          "PROCXXGTBZ15",
+          "PROCXXGTBZ16",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -265,7 +420,29 @@
           "PROCZXGTBZ42",
           "PROCZXGTBZ43",
           "PROCZXGTBZ44",
-          "PROCZXYTBZ48"
+          "PROCZXYTBZ48",
+          "PROCXXGTZZ01",
+          "PROCXXGTZZ02",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ02",
+          "PROCXXGTBZ03",
+          "PROCXXGTBZ04",
+          "PROCXXGTBZ37",
+          "PROCXXGTBZ26",
+          "PROCXXGTBZ27",
+          "PROCXXGTBZ28",
+          "PROCXXGTBZ14",
+          "PROCXXGTBZ15",
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30"
         ]
       },
       {
@@ -292,7 +469,24 @@
           "PROCZXYTBZ36",
           "PROCXXGTBZ37",
           "PROCXXGTBZ38",
-          "PROCZXGTBZ44"
+          "PROCZXGTBZ44",
+          "PROCGXXTZZ03",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ01",
+          "PROCXXGTBZ13",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43"
         ]
       },
       {
@@ -324,7 +518,23 @@
           "PROCXXGTBZ38",
           "PROCZXGTBZ42",
           "PROCZXGTBZ43",
-          "PROCZXYTBZ46"
+          "PROCZXYTBZ46",
+          "PROCXXGTZZ01",
+          "PROCGXXTZZ03",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ01",
+          "PROCXXGTBZ04",
+          "PROCXXGTBZ28",
+          "PROCXXGTBZ13",
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ07",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -350,7 +560,27 @@
           "PROCXXGTBZ40",
           "PROCZXGTBZ41",
           "PROCZXGTBZ42",
-          "PROCZXYTBZ47"
+          "PROCZXYTBZ47",
+          "PROCXXGTZZ01",
+          "PROCXXGTZZ02",
+          "PROCGXXTZZ03",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ01",
+          "PROCXXGTBZ02",
+          "PROCXXGTBZ03",
+          "PROCXXGTBZ37",
+          "PROCXXGTBZ26",
+          "PROCXXGTBZ27",
+          "PROCXXGTBZ28",
+          "PROCXXGTBZ13",
+          "PROCXXGTBZ14",
+          "PROCXXGTBZ15",
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -390,7 +620,19 @@
           "PROCZXGTBZ42",
           "PROCZXGTBZ43",
           "PROCZXGTBZ44",
-          "PROCZXYTBZ47"
+          "PROCZXYTBZ47",
+          "PROCXXGTZZ02",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ01",
+          "PROCXXGTBZ03",
+          "PROCXXGTBZ04",
+          "PROCXXGTBZ27",
+          "PROCXXGTBZ13",
+          "PROCXXGTBZ15",
+          "PROCZXGTZZ07",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08"
         ]
       },
       {
@@ -423,7 +665,79 @@
           "PROCZXGTBZ42",
           "PROCZXGTBZ43",
           "PROCZXYTBZ46",
-          "PROCZXYTBZ48"
+          "PROCZXYTBZ48",
+          "PROCGXXTZZ03",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ02",
+          "PROCXXGTBZ37",
+          "PROCXXGTBZ26",
+          "PROCXXGTBZ27",
+          "PROCXXGTBZ28",
+          "PROCXXGTBZ14",
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ44"
+        ]
+      },
+      {
+        "id": "18",
+        "code": "TEAM-013",
+        "name": "十三号工艺班组",
+        "capabilities": [
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXYTBZ09",
+          "PROCZXYTBZ10",
+          "PROCZXYTBZ11",
+          "PROCZXYTBZ12",
+          "PROCZXYTBZ21",
+          "PROCZXYTBZ22",
+          "PROCZXYTBZ23",
+          "PROCZXYTBZ24",
+          "PROCZXYTBZ33",
+          "PROCZXYTBZ34",
+          "PROCZXYTBZ35",
+          "PROCZXYTBZ36",
+          "PROCZXYTBZ45",
+          "PROCZXYTBZ46",
+          "PROCZXYTBZ47",
+          "PROCXXGTZZ01",
+          "PROCXXGTZZ02",
+          "PROCGXXTZZ03",
+          "PROCXXGTZZ04",
+          "PROCXXGTBZ01",
+          "PROCXXGTBZ02",
+          "PROCXXGTBZ03",
+          "PROCXXGTBZ04",
+          "PROCXXGTBZ37",
+          "PROCXXGTBZ26",
+          "PROCXXGTBZ27",
+          "PROCXXGTBZ28",
+          "PROCXXGTBZ13",
+          "PROCXXGTBZ14",
+          "PROCXXGTBZ15",
+          "PROCXXGTBZ16",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       }
     ],
@@ -461,21 +775,6 @@
         "name": "中型固体火箭部装工位1号",
         "type": 0,
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -491,7 +790,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -500,21 +814,6 @@
         "name": "中小型固体火箭部装工位5号",
         "type": 0,
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -530,7 +829,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -539,21 +853,6 @@
         "name": "小型固体火箭部装工位3号",
         "type": 0,
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -569,7 +868,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -578,21 +892,6 @@
         "name": "中小型固体火箭测试工位5号",
         "type": 2,
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -608,7 +907,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -617,21 +931,6 @@
         "name": "中小型固体火箭测试工位4号",
         "type": 2,
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -647,7 +946,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -656,21 +970,6 @@
         "name": "中小型固体火箭总装工位4号",
         "type": 1,
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -686,7 +985,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -695,21 +1009,6 @@
         "name": "小型固体火箭总装工位8号",
         "type": 1,
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -725,7 +1024,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       }
     ],
@@ -735,21 +1049,6 @@
         "code": "SB-0106",
         "name": "数控机床-7",
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -765,7 +1064,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -773,21 +1087,6 @@
         "code": "SB-0107",
         "name": "工业机器人-8",
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -803,7 +1102,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -811,21 +1125,6 @@
         "code": "SB-0108",
         "name": "自动焊接机-9",
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -841,7 +1140,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -849,21 +1163,6 @@
         "code": "SB-0109",
         "name": "激光切割机-10",
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -879,7 +1178,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -887,21 +1201,6 @@
         "code": "SB-0110",
         "name": "液压成型机-11",
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -917,7 +1216,22 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       },
       {
@@ -925,21 +1239,6 @@
         "code": "SB-0111",
         "name": "三坐标测量仪-12",
         "capabilities": [
-          "PROCZXGTZZ05",
-          "PROCZXGTZZ06",
-          "PROCZXGTZZ07",
-          "PROCZXGTZZ08",
-          "PROCZXGTBZ41",
-          "PROCZXGTBZ06",
-          "PROCZXGTBZ07",
-          "PROCZXGTBZ08",
-          "PROCZXGTBZ05",
-          "PROCZXGTBZ30",
-          "PROCZXGTBZ31",
-          "PROCZXGTBZ32",
-          "PROCZXGTBZ42",
-          "PROCZXGTBZ43",
-          "PROCZXGTBZ44",
           "PROCXXGTZZ01",
           "PROCXXGTZZ02",
           "PROCGXXTZZ03",
@@ -955,15 +1254,64 @@
           "PROCXXGTBZ13",
           "PROCXXGTBZ14",
           "PROCXXGTBZ15",
-          "PROCXXGTBZ16"
+          "PROCXXGTBZ16",
+          "PROCZXGTZZ05",
+          "PROCZXGTZZ06",
+          "PROCZXGTZZ07",
+          "PROCZXGTZZ08",
+          "PROCZXGTBZ41",
+          "PROCZXGTBZ06",
+          "PROCZXGTBZ07",
+          "PROCZXGTBZ08",
+          "PROCZXGTBZ05",
+          "PROCZXGTBZ30",
+          "PROCZXGTBZ31",
+          "PROCZXGTBZ32",
+          "PROCZXGTBZ42",
+          "PROCZXGTBZ43",
+          "PROCZXGTBZ44"
         ]
       }
     ]
   },
   "orders": [
     {
-      "Order_code": "ORD-2025-122502",
-      "Order_name": "中小型体火箭发射",
+      "Order_code": "TASK-20260105-001",
+      "Order_name": "小型固体火箭预测订单",
+      "products": [
+        {
+          "product_id": "9",
+          "product_code": "XXGTHJ001",
+          "quantity": 1
+        },
+        {
+          "product_id": "16",
+          "product_code": "XXGZLZ001",
+          "quantity": 1
+        },
+        {
+          "product_id": "19",
+          "product_code": "XXGJJD001",
+          "quantity": 1
+        },
+        {
+          "product_id": "22",
+          "product_code": "XXGJJD002",
+          "quantity": 1
+        },
+        {
+          "product_id": "25",
+          "product_code": "XXGTWD001",
+          "quantity": 1
+        }
+      ],
+      "queue": 1,
+      "quantity": 1,
+      "deadline": "2026-06-29T16:00:00.000Z"
+    },
+    {
+      "Order_code": "TASK-20251230-005",
+      "Order_name": "中小型固体火箭发射订单",
       "products": [
         {
           "product_id": "10",
@@ -991,13 +1339,13 @@
           "quantity": 1
         }
       ],
-      "queue": 1,
+      "queue": 2,
       "quantity": 1,
       "deadline": "2026-04-29T16:00:00.000Z"
     },
     {
-      "Order_code": "ORD-2025-122502",
-      "Order_name": "中小型体火箭发射",
+      "Order_code": "TASK-20251230-004",
+      "Order_name": "中小型固体火箭发射订单",
       "products": [
         {
           "product_id": "10",
@@ -1020,12 +1368,12 @@
           "quantity": 1
         }
       ],
-      "queue": 2,
+      "queue": 3,
       "quantity": 1,
       "deadline": "2026-04-29T16:00:00.000Z"
     },
     {
-      "Order_code": "ORD-2025-122501",
+      "Order_code": "TASK-20251230-001",
       "Order_name": "小型固体火箭发射订单",
       "products": [
         {
@@ -1049,562 +1397,12 @@
           "quantity": 1
         }
       ],
-      "queue": 3,
+      "queue": 4,
       "quantity": 1,
       "deadline": "2026-05-30T16:00:00.000Z"
     }
   ],
   "product_library": [
-    {
-      "code": "ZXGTHJ001",
-      "name": "中小型固体火箭B",
-      "tasks": [
-        {
-          "id": "64",
-          "code": "PROCZXGTZZ05",
-          "name": "中小型固体表面处理",
-          "process_code": "PROCZXGTZZ05",
-          "process_id": "64",
-          "process_name": "中小型固体表面处理",
-          "task_code": "PROCZXGTZZ05",
-          "task_id": "64",
-          "queue": 10,
-          "duration": 6000,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 6000,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "65",
-          "code": "PROCZXGTZZ06",
-          "name": "中小型固体基础装配",
-          "process_code": "PROCZXGTZZ06",
-          "process_id": "65",
-          "process_name": "中小型固体基础装配",
-          "task_code": "PROCZXGTZZ06",
-          "task_id": "65",
-          "queue": 11,
-          "duration": 12000,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 12000,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "66",
-          "code": "PROCZXGTZZ07",
-          "name": "中小型固体全箭总装",
-          "process_code": "PROCZXGTZZ07",
-          "process_id": "66",
-          "process_name": "中小型固体全箭总装",
-          "task_code": "PROCZXGTZZ07",
-          "task_id": "66",
-          "queue": 12,
-          "duration": 36000,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 36000,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "67",
-          "code": "PROCZXGTZZ08",
-          "name": "中小型固体流程测试",
-          "process_code": "PROCZXGTZZ08",
-          "process_id": "67",
-          "process_name": "中小型固体流程测试",
-          "task_code": "PROCZXGTZZ08",
-          "task_id": "67",
-          "queue": 13,
-          "duration": 18000,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 18000,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "code": "ZXGZLZ001",
-      "name": "中小型固体火箭整流罩前罩B",
-      "tasks": [
-        {
-          "id": "76",
-          "code": "PROCZXGTBZ41",
-          "name": "中小型固体零部件检验",
-          "process_code": "PROCZXGTBZ41",
-          "process_id": "76",
-          "process_name": "中小型固体零部件检验",
-          "task_code": "PROCZXGTBZ41",
-          "task_id": "76",
-          "queue": 1,
-          "duration": 1800,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 1800,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "77",
-          "code": "PROCZXGTBZ06",
-          "name": "中小型固体壳体装配",
-          "process_code": "PROCZXGTBZ06",
-          "process_id": "77",
-          "process_name": "中小型固体壳体装配",
-          "task_code": "PROCZXGTBZ06",
-          "task_id": "77",
-          "queue": 2,
-          "duration": 3000,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 3000,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "78",
-          "code": "PROCZXGTBZ07",
-          "name": "中小型固体分离机构安装",
-          "process_code": "PROCZXGTBZ07",
-          "process_id": "78",
-          "process_name": "中小型固体分离机构安装",
-          "task_code": "PROCZXGTBZ07",
-          "task_id": "78",
-          "queue": 3,
-          "duration": 2400,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 2400,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "79",
-          "code": "PROCZXGTBZ08",
-          "name": "中小型固体密封检验",
-          "process_code": "PROCZXGTBZ08",
-          "process_id": "79",
-          "process_name": "中小型固体密封检验",
-          "task_code": "PROCZXGTBZ08",
-          "task_id": "79",
-          "queue": 4,
-          "duration": 1200,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 1200,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "code": "ZXGJJD001",
-      "name": "中小型固体火箭级间段B-I",
-      "tasks": [
-        {
-          "id": "88",
-          "code": "PROCZXGTBZ05",
-          "name": "中小型固体零部件检验",
-          "process_code": "PROCZXGTBZ05",
-          "process_id": "88",
-          "process_name": "中小型固体零部件检验",
-          "task_code": "PROCZXGTBZ05",
-          "task_id": "88",
-          "queue": 1,
-          "duration": 1200,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 1200,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "89",
-          "code": "PROCZXGTBZ06",
-          "name": "中小型固体结构体装配",
-          "process_code": "PROCZXGTBZ06",
-          "process_id": "89",
-          "process_name": "中小型固体结构体装配",
-          "task_code": "PROCZXGTBZ06",
-          "task_id": "89",
-          "queue": 2,
-          "duration": 3000,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 3000,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "90",
-          "code": "PROCZXGTBZ07",
-          "name": "中小型固体线缆敷设",
-          "process_code": "PROCZXGTBZ07",
-          "process_id": "90",
-          "process_name": "中小型固体线缆敷设",
-          "task_code": "PROCZXGTBZ07",
-          "task_id": "90",
-          "queue": 3,
-          "duration": 2400,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 2400,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "91",
-          "code": "PROCZXGTBZ08",
-          "name": "中小型固体功能测试",
-          "process_code": "PROCZXGTBZ08",
-          "process_id": "91",
-          "process_name": "中小型固体功能测试",
-          "task_code": "PROCZXGTBZ08",
-          "task_id": "91",
-          "queue": 4,
-          "duration": 1200,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 1200,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "code": "ZXGJJD002",
-      "name": "中小型固体火箭级间段B-II",
-      "tasks": [
-        {
-          "id": "100",
-          "code": "PROCZXGTBZ41",
-          "name": "中小型固体零部件检验",
-          "process_code": "PROCZXGTBZ41",
-          "process_id": "100",
-          "process_name": "中小型固体零部件检验",
-          "task_code": "PROCZXGTBZ41",
-          "task_id": "100",
-          "queue": 1,
-          "duration": 1800,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 1800,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "101",
-          "code": "PROCZXGTBZ30",
-          "name": "中小型固体结构体装配",
-          "process_code": "PROCZXGTBZ30",
-          "process_id": "101",
-          "process_name": "中小型固体结构体装配",
-          "task_code": "PROCZXGTBZ30",
-          "task_id": "101",
-          "queue": 2,
-          "duration": 3600,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 3600,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "102",
-          "code": "PROCZXGTBZ31",
-          "name": "中小型固体线缆敷设",
-          "process_code": "PROCZXGTBZ31",
-          "process_id": "102",
-          "process_name": "中小型固体线缆敷设",
-          "task_code": "PROCZXGTBZ31",
-          "task_id": "102",
-          "queue": 3,
-          "duration": 3000,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 3000,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "103",
-          "code": "PROCZXGTBZ32",
-          "name": "中小型固体功能测试",
-          "process_code": "PROCZXGTBZ32",
-          "process_id": "103",
-          "process_name": "中小型固体功能测试",
-          "task_code": "PROCZXGTBZ32",
-          "task_id": "103",
-          "queue": 4,
-          "duration": 1800,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 1800,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "code": "ZXGTWD001",
-      "name": "中小型固体火箭尾段B",
-      "tasks": [
-        {
-          "id": "112",
-          "code": "PROCZXGTBZ41",
-          "name": "中小型固体零部件检验",
-          "process_code": "PROCZXGTBZ41",
-          "process_id": "112",
-          "process_name": "中小型固体零部件检验",
-          "task_code": "PROCZXGTBZ41",
-          "task_id": "112",
-          "queue": 1,
-          "duration": 1800,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 1800,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "113",
-          "code": "PROCZXGTBZ42",
-          "name": "中小型固体尾部结构装配",
-          "process_code": "PROCZXGTBZ42",
-          "process_id": "113",
-          "process_name": "中小型固体尾部结构装配",
-          "task_code": "PROCZXGTBZ42",
-          "task_id": "113",
-          "queue": 2,
-          "duration": 4200,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 4200,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "114",
-          "code": "PROCZXGTBZ43",
-          "name": "中小型固体接口安装调试",
-          "process_code": "PROCZXGTBZ43",
-          "process_id": "114",
-          "process_name": "中小型固体接口安装调试",
-          "task_code": "PROCZXGTBZ43",
-          "task_id": "114",
-          "queue": 3,
-          "duration": 3000,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 3000,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "115",
-          "code": "PROCZXGTBZ44",
-          "name": "中小型固体综合检验",
-          "process_code": "PROCZXGTBZ44",
-          "process_id": "115",
-          "process_name": "中小型固体综合检验",
-          "task_code": "PROCZXGTBZ44",
-          "task_id": "115",
-          "queue": 4,
-          "duration": 1800,
-          "operations": [
-            {
-              "name": "StandardOp",
-              "duration": 1800,
-              "allowed_machines": [
-                "数控机床-7",
-                "工业机器人-8",
-                "自动焊接机-9",
-                "激光切割机-10",
-                "液压成型机-11",
-                "三坐标测量仪-12"
-              ]
-            }
-          ]
-        }
-      ]
-    },
     {
       "code": "XXGTHJ001",
       "name": "小型固体火箭A",
@@ -1619,11 +1417,11 @@
           "task_code": "PROCXXGTZZ01",
           "task_id": "60",
           "queue": 10,
-          "duration": 6000,
+          "duration": 1800,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 6000,
+              "duration": 1800,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1645,11 +1443,11 @@
           "task_code": "PROCXXGTZZ02",
           "task_id": "61",
           "queue": 11,
-          "duration": 18000,
+          "duration": 1800,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 18000,
+              "duration": 1800,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1671,11 +1469,11 @@
           "task_code": "PROCGXXTZZ03",
           "task_id": "62",
           "queue": 12,
-          "duration": 24000,
+          "duration": 3600,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 24000,
+              "duration": 3600,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1697,11 +1495,11 @@
           "task_code": "PROCXXGTZZ04",
           "task_id": "63",
           "queue": 13,
-          "duration": 6000,
+          "duration": 2400,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 6000,
+              "duration": 2400,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1729,11 +1527,11 @@
           "task_code": "PROCXXGTBZ01",
           "task_id": "72",
           "queue": 1,
-          "duration": 1200,
+          "duration": 420,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 1200,
+              "duration": 420,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1755,11 +1553,11 @@
           "task_code": "PROCXXGTBZ02",
           "task_id": "73",
           "queue": 2,
-          "duration": 2400,
+          "duration": 540,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 2400,
+              "duration": 540,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1781,11 +1579,11 @@
           "task_code": "PROCXXGTBZ03",
           "task_id": "74",
           "queue": 3,
-          "duration": 1800,
+          "duration": 360,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 1800,
+              "duration": 360,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1807,11 +1605,11 @@
           "task_code": "PROCXXGTBZ04",
           "task_id": "75",
           "queue": 4,
-          "duration": 1200,
+          "duration": 420,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 1200,
+              "duration": 420,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1839,11 +1637,11 @@
           "task_code": "PROCXXGTBZ37",
           "task_id": "84",
           "queue": 1,
-          "duration": 1200,
+          "duration": 420,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 1200,
+              "duration": 420,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1865,11 +1663,11 @@
           "task_code": "PROCXXGTBZ26",
           "task_id": "85",
           "queue": 2,
-          "duration": 3000,
+          "duration": 1020,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 3000,
+              "duration": 1020,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1891,11 +1689,11 @@
           "task_code": "PROCXXGTBZ27",
           "task_id": "86",
           "queue": 3,
-          "duration": 2400,
+          "duration": 780,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 2400,
+              "duration": 780,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1917,11 +1715,121 @@
           "task_code": "PROCXXGTBZ28",
           "task_id": "87",
           "queue": 4,
-          "duration": 1200,
+          "duration": 420,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 1200,
+              "duration": 420,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "XXGJJD002",
+      "name": "小型固体火箭级间段A-II",
+      "tasks": [
+        {
+          "id": "96",
+          "code": "PROCXXGTBZ37",
+          "name": "小型固体零部件检验",
+          "process_code": "PROCXXGTBZ37",
+          "process_id": "96",
+          "process_name": "小型固体零部件检验",
+          "task_code": "PROCXXGTBZ37",
+          "task_id": "96",
+          "queue": 1,
+          "duration": 420,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 420,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "97",
+          "code": "PROCXXGTBZ26",
+          "name": "小型固体结构体装配",
+          "process_code": "PROCXXGTBZ26",
+          "process_id": "97",
+          "process_name": "小型固体结构体装配",
+          "task_code": "PROCXXGTBZ26",
+          "task_id": "97",
+          "queue": 2,
+          "duration": 1020,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 1020,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "98",
+          "code": "PROCXXGTBZ27",
+          "name": "小型固体线缆敷设",
+          "process_code": "PROCXXGTBZ27",
+          "process_id": "98",
+          "process_name": "小型固体线缆敷设",
+          "task_code": "PROCXXGTBZ27",
+          "task_id": "98",
+          "queue": 3,
+          "duration": 780,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 780,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "99",
+          "code": "PROCXXGTBZ28",
+          "name": "小型固体功能测试",
+          "process_code": "PROCXXGTBZ28",
+          "process_id": "99",
+          "process_name": "小型固体功能测试",
+          "task_code": "PROCXXGTBZ28",
+          "task_id": "99",
+          "queue": 4,
+          "duration": 420,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 420,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1949,11 +1857,11 @@
           "task_code": "PROCXXGTBZ13",
           "task_id": "108",
           "queue": 1,
-          "duration": 1200,
+          "duration": 420,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 1200,
+              "duration": 420,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -1975,11 +1883,11 @@
           "task_code": "PROCXXGTBZ14",
           "task_id": "109",
           "queue": 2,
-          "duration": 3000,
+          "duration": 660,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 3000,
+              "duration": 660,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -2001,11 +1909,11 @@
           "task_code": "PROCXXGTBZ15",
           "task_id": "110",
           "queue": 3,
-          "duration": 2400,
+          "duration": 780,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 2400,
+              "duration": 780,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
@@ -2027,11 +1935,561 @@
           "task_code": "PROCXXGTBZ16",
           "task_id": "111",
           "queue": 4,
-          "duration": 1200,
+          "duration": 420,
           "operations": [
             {
               "name": "StandardOp",
-              "duration": 1200,
+              "duration": 420,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "ZXGTHJ001",
+      "name": "中小型固体火箭B",
+      "tasks": [
+        {
+          "id": "64",
+          "code": "PROCZXGTZZ05",
+          "name": "中小型固体表面处理",
+          "process_code": "PROCZXGTZZ05",
+          "process_id": "64",
+          "process_name": "中小型固体表面处理",
+          "task_code": "PROCZXGTZZ05",
+          "task_id": "64",
+          "queue": 10,
+          "duration": 3600,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 3600,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "65",
+          "code": "PROCZXGTZZ06",
+          "name": "中小型固体基础装配",
+          "process_code": "PROCZXGTZZ06",
+          "process_id": "65",
+          "process_name": "中小型固体基础装配",
+          "task_code": "PROCZXGTZZ06",
+          "task_id": "65",
+          "queue": 11,
+          "duration": 3000,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 3000,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "66",
+          "code": "PROCZXGTZZ07",
+          "name": "中小型固体全箭总装",
+          "process_code": "PROCZXGTZZ07",
+          "process_id": "66",
+          "process_name": "中小型固体全箭总装",
+          "task_code": "PROCZXGTZZ07",
+          "task_id": "66",
+          "queue": 12,
+          "duration": 4800,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 4800,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "67",
+          "code": "PROCZXGTZZ08",
+          "name": "中小型固体流程测试",
+          "process_code": "PROCZXGTZZ08",
+          "process_id": "67",
+          "process_name": "中小型固体流程测试",
+          "task_code": "PROCZXGTZZ08",
+          "task_id": "67",
+          "queue": 13,
+          "duration": 2100,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 2100,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "ZXGZLZ001",
+      "name": "中小型固体火箭整流罩前罩B",
+      "tasks": [
+        {
+          "id": "76",
+          "code": "PROCZXGTBZ41",
+          "name": "中小型固体零部件检验",
+          "process_code": "PROCZXGTBZ41",
+          "process_id": "76",
+          "process_name": "中小型固体零部件检验",
+          "task_code": "PROCZXGTBZ41",
+          "task_id": "76",
+          "queue": 1,
+          "duration": 240,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 240,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "77",
+          "code": "PROCZXGTBZ06",
+          "name": "中小型固体壳体装配",
+          "process_code": "PROCZXGTBZ06",
+          "process_id": "77",
+          "process_name": "中小型固体壳体装配",
+          "task_code": "PROCZXGTBZ06",
+          "task_id": "77",
+          "queue": 2,
+          "duration": 840,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 840,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "78",
+          "code": "PROCZXGTBZ07",
+          "name": "中小型固体分离机构安装",
+          "process_code": "PROCZXGTBZ07",
+          "process_id": "78",
+          "process_name": "中小型固体分离机构安装",
+          "task_code": "PROCZXGTBZ07",
+          "task_id": "78",
+          "queue": 3,
+          "duration": 600,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 600,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "79",
+          "code": "PROCZXGTBZ08",
+          "name": "中小型固体密封检验",
+          "process_code": "PROCZXGTBZ08",
+          "process_id": "79",
+          "process_name": "中小型固体密封检验",
+          "task_code": "PROCZXGTBZ08",
+          "task_id": "79",
+          "queue": 4,
+          "duration": 360,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 360,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "ZXGJJD001",
+      "name": "中小型固体火箭级间段B-I",
+      "tasks": [
+        {
+          "id": "88",
+          "code": "PROCZXGTBZ05",
+          "name": "中小型固体零部件检验",
+          "process_code": "PROCZXGTBZ05",
+          "process_id": "88",
+          "process_name": "中小型固体零部件检验",
+          "task_code": "PROCZXGTBZ05",
+          "task_id": "88",
+          "queue": 1,
+          "duration": 420,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 420,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "89",
+          "code": "PROCZXGTBZ06",
+          "name": "中小型固体结构体装配",
+          "process_code": "PROCZXGTBZ06",
+          "process_id": "89",
+          "process_name": "中小型固体结构体装配",
+          "task_code": "PROCZXGTBZ06",
+          "task_id": "89",
+          "queue": 2,
+          "duration": 840,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 840,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "90",
+          "code": "PROCZXGTBZ07",
+          "name": "中小型固体线缆敷设",
+          "process_code": "PROCZXGTBZ07",
+          "process_id": "90",
+          "process_name": "中小型固体线缆敷设",
+          "task_code": "PROCZXGTBZ07",
+          "task_id": "90",
+          "queue": 3,
+          "duration": 600,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 600,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "91",
+          "code": "PROCZXGTBZ08",
+          "name": "中小型固体功能测试",
+          "process_code": "PROCZXGTBZ08",
+          "process_id": "91",
+          "process_name": "中小型固体功能测试",
+          "task_code": "PROCZXGTBZ08",
+          "task_id": "91",
+          "queue": 4,
+          "duration": 360,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 360,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "ZXGJJD002",
+      "name": "中小型固体火箭级间段B-II",
+      "tasks": [
+        {
+          "id": "100",
+          "code": "PROCZXGTBZ41",
+          "name": "中小型固体零部件检验",
+          "process_code": "PROCZXGTBZ41",
+          "process_id": "100",
+          "process_name": "中小型固体零部件检验",
+          "task_code": "PROCZXGTBZ41",
+          "task_id": "100",
+          "queue": 1,
+          "duration": 240,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 240,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "101",
+          "code": "PROCZXGTBZ30",
+          "name": "中小型固体结构体装配",
+          "process_code": "PROCZXGTBZ30",
+          "process_id": "101",
+          "process_name": "中小型固体结构体装配",
+          "task_code": "PROCZXGTBZ30",
+          "task_id": "101",
+          "queue": 2,
+          "duration": 720,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 720,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "102",
+          "code": "PROCZXGTBZ31",
+          "name": "中小型固体线缆敷设",
+          "process_code": "PROCZXGTBZ31",
+          "process_id": "102",
+          "process_name": "中小型固体线缆敷设",
+          "task_code": "PROCZXGTBZ31",
+          "task_id": "102",
+          "queue": 3,
+          "duration": 660,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 660,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "103",
+          "code": "PROCZXGTBZ32",
+          "name": "中小型固体功能测试",
+          "process_code": "PROCZXGTBZ32",
+          "process_id": "103",
+          "process_name": "中小型固体功能测试",
+          "task_code": "PROCZXGTBZ32",
+          "task_id": "103",
+          "queue": 4,
+          "duration": 360,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 360,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "ZXGTWD001",
+      "name": "中小型固体火箭尾段B",
+      "tasks": [
+        {
+          "id": "112",
+          "code": "PROCZXGTBZ41",
+          "name": "中小型固体零部件检验",
+          "process_code": "PROCZXGTBZ41",
+          "process_id": "112",
+          "process_name": "中小型固体零部件检验",
+          "task_code": "PROCZXGTBZ41",
+          "task_id": "112",
+          "queue": 1,
+          "duration": 240,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 240,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "113",
+          "code": "PROCZXGTBZ42",
+          "name": "中小型固体尾部结构装配",
+          "process_code": "PROCZXGTBZ42",
+          "process_id": "113",
+          "process_name": "中小型固体尾部结构装配",
+          "task_code": "PROCZXGTBZ42",
+          "task_id": "113",
+          "queue": 2,
+          "duration": 660,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 660,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "114",
+          "code": "PROCZXGTBZ43",
+          "name": "中小型固体接口安装调试",
+          "process_code": "PROCZXGTBZ43",
+          "process_id": "114",
+          "process_name": "中小型固体接口安装调试",
+          "task_code": "PROCZXGTBZ43",
+          "task_id": "114",
+          "queue": 3,
+          "duration": 600,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 600,
+              "allowed_machines": [
+                "数控机床-7",
+                "工业机器人-8",
+                "自动焊接机-9",
+                "激光切割机-10",
+                "液压成型机-11",
+                "三坐标测量仪-12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "115",
+          "code": "PROCZXGTBZ44",
+          "name": "中小型固体综合检验",
+          "process_code": "PROCZXGTBZ44",
+          "process_id": "115",
+          "process_name": "中小型固体综合检验",
+          "task_code": "PROCZXGTBZ44",
+          "task_id": "115",
+          "queue": 4,
+          "duration": 480,
+          "operations": [
+            {
+              "name": "StandardOp",
+              "duration": 480,
               "allowed_machines": [
                 "数控机床-7",
                 "工业机器人-8",
