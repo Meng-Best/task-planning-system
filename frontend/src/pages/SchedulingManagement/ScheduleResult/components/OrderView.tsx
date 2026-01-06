@@ -1,4 +1,4 @@
-import { Card, Collapse, Tag, Table, Space, Typography, Badge } from 'antd'
+import { Card, Collapse, Tag, Table, Typography, Badge } from 'antd'
 import { ArrowRightOutlined, ClockCircleOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import type { OrderTreeNode, TaskPlan } from '../types'
 import type { ColumnsType } from 'antd/es/table'
@@ -53,7 +53,7 @@ const OrderView: React.FC<OrderViewProps> = ({ data, onTaskClick }) => {
       dataIndex: 'team name',
       key: 'team',
       width: 100,
-      render: (text, record) => (
+      render: (_, record) => (
         <Tag color="blue" style={{ margin: 0 }}>{record.team_code}</Tag>
       )
     },
@@ -62,7 +62,7 @@ const OrderView: React.FC<OrderViewProps> = ({ data, onTaskClick }) => {
       dataIndex: 'station name',
       key: 'station',
       width: 100,
-      render: (text, record) => (
+      render: (_, record) => (
         <Tag color="green" style={{ margin: 0 }}>{record['station code']}</Tag>
       )
     }

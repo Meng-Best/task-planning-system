@@ -144,6 +144,7 @@ export class ScheduleAdapter {
 
   /**
    * 转换为甘特图数据（按订单分组）
+   * 使用订单编码换行订单名称作为分组键，确保同名不同编码的订单能正确区分
    */
   toGanttDataByOrder(): GanttItem[] {
     return this.data.task_plan.map(task => ({
@@ -151,7 +152,7 @@ export class ScheduleAdapter {
       name: task.name,
       start: new Date(task.planstart),
       end: new Date(task.planend),
-      group: task.order_name,
+      group: `${task['order code']}\n${task.order_name}`,
       orderCode: task['order code'],
       orderName: task.order_name,
       taskCode: task.task_code,

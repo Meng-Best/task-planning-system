@@ -95,7 +95,7 @@ const GanttView: React.FC<GanttViewProps> = ({
       dataIndex: 'teamName',
       key: 'teamName',
       width: 120,
-      render: (text, record) => (
+      render: (_, record) => (
         <Tag color="green">{record.teamCode}</Tag>
       )
     },
@@ -104,7 +104,7 @@ const GanttView: React.FC<GanttViewProps> = ({
       dataIndex: 'stationName',
       key: 'stationName',
       width: 150,
-      render: (text, record) => (
+      render: (_, record) => (
         <Tag color="purple">{record.stationCode}</Tag>
       )
     }
@@ -120,7 +120,7 @@ const GanttView: React.FC<GanttViewProps> = ({
   }, {} as Record<string, GanttItem[]>)
 
   // 转换为表格数据，添加分组标记
-  const tableData = Object.entries(groupedData).flatMap(([group, items]) => {
+  const tableData = Object.entries(groupedData).flatMap(([, items]) => {
     return items
       .sort((a, b) => a.start.getTime() - b.start.getTime())
       .map((item, index) => ({

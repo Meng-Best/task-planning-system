@@ -196,7 +196,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
         show: false
       },
       grid: {
-        left: 120,
+        left: 160,
         right: 50,
         top: 60,
         bottom: 60,
@@ -228,9 +228,9 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
         type: 'category',
         data: groups,
         axisLabel: {
-          width: 100,
-          overflow: 'truncate',
-          ellipsis: '...'
+          width: 140,
+          overflow: 'break',
+          lineHeight: 16
         },
         axisTick: {
           show: false

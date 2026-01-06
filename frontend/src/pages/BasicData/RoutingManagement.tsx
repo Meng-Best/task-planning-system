@@ -26,7 +26,7 @@ import {
     InfoCircleOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
-import { ROUTING_TYPE_OPTIONS, getRoutingTypeLabel, getProcessTypeLabel } from '../../config/dictionaries';
+import { ROUTING_TYPE_OPTIONS, getProcessTypeLabel } from '../../config/dictionaries';
 
 const API_BASE_URL = 'http://localhost:3001';
 

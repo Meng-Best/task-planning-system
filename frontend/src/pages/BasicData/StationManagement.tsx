@@ -36,8 +36,7 @@ import {
   getDeviceTypeLabel,
   getProcessTypeLabel,
   BASIC_DATA_STATUS,
-  STATION_TYPE_OPTIONS,
-  getStationTypeLabel
+  STATION_TYPE_OPTIONS
 } from '../../config/dictionaries'
 
 const API_BASE_URL = 'http://localhost:3001'

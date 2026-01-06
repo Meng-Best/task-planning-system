@@ -2,7 +2,7 @@ import { Card, Col, Row, Progress, Table, Typography } from 'antd'
 import type { StationTimelineData, TaskPlan } from '../types'
 import type { ColumnsType } from 'antd/es/table'
 
-const { Title, Text } = Typography
+const { Text } = Typography
 
 interface StationViewProps {
   data: StationTimelineData[]

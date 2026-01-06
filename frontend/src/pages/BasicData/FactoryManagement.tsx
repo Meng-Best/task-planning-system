@@ -707,15 +707,6 @@ const FactoryManagement: React.FC = () => {
     return [0, 1].includes(num) ? num : undefined
   }
 
-  // 获取所有唯一的产线类型
-  const getUniqueTypes = () => {
-    if (!selectedFactory) return []
-    const types = selectedFactory.productionLines
-      .map(line => normalizeLineType(line.type))
-      .filter((type): type is number => type !== undefined)
-    return Array.from(new Set(types))
-  }
-
   // 过滤产线数据
   const getFilteredLines = () => {
     if (!selectedFactory) return []

@@ -71,7 +71,7 @@ const SchedulingPlanner: React.FC = () => {
     const [selectedTask, setSelectedTask] = useState<ProductionTask | null>(null);
     const [steps, setSteps] = useState<ScheduleStep[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
