@@ -98,7 +98,7 @@ const StationView: React.FC<StationViewProps> = ({ data, onTaskClick }) => {
             size="small"
             columns={taskColumns}
             dataSource={station.tasks}
-            rowKey="task id"
+            rowKey={(record) => `${record['task id']}-${record.process_code}-${record.planstart}`}
             pagination={false}
             scroll={{ x: 800 }}
             onRow={(record) => ({

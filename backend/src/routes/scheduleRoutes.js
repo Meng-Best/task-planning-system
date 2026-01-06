@@ -135,6 +135,63 @@ router.post('/terminate', async (req, res) => {
 
 /**
  * @swagger
+ * /api/schedules/update-status:
+ *   post:
+ *     summary: 仅更新任务状态为已排程（不启动调度算法）
+ *     tags: [Schedule]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               taskIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 description: 需要更新状态的任务ID列表
+ *     responses:
+ *       200:
+ *         description: 状态更新成功
+ */
+router.post('/update-status', async (req, res) => {
+    try {
+        const { taskIds } = req.body;
+
+        if (!taskIds || taskIds.length === 0) {
+            return res.status(400).json({
+                status: 'error',
+                message: '请提供需要更新的任务ID列表'
+            });
+        }
+
+        // 批量更新任务状态为"已排程"
+        const result = await prisma.productionTask.updateMany({
+            where: {
+                id: { in: taskIds.map(id => parseInt(id)) },
+                status: { in: [1, 2] } // 只更新已拆分或已排程的任务
+            },
+            data: { status: 2 }
+        });
+
+        console.log(`[UpdateStatus] 已更新 ${result.count} 个任务状态为"已排程"`);
+
+        res.json({
+            status: 'ok',
+            message: `成功更新 ${result.count} 个任务状态`,
+            data: { updatedCount: result.count }
+        });
+    } catch (error) {
+        console.error('更新任务状态失败:', error);
+        res.status(500).json({
+            status: 'error',
+            message: '更新任务状态失败: ' + error.message
+        });
+    }
+});
+
+/**
+ * @swagger
  * /api/schedules/run:
  *   post:
  *     summary: 触发调度算法运行并更新任务状态
@@ -149,14 +206,38 @@ router.post('/terminate', async (req, res) => {
  *                 type: array
  *                 items:
  *                   type: integer
- *                 description: 需要排程的任务ID列表
+ *                 description: 需要排程的任务ID列表（可选，不传则从input_test.json读取）
  *     responses:
  *       200:
  *         description: 调度算法已触发
  */
 router.post('/run', async (req, res) => {
     try {
-        const { taskIds } = req.body;
+        let { taskIds } = req.body;
+
+        // 如果没有传入 taskIds，从 input_test.json 中读取任务编码
+        if (!taskIds || taskIds.length === 0) {
+            try {
+                const inputPath = path.join(__dirname, '../../../dispatch/input_test.json');
+                const inputContent = await fs.readFile(inputPath, 'utf-8');
+                const inputData = JSON.parse(inputContent);
+
+                // 从 orders 中提取任务编码
+                if (inputData.orders && inputData.orders.length > 0) {
+                    const taskCodes = inputData.orders.map(order => order.id);
+
+                    // 根据任务编码查询任务ID
+                    const tasks = await prisma.productionTask.findMany({
+                        where: { code: { in: taskCodes } },
+                        select: { id: true }
+                    });
+                    taskIds = tasks.map(t => t.id);
+                    console.log(`[Scheduler] 从 input_test.json 读取到 ${taskIds.length} 个任务`);
+                }
+            } catch (readError) {
+                console.warn('[Scheduler] 无法读取 input_test.json:', readError.message);
+            }
+        }
 
         // 批量更新任务状态为"已排程"
         let updatedCount = 0;

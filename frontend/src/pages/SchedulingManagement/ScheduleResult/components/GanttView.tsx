@@ -119,13 +119,14 @@ const GanttView: React.FC<GanttViewProps> = ({
     return acc
   }, {} as Record<string, GanttItem[]>)
 
-  // 转换为表格数据，添加分组标记
-  const tableData = Object.entries(groupedData).flatMap(([, items]) => {
+  // 转换为表格数据，添加分组标记和唯一key
+  const tableData = Object.entries(groupedData).flatMap(([groupKey, items]) => {
     return items
       .sort((a, b) => a.start.getTime() - b.start.getTime())
       .map((item, index) => ({
         ...item,
-        isGroupStart: index === 0
+        isGroupStart: index === 0,
+        uniqueKey: `${groupKey}-${item.id}-${item.processCode}-${item.start.getTime()}`
       }))
   })
 
@@ -144,7 +145,7 @@ const GanttView: React.FC<GanttViewProps> = ({
         size="small"
         columns={columns}
         dataSource={tableData}
-        rowKey="id"
+        rowKey="uniqueKey"
         pagination={{
           pageSize: 50,
           showSizeChanger: true,

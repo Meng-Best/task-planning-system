@@ -151,7 +151,7 @@ const OrderView: React.FC<OrderViewProps> = ({ data, onTaskClick }) => {
               size="small"
               columns={taskColumns}
               dataSource={order.tasks}
-              rowKey="task id"
+              rowKey={(record) => `${record['task id']}-${record.process_code}-${record.planstart}`}
               pagination={false}
               scroll={{ x: 1000 }}
               rowClassName={(_, index) => index % 2 === 0 ? 'table-row-light' : ''}

@@ -229,14 +229,6 @@ const PlanMaking: React.FC = () => {
         console.warn('⚠️ 保存测试文件失败:', saveError)
       }
 
-      // 更新任务状态为"已排程"
-      try {
-        const taskIds = tasks.map(t => t.id)
-        await axios.post(`${API_BASE_URL}/api/schedules/run`, { taskIds })
-      } catch (updateError) {
-        console.warn('⚠️ 更新任务状态失败:', updateError)
-      }
-
       await new Promise(resolve => setTimeout(resolve, 300))
       setSyncProgress(100)
 

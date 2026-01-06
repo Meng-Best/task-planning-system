@@ -95,7 +95,7 @@ const TeamView: React.FC<TeamViewProps> = ({ data, onTaskClick }) => {
             size="small"
             columns={taskColumns}
             dataSource={team.tasks}
-            rowKey="task id"
+            rowKey={(record) => `${record['task id']}-${record.process_code}-${record.planstart}`}
             pagination={false}
             scroll={{ x: 800 }}
             onRow={(record) => ({
