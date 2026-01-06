@@ -164,7 +164,7 @@ const ScheduleResult: React.FC = () => {
   const teamWorkload = adapter.toTeamWorkload()
 
   return (
-    <div>
+    <div id="schedule-result-container" style={{ position: 'relative' }}>
       {/* 顶部操作栏 */}
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -216,6 +216,8 @@ const ScheduleResult: React.FC = () => {
         title="任务详情"
         open={detailVisible}
         onCancel={() => setDetailVisible(false)}
+        getContainer={() => document.getElementById('schedule-result-container') || document.body}
+        centered
         footer={[
           <Button key="close" type="primary" onClick={() => setDetailVisible(false)}>
             关闭
