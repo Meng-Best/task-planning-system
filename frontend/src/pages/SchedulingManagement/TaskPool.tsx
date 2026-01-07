@@ -531,194 +531,196 @@ const TaskPool: React.FC = () => {
         />
       </Card>
 
-      {/* 任务日历看板 */}
-      <Card
-        title={
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div
-              style={{
-                width: '4px',
-                height: '20px',
-                borderRadius: '2px',
-                background: 'linear-gradient(180deg, #1677ff 0%, #4096ff 100%)',
-                marginRight: '12px',
-              }}
-            />
-            <span style={{ fontSize: '15px', fontWeight: 600, color: '#1a1a1a' }}>
-              任务日历看板
-            </span>
-            {groupedTasks.length > 0 && (
-              <Tag color="blue" style={{ marginLeft: 12 }}>
-                {groupedTasks.reduce((sum, day) => sum + day.tasks.length, 0)} 个任务
-              </Tag>
-            )}
-            <span style={{ marginLeft: 16, fontSize: 12, color: '#8c8c8c' }}>
-              (工作时间 8:00-12:00, 14:00-18:00，午休 12:00-14:00)
-            </span>
-          </div>
-        }
-        extra={
-          <Space>
-            <Segmented
-              value={timeRange}
-              onChange={(value) => setTimeRange(value as TimeRange)}
-              options={[
-                { label: '本周', value: 'week' },
-                { label: '本月', value: 'month' },
-                { label: '全部', value: 'all' }
-              ]}
-            />
-            <Button
-              icon={<DownloadOutlined />}
-              onClick={handleExportExcel}
-              disabled={groupedTasks.length === 0}
-            >
-              导出EXCEL
-            </Button>
-          </Space>
-        }
-        className="shadow-sm border-none"
-        styles={{ body: { padding: '12px 24px 24px' } }}
-      >
-        {groupedTasks.length === 0 ? (
-          <Empty description="暂无排程数据" />
-        ) : (
-          <div style={{ maxHeight: 480, overflowY: 'auto' }}>
-            <Collapse
-              bordered={false}
-              defaultActiveKey={groupedTasks.slice(0, 3).map(d => d.date)}
-              expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
-              style={{ background: 'transparent' }}
-              items={groupedTasks.map((day) => {
-                const isToday = dayjs(day.date).isSame(dayjs(), 'day')
-                return {
-                  key: day.date,
-                  style: {
-                    marginBottom: 12,
-                    background: isToday ? '#f6ffed' : '#fafafa',
-                    borderRadius: 8,
-                    border: isToday ? '1px solid #b7eb8f' : '1px solid #f0f0f0',
-                  },
-                  label: (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <CalendarOutlined style={{ color: isToday ? '#52c41a' : '#1890ff' }} />
-                      <span style={{
-                        fontWeight: 600,
-                        color: isToday ? '#52c41a' : '#1890ff'
+      {/* 任务日历看板 - 仅当生产任务池有数据时显示 */}
+      {data.length > 0 && (
+        <Card
+          title={
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div
+                style={{
+                  width: '4px',
+                  height: '20px',
+                  borderRadius: '2px',
+                  background: 'linear-gradient(180deg, #1677ff 0%, #4096ff 100%)',
+                  marginRight: '12px',
+                }}
+              />
+              <span style={{ fontSize: '15px', fontWeight: 600, color: '#1a1a1a' }}>
+                任务日历看板
+              </span>
+              {groupedTasks.length > 0 && (
+                <Tag color="blue" style={{ marginLeft: 12 }}>
+                  {groupedTasks.reduce((sum, day) => sum + day.tasks.length, 0)} 个任务
+                </Tag>
+              )}
+              <span style={{ marginLeft: 16, fontSize: 12, color: '#8c8c8c' }}>
+                (工作时间 8:00-12:00, 14:00-18:00，午休 12:00-14:00)
+              </span>
+            </div>
+          }
+          extra={
+            <Space>
+              <Segmented
+                value={timeRange}
+                onChange={(value) => setTimeRange(value as TimeRange)}
+                options={[
+                  { label: '本周', value: 'week' },
+                  { label: '本月', value: 'month' },
+                  { label: '全部', value: 'all' }
+                ]}
+              />
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={handleExportExcel}
+                disabled={groupedTasks.length === 0}
+              >
+                导出EXCEL
+              </Button>
+            </Space>
+          }
+          className="shadow-sm border-none"
+          styles={{ body: { padding: '12px 24px 24px' } }}
+        >
+          {groupedTasks.length === 0 ? (
+            <Empty description="暂无排程数据" />
+          ) : (
+            <div style={{ maxHeight: 480, overflowY: 'auto' }}>
+              <Collapse
+                bordered={false}
+                defaultActiveKey={groupedTasks.slice(0, 3).map(d => d.date)}
+                expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
+                style={{ background: 'transparent' }}
+                items={groupedTasks.map((day) => {
+                  const isToday = dayjs(day.date).isSame(dayjs(), 'day')
+                  return {
+                    key: day.date,
+                    style: {
+                      marginBottom: 12,
+                      background: isToday ? '#f6ffed' : '#fafafa',
+                      borderRadius: 8,
+                      border: isToday ? '1px solid #b7eb8f' : '1px solid #f0f0f0',
+                    },
+                    label: (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <CalendarOutlined style={{ color: isToday ? '#52c41a' : '#1890ff' }} />
+                        <span style={{
+                          fontWeight: 600,
+                          color: isToday ? '#52c41a' : '#1890ff'
+                        }}>
+                          {day.dayLabel}
+                        </span>
+                        <Tag color={isToday ? 'success' : 'processing'}>
+                          {day.tasks.length} 个任务
+                        </Tag>
+                      </div>
+                    ),
+                    children: (
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                        gap: 12
                       }}>
-                        {day.dayLabel}
-                      </span>
-                      <Tag color={isToday ? 'success' : 'processing'}>
-                        {day.tasks.length} 个任务
-                      </Tag>
-                    </div>
-                  ),
-                  children: (
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                      gap: 12
-                    }}>
-                      {day.tasks.map((task, index) => (
-                        <div
-                          key={`${task['task id']}-${index}`}
-                          style={{
-                            background: '#fff',
-                            borderRadius: 8,
-                            padding: '12px 14px',
-                            border: '1px solid #e8e8e8',
-                            transition: 'all 0.2s',
-                            cursor: 'default',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'
-                            e.currentTarget.style.borderColor = '#1890ff'
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.boxShadow = 'none'
-                            e.currentTarget.style.borderColor = '#e8e8e8'
-                          }}
-                        >
-                          {/* 第一行：工序名称 + 时间 */}
-                          <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: 8
-                          }}>
-                            <span style={{
-                              fontWeight: 500,
-                              color: '#262626',
-                              fontSize: 14,
+                        {day.tasks.map((task, index) => (
+                          <div
+                            key={`${task['task id']}-${index}`}
+                            style={{
+                              background: '#fff',
+                              borderRadius: 8,
+                              padding: '12px 14px',
+                              border: '1px solid #e8e8e8',
+                              transition: 'all 0.2s',
+                              cursor: 'default',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'
+                              e.currentTarget.style.borderColor = '#1890ff'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.boxShadow = 'none'
+                              e.currentTarget.style.borderColor = '#e8e8e8'
+                            }}
+                          >
+                            {/* 第一行：工序名称 + 时间 */}
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: 8
+                            }}>
+                              <span style={{
+                                fontWeight: 500,
+                                color: '#262626',
+                                fontSize: 14,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                flex: 1,
+                                marginRight: 8
+                              }}>
+                                {task.name}
+                              </span>
+                              <span style={{
+                                color: '#52c41a',
+                                fontWeight: 500,
+                                fontSize: 13,
+                                flexShrink: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4
+                              }}>
+                                <ClockCircleOutlined />
+                                {dayjs(task.planstart).format('HH:mm')}-{
+                                  dayjs(task.planend).isSame(dayjs(task.planstart), 'day')
+                                    ? dayjs(task.planend).format('HH:mm')
+                                    : '18:00'
+                                }
+                              </span>
+                            </div>
+                            {/* 第二行：产品名称 */}
+                            <div style={{
+                              color: '#8c8c8c',
+                              fontSize: 12,
+                              marginBottom: 8,
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              flex: 1,
-                              marginRight: 8
+                              whiteSpace: 'nowrap'
                             }}>
-                              {task.name}
-                            </span>
-                            <span style={{
-                              color: '#52c41a',
-                              fontWeight: 500,
-                              fontSize: 13,
-                              flexShrink: 0,
+                              {task.product_name}
+                            </div>
+                            {/* 第三行：班组 */}
+                            <div style={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: 4
+                              gap: 6,
+                              color: '#595959',
+                              fontSize: 12,
+                              marginBottom: 4
                             }}>
-                              <ClockCircleOutlined />
-                              {dayjs(task.planstart).format('HH:mm')}-{
-                                dayjs(task.planend).isSame(dayjs(task.planstart), 'day')
-                                  ? dayjs(task.planend).format('HH:mm')
-                                  : '18:00'
-                              }
-                            </span>
+                              <TeamOutlined style={{ color: '#1890ff' }} />
+                              <span>{task['team name']}</span>
+                            </div>
+                            {/* 第四行：工位 */}
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              color: '#595959',
+                              fontSize: 12
+                            }}>
+                              <EnvironmentOutlined style={{ color: '#faad14' }} />
+                              <span>{task['station name']}</span>
+                            </div>
                           </div>
-                          {/* 第二行：产品名称 */}
-                          <div style={{
-                            color: '#8c8c8c',
-                            fontSize: 12,
-                            marginBottom: 8,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {task.product_name}
-                          </div>
-                          {/* 第三行：班组 */}
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            color: '#595959',
-                            fontSize: 12,
-                            marginBottom: 4
-                          }}>
-                            <TeamOutlined style={{ color: '#1890ff' }} />
-                            <span>{task['team name']}</span>
-                          </div>
-                          {/* 第四行：工位 */}
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            color: '#595959',
-                            fontSize: 12
-                          }}>
-                            <EnvironmentOutlined style={{ color: '#faad14' }} />
-                            <span>{task['station name']}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )
-                }
-              })}
-            />
-          </div>
-        )}
-      </Card>
+                        ))}
+                      </div>
+                    )
+                  }
+                })}
+              />
+            </div>
+          )}
+        </Card>
+      )}
     </div>
   )
 }
