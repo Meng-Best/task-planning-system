@@ -441,14 +441,44 @@ router.post('/withdraw', async (req, res) => {
             });
         }
 
+        const parsedTaskIds = taskIds.map(id => parseInt(id));
+
+        // 获取被撤回任务关联的所有 ScheduleStep 的 id
+        const steps = await prisma.scheduleStep.findMany({
+            where: {
+                taskId: { in: parsedTaskIds }
+            },
+            select: { id: true }
+        });
+        const stepIds = steps.map(s => String(s.id));
+
         // 只更新 status=3 (待生产) 的任务，回退到 status=1 (已拆分)
         const result = await prisma.productionTask.updateMany({
             where: {
-                id: { in: taskIds.map(id => parseInt(id)) },
+                id: { in: parsedTaskIds },
                 status: 3
             },
             data: { status: 1 }
         });
+
+        // 更新 output.json，移除被撤回任务的排程数据
+        if (result.count > 0 && stepIds.length > 0) {
+            try {
+                const outputPath = path.join(__dirname, '../../../output.json');
+                const outputData = JSON.parse(await fs.readFile(outputPath, 'utf-8'));
+
+                // 从 task_plan 中移除被撤回的步骤
+                if (outputData.task_plan) {
+                    outputData.task_plan = outputData.task_plan.filter(
+                        task => !stepIds.includes(task['task id'])
+                    );
+                }
+
+                await fs.writeFile(outputPath, JSON.stringify(outputData, null, 4), 'utf-8');
+            } catch (fileError) {
+                console.warn('更新 output.json 失败:', fileError.message);
+            }
+        }
 
         res.json({
             status: 'ok',
