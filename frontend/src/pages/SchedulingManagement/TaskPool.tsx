@@ -296,7 +296,6 @@ const TaskPool: React.FC = () => {
           if (response.data.status === 'ok') {
             message.success('任务已撤回')
             fetchData(pagination.current, pagination.pageSize)
-            fetchScheduleData() // 刷新任务日历看板
           }
         } catch (error) {
           message.error('撤回失败')
@@ -327,7 +326,6 @@ const TaskPool: React.FC = () => {
           if (response.data.status === 'ok') {
             message.success(`成功撤回 ${response.data.data.withdrawnCount} 个任务`)
             fetchData(pagination.current, pagination.pageSize)
-            fetchScheduleData() // 刷新任务日历看板
           }
         } catch (error) {
           message.error('批量撤回失败')

@@ -441,59 +441,14 @@ router.post('/withdraw', async (req, res) => {
             });
         }
 
-        const parsedTaskIds = taskIds.map(id => parseInt(id));
-
-        // 获取被撤回任务的 code（用于匹配 output.json 中的 order code）
-        const tasksToWithdraw = await prisma.productionTask.findMany({
-            where: {
-                id: { in: parsedTaskIds },
-                status: 3
-            },
-            select: { id: true, code: true }
-        });
-        const taskCodes = tasksToWithdraw.map(t => t.code);
-
         // 只更新 status=3 (待生产) 的任务，回退到 status=1 (已拆分)
         const result = await prisma.productionTask.updateMany({
             where: {
-                id: { in: parsedTaskIds },
+                id: { in: taskIds.map(id => parseInt(id)) },
                 status: 3
             },
             data: { status: 1 }
         });
-
-        // 更新 output.json，移除被撤回任务的排程数据
-        if (result.count > 0 && taskCodes.length > 0) {
-            try {
-                const outputPath = path.join(__dirname, '../../../output.json');
-                const outputData = JSON.parse(await fs.readFile(outputPath, 'utf-8'));
-
-                // 从 task_plan 中移除被撤回任务的工序（通过 order code 匹配 task code）
-                if (outputData.task_plan) {
-                    outputData.task_plan = outputData.task_plan.filter(
-                        task => !taskCodes.includes(task['order code'])
-                    );
-                }
-
-                // 从 product_order_plan 中移除被撤回的订单计划
-                if (outputData.product_order_plan) {
-                    outputData.product_order_plan = outputData.product_order_plan.filter(
-                        order => !taskCodes.includes(order['Order code'])
-                    );
-                }
-
-                // 从 best_order_sequence 中移除被撤回的任务
-                if (outputData.best_order_sequence) {
-                    outputData.best_order_sequence = outputData.best_order_sequence.filter(
-                        code => !taskCodes.includes(code)
-                    );
-                }
-
-                await fs.writeFile(outputPath, JSON.stringify(outputData, null, 4), 'utf-8');
-            } catch (fileError) {
-                console.warn('更新 output.json 失败:', fileError.message);
-            }
-        }
 
         res.json({
             status: 'ok',
