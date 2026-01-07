@@ -138,6 +138,19 @@ app.get('/', (req, res) => {
   });
 });
 
+// ========== 生产环境：托管前端静态文件 ==========
+const path = require('path');
+const frontendPath = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendPath));
+// 所有非 API 路由都返回前端入口文件（支持前端路由）
+app.get('*', (req, res, next) => {
+  // 如果是 API 请求，跳过
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
