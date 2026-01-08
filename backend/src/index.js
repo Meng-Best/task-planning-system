@@ -112,32 +112,6 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /:
- *   get:
- *     summary: API 根路径
- *     description: 获取 API 基本信息和可用端点
- *     tags: [System]
- *     responses:
- *       200:
- *         description: API 信息
- */
-app.get('/', (req, res) => {
-  res.json({
-    name: 'Task Planning System API',
-    version: '1.0.0',
-    endpoints: {
-      health: '/api/health',
-      tasks: '/api/tasks',
-      calendar: '/api/calendar',
-      factories: '/api/factories',
-      devices: '/api/devices',
-      docs: '/api-docs'
-    }
-  });
-});
-
 // ========== 生产环境：托管前端静态文件 ==========
 const path = require('path');
 const frontendPath = path.join(__dirname, '../../frontend/dist');
