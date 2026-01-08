@@ -25,7 +25,7 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 
 const { Text, Title } = Typography;
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = '';
 
 interface Product {
     id: number;

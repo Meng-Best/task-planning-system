@@ -65,7 +65,7 @@ interface Factory {
   updatedAt: string
 }
 
-const API_BASE_URL = 'http://localhost:3001'
+const API_BASE_URL = ''
 const LINE_TYPE_OPTIONS = [
   { value: 0, label: '部装' },
   { value: 1, label: '总装' }

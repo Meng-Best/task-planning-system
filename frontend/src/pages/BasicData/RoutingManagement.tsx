@@ -28,7 +28,7 @@ import {
 import axios from 'axios';
 import { ROUTING_TYPE_OPTIONS, getProcessTypeLabel } from '../../config/dictionaries';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = '';
 
 interface Routing {
     id: number;

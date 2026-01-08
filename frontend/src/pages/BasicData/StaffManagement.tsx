@@ -53,7 +53,7 @@ interface Staff {
   updatedAt: string
 }
 
-const API_BASE_URL = 'http://localhost:3001'
+const API_BASE_URL = ''
 
 const StaffManagement: React.FC = () => {
   const [staffs, setStaffs] = useState<Staff[]>([])

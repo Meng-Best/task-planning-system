@@ -31,7 +31,7 @@ import {
 import axios from 'axios';
 import { getRoutingTypeLabel } from '../../config/dictionaries';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = '';
 
 interface Product {
     id: number;

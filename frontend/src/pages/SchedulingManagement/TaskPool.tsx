@@ -39,7 +39,7 @@ import { ORDER_TYPE_OPTIONS } from '../../config/dictionaries'
 dayjs.extend(isoWeek)
 
 const { Title } = Typography
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 interface ProductionTask {
   id: number
@@ -296,6 +296,7 @@ const TaskPool: React.FC = () => {
           if (response.data.status === 'ok') {
             message.success('任务已撤回')
             fetchData(pagination.current, pagination.pageSize)
+            fetchScheduleData() // 刷新看板数据
           }
         } catch (error) {
           message.error('撤回失败')
@@ -326,6 +327,7 @@ const TaskPool: React.FC = () => {
           if (response.data.status === 'ok') {
             message.success(`成功撤回 ${response.data.data.withdrawnCount} 个任务`)
             fetchData(pagination.current, pagination.pageSize)
+            fetchScheduleData() // 刷新看板数据
           }
         } catch (error) {
           message.error('批量撤回失败')

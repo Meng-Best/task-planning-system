@@ -30,7 +30,7 @@ import dayjs from 'dayjs';
 //import { PRODUCTION_TASK_STATUS_OPTIONS } from '../../config/dictionaries';
 
 const { Text, Title } = Typography;
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = '';
 
 interface Product {
     id: number;

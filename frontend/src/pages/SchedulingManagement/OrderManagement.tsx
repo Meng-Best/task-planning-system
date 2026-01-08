@@ -29,7 +29,7 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import { ORDER_TYPE_OPTIONS, ORDER_STATUS_OPTIONS } from '../../config/dictionaries';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = '';
 
 interface Product {
     id: number;

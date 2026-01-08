@@ -28,7 +28,7 @@ import {
 import axios from 'axios';
 import { PROCESS_TYPE_OPTIONS } from '../../config/dictionaries';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = '';
 
 interface Process {
     id: number;

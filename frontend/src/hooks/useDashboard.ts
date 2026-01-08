@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { message } from 'antd';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = '';
 
 // 资源统计数据类型
 export interface ResourceStats {

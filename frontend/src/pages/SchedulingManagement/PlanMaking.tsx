@@ -38,7 +38,7 @@ import {
 
 const { Text, Title } = Typography
 const { RangePicker } = DatePicker
-const API_BASE_URL = 'http://localhost:3001'
+const API_BASE_URL = ''
 
 interface Product {
   id: number

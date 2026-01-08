@@ -112,7 +112,7 @@ const LINE_DATE_TYPE_OPTIONS = [
   }
 ]
 
-const API_BASE_URL = 'http://localhost:3001'
+const API_BASE_URL = ''
 
 const WorkCalendar: React.FC<WorkCalendarProps> = ({ productionLineId, productionLineName }) => {
   const [events, setEvents] = useState<Map<string, CalendarEvent>>(new Map())

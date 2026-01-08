@@ -26,7 +26,7 @@ import {
 import TreeTransfer from '../../components/TreeTransfer';
 
 const { Text } = Typography;
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = '';
 
 interface Staff {
   id: number;

@@ -18,7 +18,7 @@ import { useTabStore } from '../../store/useTabStore'
 
 const { Title, Text, Paragraph } = Typography
 
-const API_BASE_URL = 'http://localhost:3001'
+const API_BASE_URL = ''
 
 type ScheduleStatus = 'idle' | 'running' | 'completed' | 'error'
 

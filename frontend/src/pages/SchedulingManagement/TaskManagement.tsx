@@ -29,7 +29,7 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import { PRODUCTION_TASK_STATUS_OPTIONS, ORDER_TYPE_OPTIONS } from '../../config/dictionaries';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = '';
 
 interface Order {
     id: number;

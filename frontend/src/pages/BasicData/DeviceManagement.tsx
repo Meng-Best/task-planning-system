@@ -47,7 +47,7 @@ import {
 } from '../../config/dictionaries'
 
 const { Text } = Typography
-const API_BASE_URL = 'http://localhost:3001'
+const API_BASE_URL = ''
 
 interface Device {
   id: number
