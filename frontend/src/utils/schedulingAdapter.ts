@@ -185,11 +185,12 @@ export function transformToSchedulingInput(
     // 5. 构建产品库（传入设备名称）
     const productLibrary = buildProductLibrary(tasks, machineNames);
 
-    // 6. 构建配置
+    // 6. 构建配置（传入工序编码用于判断产品类型）
     const config = buildConfig(
         transformedResources,
         calendar,
-        startDate || formatDate(new Date())
+        startDate || formatDate(new Date()),
+        allProcessCodes
     );
 
     return {
@@ -474,12 +475,35 @@ function addProductToLibrary(
 
 /**
  * 构建系统配置
+ * @param resources - 资源数据
+ * @param calendar - 日历数据
+ * @param startDate - 开始日期
+ * @param allProcessCodes - 所有工序编码（用于判断产品类型）
  */
 function buildConfig(
     resources: Resources,
     calendar: BackendCalendar,
-    startDate: string
+    startDate: string,
+    allProcessCodes: string[]
 ): Config {
+    // 判断任务涉及哪些产品类型 (GT=固体, YT=液体)
+    const hasGT = allProcessCodes.some(code => extractProcessType(code) === 'GT');
+    const hasYT = allProcessCodes.some(code => extractProcessType(code) === 'YT');
+
+    /**
+     * 根据产品类型过滤工位
+     * - 只有固体产品时，过滤掉液体工位
+     * - 只有液体产品时，过滤掉固体工位
+     * - 混合产品时，保留所有工位
+     */
+    const filterStationByProductType = (station: Station): boolean => {
+        const stationType = extractProcessType(station.code);
+        if (!stationType) return true;  // 无类型标识的工位保留
+        if (stationType === 'GT' && hasGT) return true;
+        if (stationType === 'YT' && hasYT) return true;
+        return false;  // 不匹配则过滤掉
+    };
+
     // 构建资源名称配置
     // 测试工位(type=2)根据编码分配：含ZZ归总装，含BZ归部装，都没有则不加入
     const configResources: ConfigResources = {
@@ -487,9 +511,11 @@ function buildConfig(
         machines: resources.machines.map(m => m.name),
         part_stations: resources.stations
             .filter(s => isPartStation(s) || (isTestStation(s) && hasCodePattern(s, 'BZ')))
+            .filter(filterStationByProductType)
             .map(s => s.name),
         final_stations: resources.stations
             .filter(s => isFinalStation(s) || (isTestStation(s) && hasCodePattern(s, 'ZZ')))
+            .filter(filterStationByProductType)
             .map(s => s.name)
     };
 
