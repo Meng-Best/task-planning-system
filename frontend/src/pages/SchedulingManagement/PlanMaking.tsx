@@ -116,7 +116,7 @@ const PlanMaking: React.FC = () => {
       const [teamsRes, devicesRes, stationsRes, calendarRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/api/teams`, { params: { pageSize: 9999 } }),
         axios.get(`${API_BASE_URL}/api/devices`, { params: { pageSize: 9999 } }),
-        axios.get(`${API_BASE_URL}/api/stations`, { params: { pageSize: 9999 } }),
+        axios.get(`${API_BASE_URL}/api/stations`, { params: { limit: 9999 } }),
         axios.get(`${API_BASE_URL}/api/calendar`, {
           params: {
             startDate: schedulingRange[0].format('YYYY-MM-DD'),
