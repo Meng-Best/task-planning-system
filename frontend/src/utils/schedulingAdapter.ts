@@ -481,14 +481,15 @@ function buildConfig(
     startDate: string
 ): Config {
     // 构建资源名称配置
+    // 测试工位(type=2)根据编码分配：含ZZ归总装，含BZ归部装，都没有则不加入
     const configResources: ConfigResources = {
         crews: resources.teams.map(t => t.name),
         machines: resources.machines.map(m => m.name),
         part_stations: resources.stations
-            .filter(s => isPartStation(s))
+            .filter(s => isPartStation(s) || (isTestStation(s) && hasCodePattern(s, 'BZ')))
             .map(s => s.name),
         final_stations: resources.stations
-            .filter(s => isFinalStation(s))
+            .filter(s => isFinalStation(s) || (isTestStation(s) && hasCodePattern(s, 'ZZ')))
             .map(s => s.name)
     };
 
@@ -558,6 +559,29 @@ function isFinalStation(station: Station): boolean {
     // 兼容旧逻辑：根据编码判断
     const code = station.code.toLowerCase();
     return code.includes('final') || code.includes('zz');
+}
+
+/**
+ * 判断工位是否为测试工位
+ * 使用 type 字段判断：0=部装, 1=总装, 2=测试
+ */
+function isTestStation(station: Station): boolean {
+    // 优先使用 type 字段
+    if (station.type !== undefined) {
+        return station.type === 2; // 2=测试
+    }
+    // 兼容旧逻辑：根据编码判断
+    const code = station.code.toLowerCase();
+    return code.includes('test') || code.includes('cs');
+}
+
+/**
+ * 判断工位编码是否包含指定模式
+ * @param station - 工位对象
+ * @param pattern - 要匹配的模式 (如 'ZZ', 'BZ')
+ */
+function hasCodePattern(station: Station, pattern: string): boolean {
+    return station.code.toUpperCase().includes(pattern.toUpperCase());
 }
 
 /**
