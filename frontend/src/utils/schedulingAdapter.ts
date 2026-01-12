@@ -495,8 +495,12 @@ function buildConfig(
      * - 只有固体产品时，过滤掉液体工位
      * - 只有液体产品时，过滤掉固体工位
      * - 混合产品时，保留所有工位
+     * - 无法识别产品类型时，保留所有工位（防止程序出错）
      */
     const filterStationByProductType = (station: Station): boolean => {
+        // 安全兜底：如果既没有GT也没有YT，保留所有工位
+        if (!hasGT && !hasYT) return true;
+
         const stationType = extractProcessType(station.code);
         if (!stationType) return true;  // 无类型标识的工位保留
         if (stationType === 'GT' && hasGT) return true;
