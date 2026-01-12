@@ -83,7 +83,7 @@ const SimulationEvaluation: React.FC = () => {
   const startPolling = (scheduleStartTime: string) => {
     const startTime = Date.now()
     const animationDuration = 30000 + Math.random() * 30000
-    const maxWaitTime = 600000
+    const maxWaitTime = 2400000 // 40分钟最大等待时间
     let fileDetected = false
 
     pollingIntervalRef.current = setInterval(async () => {
@@ -152,9 +152,9 @@ const SimulationEvaluation: React.FC = () => {
         }
       }
 
-      // 超过90秒自动视为调度成功
+      // 超过30分钟自动视为调度成功
       const elapsedSeconds = elapsed / 1000
-      if (elapsedSeconds >= 90 && !fileDetected) {
+      if (elapsedSeconds >= 1800 && !fileDetected) {
         fileDetected = true
 
         if (pollingIntervalRef.current) {
