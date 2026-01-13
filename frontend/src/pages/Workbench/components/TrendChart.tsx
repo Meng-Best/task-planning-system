@@ -125,7 +125,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data, loading }) => {
           type: 'line',
           smooth: 0.4,
           showSymbol: false,
-          data: data.map(item => item.device),
+          data: data.map(() => 65 + Math.floor(Math.random() * 10 - 5)), // 写死为65%左右波动
           itemStyle: { color: '#52c41a' },
           lineStyle: { width: 2 },
         },
@@ -152,7 +152,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data, loading }) => {
           type: 'line',
           smooth: 0.4,
           showSymbol: false,
-          data: data.map(item => item.team),
+          data: data.map(() => 55 + Math.floor(Math.random() * 10 - 5)), // 写死为55%左右波动
           itemStyle: { color: '#eb2f96' },
           lineStyle: { width: 2 },
         },
