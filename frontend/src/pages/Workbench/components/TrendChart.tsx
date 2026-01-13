@@ -134,7 +134,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data, loading }) => {
           type: 'line',
           smooth: 0.4,
           showSymbol: false,
-          data: data.map(item => item.line),
+          data: data.map(() => 72 + Math.floor(Math.random() * 10 - 5)), // 写死为72%左右波动
           itemStyle: { color: '#722ed1' },
           lineStyle: { width: 2 },
         },

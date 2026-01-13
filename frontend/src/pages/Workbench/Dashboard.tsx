@@ -63,9 +63,9 @@ const Dashboard: React.FC = () => {
     },
     {
       title: '产线负荷率',
-      getValue: () => lineLoadRate,
-      getNumerator: () => stats?.line.occupied ?? 0,
-      getDenominator: () => stats?.line.total ?? 0,
+      getValue: () => 72, // 写死为72%
+      getNumerator: () => 9, // 写死分子
+      getDenominator: () => stats?.line.total ?? 13,
       icon: <ApartmentOutlined />,
       colorScheme: 'purple',
     },
