@@ -46,7 +46,6 @@ const Dashboard: React.FC = () => {
     loading,
     lastUpdated,
     factoryUsageRate,
-    lineLoadRate,
     staffAvailableRate,
     deviceUsageRate,
   } = useDashboard();
