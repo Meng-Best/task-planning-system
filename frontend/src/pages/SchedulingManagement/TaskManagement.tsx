@@ -188,7 +188,7 @@ const TaskManagement: React.FC = () => {
 
     const columns = [
         {
-            title: '任务编号',
+            title: '生产订单编号',
             dataIndex: 'code',
             key: 'code',
             width: 180,
@@ -196,14 +196,14 @@ const TaskManagement: React.FC = () => {
             render: (code: string) => <span className="business-code">{code}</span>
         },
         {
-            title: '订单编号',
+            title: '销售订单编号',
             dataIndex: ['order', 'code'],
             key: 'orderCode',
             width: 150,
             render: (code: string) => <span className="business-code">{code}</span>
         },
         {
-            title: '订单名称',
+            title: '销售订单名称',
             dataIndex: ['order', 'name'],
             key: 'orderName',
             width: 200,
@@ -281,7 +281,7 @@ const TaskManagement: React.FC = () => {
                 <Col span={8}>
                     <Card className="shadow-sm border-none" styles={{ body: { padding: '20px' } }}>
                         <Statistic
-                            title={<span className="text-gray-500 font-medium">任务总数</span>}
+                            title={<span className="text-gray-500 font-medium">销售订单总数</span>}
                             value={stats.total}
                             prefix={<CheckSquareOutlined />}
                             valueStyle={{ color: '#1890ff', fontWeight: 700 }}
@@ -316,7 +316,7 @@ const TaskManagement: React.FC = () => {
                     <div className="flex items-center justify-between" style={{ padding: '4px 0' }}>
                         <Space size={12}>
                             <CheckSquareOutlined className="text-blue-500" style={{ fontSize: '20px' }} />
-                            <span style={{ fontSize: '18px', fontWeight: 'bold' }}>生产任务列表</span>
+                            <span style={{ fontSize: '18px', fontWeight: 'bold' }}>生产订单列表</span>
                         </Space>
                         <Button type="primary" icon={<ShoppingOutlined />} onClick={handleOpenCreateModal}>
                             从订单创建任务
@@ -349,7 +349,7 @@ const TaskManagement: React.FC = () => {
 
             {/* 创建任务对话框 */}
             <Modal
-                title="从订单创建生产任务"
+                title="从销售订单创建生产订单"
                 open={isCreateModalOpen}
                 onCancel={() => setIsCreateModalOpen(false)}
                 footer={null}
@@ -366,7 +366,7 @@ const TaskManagement: React.FC = () => {
                     <div>
                         <Alert
                             message="选择要拆分的订单"
-                            description="显示还有剩余可创建任务的订单。点击订单卡片进行选择，可以分批创建生产任务"
+                            description="显示还有剩余可创建任务的订单。点击订单卡片进行选择，可以分批创建生产订单"
                             type="info"
                             showIcon
                             style={{ marginBottom: 16 }}
@@ -476,7 +476,7 @@ const TaskManagement: React.FC = () => {
                                 size="large"
                             />
                             <div style={{ marginTop: 16, color: '#8c8c8c' }}>
-                                将创建 <span style={{ color: '#1890ff', fontWeight: 'bold', fontSize: 18 }}>{taskCount}</span> 个生产任务，每个任务生产 1 个产品
+                                将创建 <span style={{ color: '#1890ff', fontWeight: 'bold', fontSize: 18 }}>{taskCount}</span> 个生产订单，每个订单生产 1 个产品
                             </div>
                             <div style={{ marginTop: 8, color: '#fa8c16' }}>
                                 创建后剩余可创建: {selectedOrder.quantity - selectedOrder.scheduledQuantity - taskCount} 个
@@ -498,7 +498,7 @@ const TaskManagement: React.FC = () => {
                     <div>
                         <Alert
                             message="确认创建"
-                            description='请确认以下信息，点击"创建"按钮后将生成生产任务'
+                            description='请确认以下信息，点击"创建"按钮后将生成生产订单'
                             type="warning"
                             showIcon
                             style={{ marginBottom: 24 }}
@@ -507,7 +507,7 @@ const TaskManagement: React.FC = () => {
                             <div style={{ textAlign: 'center', padding: '20px' }}>
                                 <CheckCircleOutlined style={{ fontSize: 48, color: '#52c41a', marginBottom: 16 }} />
                                 <div style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>
-                                    即将从订单 [{selectedOrder.code}] 创建 {taskCount} 个生产任务
+                                    即将从订单 [{selectedOrder.code}] 创建 {taskCount} 个生产订单
                                 </div>
                                 <div style={{ color: '#8c8c8c', marginBottom: 24 }}>
                                     产品: {selectedOrder.product.name} ({selectedOrder.product.code})

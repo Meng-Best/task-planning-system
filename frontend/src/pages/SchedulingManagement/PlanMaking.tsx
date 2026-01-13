@@ -749,7 +749,7 @@ const PlanMaking: React.FC = () => {
         <Col span={24}>
           <Empty
             style={{ padding: '60px 0' }}
-            description={<Text type="secondary">暂无拆分后的生产任务</Text>}
+            description={<Text type="secondary">暂无拆分后的生产订单</Text>}
           />
         </Col>
       )

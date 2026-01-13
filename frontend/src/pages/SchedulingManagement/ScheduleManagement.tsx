@@ -229,7 +229,7 @@ const ScheduleManagement: React.FC = () => {
                                     <Card
                                         title={
                                             <Space>
-                                                <Text strong>任务清单 ({tasks.length})</Text>
+                                                <Text strong>待拆分生产订单 ({tasks.length})</Text>
                                             </Space>
                                         }
                                         className="shadow-sm"
@@ -279,7 +279,7 @@ const ScheduleManagement: React.FC = () => {
                                             selectedTask ? (
                                                 <Space>
                                                     <BuildOutlined />
-                                                    <Text strong>任务拆分: {selectedTask.code}</Text>
+                                                    <Text strong>生产订单拆分: {selectedTask.code}</Text>
                                                 </Space>
                                             ) : (
                                                 <Text type="secondary">请从左侧选择任务</Text>
@@ -409,7 +409,7 @@ const ScheduleManagement: React.FC = () => {
                         {selectedTask && steps.length > 0 ? (
                             <Space direction="vertical" style={{ width: '100%' }} size={16}>
                                 <div>
-                                    <Text type="secondary">任务编号:</Text>
+                                    <Text type="secondary">生产订单编号:</Text>
                                     <div className="business-code" style={{ marginTop: 4 }}>{selectedTask.code}</div>
                                 </div>
                                 <Divider style={{ margin: '8px 0' }} />

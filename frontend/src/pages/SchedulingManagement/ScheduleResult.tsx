@@ -92,8 +92,8 @@ const ScheduleResult: React.FC = () => {
     }
 
     Modal.confirm({
-      title: '确认排程结果',
-      content: `确认后，${taskCodes.length} 个任务将进入生产任务池，不再参与后续排程。是否确认？`,
+      title: '确认锁定计划',
+      content: `确认后，${taskCodes.length} 个任务将进入生产任务池，不再参与后续排程。是否确认锁定计划？`,
       okText: '确认',
       cancelText: '取消',
       onOk: async () => {
@@ -109,8 +109,8 @@ const ScheduleResult: React.FC = () => {
             }
           }
         } catch (error) {
-          console.error('确认排程失败:', error)
-          message.error('确认排程失败，请稍后重试')
+          console.error('锁定计划失败:', error)
+          message.error('锁定计划失败，请稍后重试')
         } finally {
           setConfirming(false)
         }
@@ -232,7 +232,7 @@ const ScheduleResult: React.FC = () => {
               loading={confirming}
               style={{ background: '#52c41a', borderColor: '#52c41a' }}
             >
-              确认排程
+              锁定计划
             </Button>
           </Space>
         </div>
