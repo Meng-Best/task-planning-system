@@ -340,21 +340,21 @@ const TaskPool: React.FC = () => {
 
   const columns = [
     {
-      title: '任务编号',
+      title: '生产订单编号',
       dataIndex: 'code',
       key: 'code',
       width: 180,
       render: (code: string) => <span className="business-code">{code}</span>
     },
     {
-      title: '订单编号',
+      title: '销售订单编号',
       dataIndex: ['order', 'code'],
       key: 'orderCode',
       width: 150,
       render: (code: string) => <span className="business-code">{code}</span>
     },
     {
-      title: '订单名称',
+      title: '销售订单名称',
       dataIndex: ['order', 'name'],
       key: 'orderName',
       width: 150,

@@ -778,11 +778,11 @@ const PlanMaking: React.FC = () => {
                 <Text strong className="business-code">
                   {task.code}
                 </Text>
-                <Tag color={orderTypeConfig?.color || 'default'}>{orderTypeConfig?.label || '订单'}</Tag>
                 <Tag color={statusConfig?.color || 'default'}>{statusConfig?.label || '未知状态'}</Tag>
+                <Tag color={orderTypeConfig?.color || 'default'}>{orderTypeConfig?.label || '订单'}</Tag>
                 {segments.length === 0 && <Tag color="orange">拆分不完整</Tag>}
                 <span style={{ color: '#8c8c8c', fontSize: 12 }}>
-                  订单: {task.order.name} ({task.order.code})
+                  销售订单: {task.order.name} ({task.order.code})
                 </span>
               </div>
             }
